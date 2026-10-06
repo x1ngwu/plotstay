@@ -127,6 +127,43 @@ test('SEO-01–05: live API, built SSR, XML and publication lifecycle', { timeou
     assert.match(robots, /Allow: \//); assert.ok(!robots.includes('Disallow:')); assert.ok(robots.includes(`Sitemap: ${origin}/sitemap.xml`));
   });
 
+  await t.test('SSR descriptions use published text in the page language when summaries are empty', async () => {
+    const descriptions = { en: 'The "quiet" room & its library.\n\tStay beside the river.', 'zh-CN': '安静的客房与图书馆。\n\t在河边住一晚。' };
+    const expected = { en: 'The "quiet" room & its library. Stay beside the river.', 'zh-CN': '安静的客房与图书馆。 在河边住一晚。' };
+    const input = createContentSchema.parse({ ...sample('description-fallback'),
+      text: { title: 'A room with no summary', summary: '', description: descriptions.en },
+      translations: { 'zh-CN': { title: '没有摘要的客房', description: descriptions['zh-CN'] } } });
+    const content = await createContent(f.db, f.data.owner, input); await publish(content);
+    const variants = [['en', 'en'], ['zh', 'zh-CN']] as const;
+    for (const [prefix, code] of variants) {
+      const path = `/${prefix}/worlds/lathe-worlds/stays/description-fallback`;
+      const data = await inspect(path);
+      assert.equal(data.status, 200); assert.equal(data.description, expected[code]);
+      assert.deepEqual(data.canonicals, [origin + path]); assert.ok(!data.robots);
+    }
+    const longDescriptions = { en: 'Explore the riverside workshop and meet its resident guide. '.repeat(20), 'zh-CN': '🚀参观河畔工坊，认识这里的向导。'.repeat(30) };
+    const experience = await createContent(f.db, f.data.owner, createContentSchema.parse({ ...sample('description-excerpt'),
+      kind: 'experience', text: { title: 'Workshop tour', description: longDescriptions.en },
+      translations: { 'zh-CN': { title: '工坊之旅', summary: '  ', description: longDescriptions['zh-CN'] } },
+      attributes: { price: { amount: 1, unit: 'person' }, durationMinutes: 60 } }));
+    await publish(experience);
+    for (const [prefix, code] of variants) {
+      const data = await inspect(`/${prefix}/worlds/lathe-worlds/experiences/description-excerpt`);
+      assert.equal(data.status, 200); assert.ok(data.description && data.description.endsWith('…'));
+      assert.ok(Array.from(data.description).length <= 200);
+      assert.ok(longDescriptions[code].startsWith(data.description.slice(0, -1)));
+      assert.ok(data.html.includes(longDescriptions[code].trim()));
+    }
+    const summaries = { en: 'An editor-selected summary. '.repeat(9).trim(), 'zh-CN': '这是编辑选择的人工摘要。'.repeat(18) };
+    const draft = await editContent(f.db, f.data.owner, content.id, editContentSchema.parse({
+      baseRevisionId: content.revisionId, sourceLocale: input.sourceLocale,
+      text: { ...input.text, summary: summaries.en }, attributes: input.attributes,
+      translations: { 'zh-CN': { ...input.translations['zh-CN'], summary: summaries['zh-CN'] } } }));
+    assert.equal((await inspect('/en/worlds/lathe-worlds/stays/description-fallback')).description, expected.en);
+    await publish({ id: content.id, revisionId: draft.revisionId });
+    for (const [prefix, code] of variants) assert.equal((await inspect(`/${prefix}/worlds/lathe-worlds/stays/description-fallback`)).description, summaries[code]);
+  });
+
   await t.test('preview is noindex with empty sitemap; invalid indexed config fails explicitly', async () => {
     const previewPort = await unusedPort(); const previewUrl = `http://127.0.0.1:${previewPort}`;
     const preview = launch('apps/web/dist/server/entry.mjs', { PORT: String(previewPort), SITE_INDEXABLE: undefined, SITE_URL: undefined });
@@ -163,7 +200,7 @@ test('SEO-01–05: live API, built SSR, XML and publication lifecycle', { timeou
     })); await publish(translated);
     const german = await inspect('/de/worlds/lathe-worlds/stays/german-content'); noindex(german);
     assert.match(german.html, /lang="de"/); assert.match(german.html, /Deutsches Zimmer/); assert.ok(!german.html.includes('original language'));
-    assert.ok(!(await sitemap()).some(url => url.includes('/de') || url.includes('unreviewed-language')));
+    assert.ok(!(await sitemap()).some(url => /^\/de(?:\/|$)/.test(new URL(url).pathname) || url.includes('unreviewed-language')));
     const english = await inspect('/en/worlds/lathe-worlds/stays/german-content'); assert.equal(english.alternates.length, 3);
     await f.db.query("UPDATE locales SET enabled=false WHERE code='de'");
     assert.equal((await inspect('/de')).status, 404);

@@ -1,4 +1,4 @@
-import { contentPath, homePath, type Discovery, type Locale, type PublicContent, type World } from '@plotstay/contracts';
+import { contentPath, homePath, type ContentText, type Discovery, type Locale, type PublicContent, type World } from '@plotstay/contracts';
 import { hasDictionary } from './i18n.ts';
 
 export interface SiteConfig { indexable: boolean; origin?: string }
@@ -16,6 +16,17 @@ export function siteConfig(env: NodeJS.ProcessEnv = process.env): SiteConfig {
 }
 export interface Seo { canonical?: string; alternates: { tag: string; url: string }[] }
 export const noIndex = (): Seo => ({ alternates: [] });
+export function contentDescription(text: Pick<ContentText, 'summary' | 'description'>): string {
+  const summary = text.summary.trim();
+  if (summary) return summary;
+  const description = text.description.replace(/\s+/gu, ' ').trim();
+  // This is our excerpt budget, not a search engine limit. Keep authored summaries intact.
+  const characters = Array.from(description);
+  if (characters.length <= 200) return description;
+  const excerpt = characters.slice(0, 199).join('');
+  const wordBoundary = excerpt.lastIndexOf(' ');
+  return (wordBoundary >= 100 ? excerpt.slice(0, wordBoundary) : excerpt).trimEnd() + '…';
+}
 export function eligibleLocales(locales: Locale[], available: string[], worldAvailable = available) {
   return locales.filter(item => hasDictionary(item.code) && available.includes(item.code) && worldAvailable.includes(item.code));
 }

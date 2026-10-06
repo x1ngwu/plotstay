@@ -3,7 +3,7 @@ import Base from '../../../../../layouts/Base.astro';
 import { ApiFailure, getContent, getContents, getWorlds } from '../../../../../lib/api';
 import { messages, uiLocale } from '../../../../../lib/i18n';
 import { homePath, fallbackLocales, type PublicContent, type World } from '@plotstay/contracts';
-import { detailSeo, noIndex } from '../../../../../lib/seo';
+import { contentDescription, detailSeo, noIndex } from '../../../../../lib/seo';
 const { world: worldSlug = '', type = '', slug = '' } = Astro.params;
 const { locales, locale: selectedLocale, localeFailure } = Astro.locals;
 const locale = selectedLocale ?? fallbackLocales[0]!;
@@ -23,7 +23,7 @@ try {
   Astro.response.status = error instanceof ApiFailure && [400, 404].includes(error.status) ? 404 : 503;
 }
 ---
-<Base title={content?.text.title ?? 'Plotstay'} description={content?.text.summary} locale={locale} locales={locales} theme={world?.themeId} seo={failed ? noIndex() : detailSeo(locale, locales, world!, content!)}>
+<Base title={content?.text.title ?? 'Plotstay'} description={content ? contentDescription(content.text) : undefined} locale={locale} locales={locales} theme={world?.themeId} seo={failed ? noIndex() : detailSeo(locale, locales, world!, content!)}>
   {failed ? <h1>{Astro.response.status === 404 ? ui.notFound : ui.unavailable}</h1> : <>
     <a href={homePath(locale, worldSlug)}>← {ui.home} · {world!.name}</a>
     <article class="panel" data-content-id={content!.id} data-publication-id={content!.publicationId}>
