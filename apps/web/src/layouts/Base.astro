@@ -1,29 +1,34 @@
 ---
 import '@plotstay/themes/layout.css';
 import '@plotstay/themes/lime.css';
-import type { Locale } from '@plotstay/contracts';
-import { languagePath, messages } from '../lib/i18n';
-interface Props { title: string; description?: string; locale?: string; locales?: Locale[]; theme?: string }
-const { title, description = '', locale = 'en', locales = [], theme = 'lime' } = Astro.props;
-const ui = messages(locale);
+import { fallbackLocales, homePath, type Locale } from '@plotstay/contracts';
+import { hasDictionary, languagePath, messages, uiLocale } from '../lib/i18n';
+import { noIndex, type Seo } from '../lib/seo';
+interface Props { title: string; description?: string; locale?: Locale; locales?: Locale[]; theme?: string; seo?: Seo }
+const { title, description = '', locale = fallbackLocales[0]!, locales = [], theme = 'lime', seo = noIndex() } = Astro.props;
+const ui = messages(locale.code);
+const interfaceTag = [...locales, ...fallbackLocales].find(item => item.code === uiLocale(locale.code))!.languageTag;
+if (!seo.canonical) Astro.response.headers.set('X-Robots-Tag', 'noindex, follow');
 ---
 <!doctype html>
-<html lang={locale} data-theme={theme === 'lime' ? theme : 'lime'}>
+<html lang={interfaceTag} data-theme={theme === 'lime' ? theme : 'lime'}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
     <title>{title} · Plotstay</title>
     <meta name="description" content={description} />
-    {locales.map(item => <link rel="alternate" hreflang={item.code} href={languagePath(Astro.url, item.code)} />)}
+    {!seo.canonical && <meta name="robots" content="noindex, follow" />}
+    {seo.canonical && <link rel="canonical" href={seo.canonical} />}
+    {seo.alternates.map(item => <link rel="alternate" hreflang={item.tag} href={item.url} />)}
   </head>
   <body>
     <header class="site-header">
-      <a class="brand" href={`/${locale}`}>PLOTSTAY</a>
+      <a class="brand" href={homePath(locale)}>PLOTSTAY</a>
       <nav aria-label="Language">
-        {locales.map(item => <a href={languagePath(Astro.url, item.code)} lang={item.code} aria-current={locale === item.code ? 'page' : undefined}>{item.name}</a>)}
+        {locales.map(item => <a href={languagePath(Astro.url, item)} lang={item.languageTag} aria-current={locale.code === item.code ? 'page' : undefined}>{item.name}</a>)}
       </nav>
     </header>
-    <main><slot /></main>
+    <main>{!hasDictionary(locale.code) && <p class="notice">{ui.uiFallback}</p>}<slot /></main>
     <footer>{ui.about}</footer>
   </body>
 </html>

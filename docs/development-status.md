@@ -1,6 +1,6 @@
 # Plotstay 开发顺序、进度与交接
 
-更新日期：2026 年 10 月 6 日。**阶段 1 已提交推送，阶段 2 的内容管理与发布已完成验收；临时阶段 2.5「多语言 URL 与 SEO 规范修复」已立项，待实施。** 使用手工中英 dummy data。游客页面仍是基础浏览与路由验证页面，首页布局在阶段 2.5 完成后、阶段 3 开始前与用户讨论。
+更新日期：2026 年 10 月 6 日。**阶段 1 已提交推送，阶段 2 的内容管理与发布已完成验收；阶段 2.5「多语言 URL 与 SEO 规范修复」已实现并通过全部本地验收。** 使用手工中英 dummy data。游客页面仍是基础浏览与路由验证页面，下一步在阶段 3 开始前与用户讨论首页布局。
 
 产品边界见[产品计划](plan.md)，技术选择见[架构方案](architecture.md)，确认经过见[决策记录](decisions.md)。本文记录当前实现和实际验证结果。
 
@@ -11,7 +11,7 @@
 | 0 方案记录 | 产品、架构、决策与原始讨论归档 | 已完成；方案 `af32393`、初次交接 `c3c4ce4` 已提交推送 |
 | 1 基础工程与数据结构 | 工程、数据库、契约、双语 seed、权限与版本基础、API、Astro、语言与主题 | **已完成**；`531d90c` 已推送 `origin/main` |
 | 2 内容管理与发布 | 管理页面与写 API、导入、审核、下架、回退、冲突、翻译适配器及 worker | **已完成并验收**；实现已提交 `f03cbef`，真实翻译供应商仍待配置 |
-| 2.5 多语言 URL 与 SEO 规范修复（临时插入） | 语言与路径映射、旧链接兼容、canonical / hreflang、动态 sitemap、索引与回退规则 | **已立项，未实施**；详见[修复项目](i18n-seo-remediation.md)，完成验收后再进入阶段 3 |
+| 2.5 多语言 URL 与 SEO 规范修复（临时插入） | 语言与路径映射、旧链接兼容、canonical / hreflang、动态 sitemap、索引与回退规则 | **已完成并验收**；SEO-01 至 SEO-05 全部完成，详见[修复项目](i18n-seo-remediation.md)；阶段 3 先讨论布局 |
 | 3 发现首页 | 先讨论布局，再实现 digi-tech Lime 首页、卡片、分组、搜索筛选 | 未进入；基础浏览页不代表首页布局定稿 |
 | 4 住宿与活动详情 | 图库、完整专有模块、人物、手记、关联内容 | 未交付；目前只有验证路由与取数的简版详情 |
 | 5 模拟预订与凭条 | 游客身份、预订接口与组件、凭条、下载 | 未交付；保留原有领域函数与表结构草稿，尚未做该阶段验收 |
@@ -19,10 +19,10 @@
 
 ## 工作区与实现边界
 
-- 路径 `/data/apps/plotstay`，分支 `main`。原有草稿已收进阶段 1 提交 `531d90c` 并推送；阶段 2 实现已提交为 `f03cbef`。阶段 2.5 立项与本次交接另作文档提交，用户要求一并推送 `origin/main`。
+- 路径 `/data/apps/plotstay`，分支 `main`。原有草稿已收进阶段 1 提交 `531d90c` 并推送；阶段 2 实现已提交为 `f03cbef`。阶段 2.5 从立项提交 `ae00148` 接续，开始时工作区干净，已核对 `f03cbef` / `ae00148`；实现、测试与交接文档统一纳入阶段 2.5 提交，具体提交号以 `git log` 为准。
 - `.env` 已由 setup 生成，重复 setup 保留它；凭据不写入文档或 Git。`.env.example` 只含占位值。
 - 测试创建随机 `test_<uuid>` PostgreSQL schema，运行完整迁移和 seed，结束后清理。验收用的改名、下架等操作不改动开发 schema。
-- 本机 PostgreSQL 容器 `plotstay-postgres-1` 健康，映射 `127.0.0.1:55432 → 5432`，数据在独立 Docker volume。验收进程已退出；随后为用户远程查看启动了构建版预览，Web/API 监听 `127.0.0.1:4321/4310`。这是当前会话中的预览进程，尚未配置开机自启。
+- 本机 PostgreSQL 容器 `plotstay-postgres-1` 健康，映射 `127.0.0.1:55432 → 5432`，数据在独立 Docker volume。验收进程已退出；随后为用户远程查看启动了构建版预览，Web/API 监听 `127.0.0.1:4321/4310`。本次已在原端口重启为新构建，显式使用 `SITE_INDEXABLE=false`，实测 `/zh`、`/en`、中文管理及两类详情 200，旧中文组合地址一次 308，sitemap 空集合、robots 可抓取，均带 noindex；API 健康检查正常。这是当前会话中的预览进程，尚未配置开机自启。
 
 ### 工程与依赖
 
@@ -44,6 +44,7 @@ Astro 7 在代理环境中可能自动把 `astro dev` 转入后台。本项目�
 
 - 保留 `001_foundation.sql`：语言、用户与会话、fandom、世界与成员、地点、虚构身份、内容、版本、译文、发布快照、审核事件，以及后续导入、任务、预订所需的表。
 - 新增 `002_history_guards.sql`：禁止改写内容稳定身份与世界归属、禁止删除版本正文，补齐恢复发布与预订记录的同一内容外键。原有译文和发布快照不可变约束继续生效。
+- 阶段 2.5 新增 `004_locale_urls.sql`：`locales.path_prefix` / `language_tag` 分别保存公开路径和标准语言标记，中文映射为 `zh` / `zh-Hans`；`001`–`003` 未修改。已有 `code=zh-CN`、译文、任务和发布快照保留。
 - 阶段 2 新增 `003_translation_execution.sql`：任务绑定供应商与生成配置，保存最大重试次数；内容增加 `draft_token`，即使源文版本号未改变，译文修改也会使旧编辑表单产生冲突。
 - 公共查询从 `published_publication_id → publication_locales` 读取发布快照，不从编辑中的 `head_revision_id` 或 `revision_locales` 读取公开正文。
 - 世界可见性、网站限制、条目下架及手记父条目的公开状态共同决定可见性。世界所有者、管理员、编辑者和网站管理员的权限分别检查；persona 不增加管理权限。
@@ -69,7 +70,7 @@ Astro 7 在代理环境中可能自动把 `astro dev` 转入后台。本项目�
 
 ## 运行方式
 
-以下地址反映当前运行代码。阶段 2.5 的目标中文路径为 `/zh`，尚未实施；现在仍通过 `/zh-CN` 查看，实施验收后再更新这些示例。
+以下地址反映阶段 2.5 的构建版预览。中文统一为 `/zh`，旧 `/zh-CN`、大小写和末尾斜线组合通过一次 308 跳转；API 内部键继续使用 `zh-CN`。
 
 在仓库根目录执行。首次准备需要 Node.js、npm、Docker Compose，以及运行容器的权限：
 
@@ -86,12 +87,12 @@ npm run dev
 
 | 服务 | 默认位置 |
 | --- | --- |
-| Web 中文 | `http://localhost:4321/zh-CN` |
+| Web 中文 | `http://localhost:4321/zh` |
 | Web 英文 | `http://localhost:4321/en` |
 | 第二世界 | `http://localhost:4321/en?world=test-harbour` |
-| 住宿详情样例 | `http://localhost:4321/zh-CN/worlds/lathe-worlds/stays/observation-room` |
+| 住宿详情样例 | `http://localhost:4321/zh/worlds/lathe-worlds/stays/observation-room` |
 | 活动详情样例 | `http://localhost:4321/en/worlds/lathe-worlds/experiences/forge-walk` |
-| 中文管理页 | `http://localhost:4321/zh-CN/admin` |
+| 中文管理页 | `http://localhost:4321/zh/admin` |
 | 英文管理页 | `http://localhost:4321/en/admin` |
 | API 就绪检查 | `http://127.0.0.1:4310/api/health` |
 | PostgreSQL | `127.0.0.1:55432`，数据库与用户均为 `plotstay` |
@@ -114,9 +115,21 @@ NODE_ENV=production npm run start:web
 
 API 产物为 `apps/api/dist/server.mjs`，Astro 产物为 `apps/web/dist/server/entry.mjs`，worker 为 `apps/worker/dist/main.mjs`。start 脚本从根 `.env` 加载环境，外部已有环境变量优先。数据库和 seed 不依赖 dist。
 
-关键配置为 `DATABASE_URL`、`API_HOST` / `API_PORT`、`API_INTERNAL_URL`、`HOST` / `PORT`、`WEB_ORIGIN`、`COOKIE_SECURE`。Web 只通过 `API_INTERNAL_URL` 取数，不导入数据库包。浏览器读到完整 SSR HTML。
+关键配置为 `DATABASE_URL`、`API_HOST` / `API_PORT`、`API_INTERNAL_URL`、`HOST` / `PORT`、`WEB_ORIGIN`、`COOKIE_SECURE`、`SITE_URL`、`SITE_INDEXABLE`。Web 只通过 `API_INTERNAL_URL` 取数，不导入数据库包。浏览器读到完整 SSR HTML。
 
 Astro 已提供同域 `/api` 转发，只向固定 `API_INTERNAL_URL` 转发 Cookie、Origin 和正文；不跟随上游重定向，限制请求为 2 MB。管理页通过这个入口访问独立 API，原 SSH 隧道只需转发 Web 端口。登录使用 HttpOnly Cookie；写请求必须携带与 `WEB_ORIGIN` **完全一致**的 `Origin`，默认 `http://localhost:4321`。使用 `127.0.0.1` 或其他本地转发端口时需对应修改配置并重启。生产 HTTPS 时设 `COOKIE_SECURE=true`。
+
+### 索引配置与新增语言
+
+`SITE_INDEXABLE` 默认 `false`，与 `NODE_ENV` 无关；当前预览继续关闭索引，即使使用构建产物也不输出 canonical / hreflang，`/sitemap.xml` 返回空 `urlset`。HTML 的 robots meta 与响应 `X-Robots-Tag` 都声明 `noindex, follow`，`/robots.txt` 允许抓取以读取该标记，不声明预览 sitemap。
+
+正式启用索引需要同时设置 `SITE_INDEXABLE=true` 和 `SITE_URL=https://已确定的正式域名`。`SITE_URL` 必须为 HTTPS origin，不能带用户名、路径、query 或 fragment，也不能是 localhost / IP；错误配置使 Web 请求明确返回 503 并记录配置错误。SEO 地址只使用该配置，不读取 Host / 转发头。`WEB_ORIGIN` 仍单独负责管理写请求的 Origin 校验；通过 SSH 查看时保持实际浏览器 origin。站点配置在运行时读取，变更环境需要重启服务，不需为域名重新构建。
+
+正式域名尚未选择。本次测试仅在随机 schema、随机端口的子进程中使用 `SITE_URL=https://plotstay-seo.invalid`、`SITE_INDEXABLE=true`；这是不可解析的隔离测试地址，没有改写本机预览配置，也没有进行生产部署或 Search Console 提交。日常运行不要复制测试开关到 dummy data 预览。
+
+新增语言在 `locales` 配置 `code`、`path_prefix`、`language_tag`、`enabled`、`required_for_publish`；旧式 `INSERT(code,name)` 仍可用，默认路径为小写 code、标记为 code。特殊语言须显式配置，如未来繁体的 `zh-hant` / `zh-Hant`。公开路径和标记各有唯一性、格式约束。Web 从 `/api/locales` 实时读取，不复制页面模板；UI 字典仍需在 `lib/i18n.ts` 补全。UI 缺词典时显示英语并提示，正文标记实际语言，该页保持 noindex；启用语言并不自动表示有公开译文。繁体本次没有启用。
+
+首页 canonical 去掉默认世界、`type=all`、空搜索和跟踪参数，非默认世界保留 `world`；详情 canonical 忽略不影响正文的 query。语言导航保留浏览路径和 query。非空搜索、类型筛选、管理、缺译与错误页没有 canonical / hreflang。详情依据当前发布快照与世界译文生成对应关系，首页还检查整个世界的公开住宿 / 活动语言完整性。`x-default` 只指向同页可索引的英文版本。
 
 ## 已实现接口
 
@@ -125,7 +138,9 @@ Astro 已提供同域 `/api` 转发，只向固定 `API_INTERNAL_URL` 转发 Coo
 | 方法与路径 | 用途与边界 |
 | --- | --- |
 | `GET /api/health` | 检查数据库及基础 schema；不可用时返回 503 |
-| `GET /api/locales` | 启用语言 |
+| `GET /api/locales` | 启用语言及 `code` / `pathPrefix` / `languageTag` 映射 |
+| `GET /api/discovery` | 当前公开世界、住宿 / 活动稳定身份和实际公开语言集合；同一数据库快照、无默认 50 条截断 |
+| Web `GET /sitemap.xml`、`GET /robots.txt` | 动态发现入口；sitemap 经 API 读取，与页面共用可索引与 URL 规则 |
 | `GET /api/worlds?locale=en` | 公开世界，过滤隐藏和网站限制 |
 | `GET /api/contents` | 默认住宿与活动；支持 `locale`、`world`、`kind`、`q`、`parentId`、`limit`、`offset` |
 | `GET /api/contents/:id?locale=zh-CN` | 单条已发布内容；草稿和不存在条目返回 404 |
@@ -172,11 +187,11 @@ Astro 已提供同域 `/api` 转发，只向固定 `API_INTERNAL_URL` 转发 Coo
 
 目前只开放禁用配置，未实现真实供应商适配器；设置其他 provider 会明确报错，避免误以为服务已接通。测试通过注入确定性的内存适配器验证执行逻辑，没有把伪翻译作为正式内容。真实供应商、密钥、费用、术语表和任务切换方案待用户配置后再接入。
 
-Web 路由为 `/{locale}` 和 `/{locale}/worlds/{world}/stays|experiences/{slug}`。根路径 302 到 `/en` 并保留查询参数。语言切换保留路径和查询参数；无效语言、世界、类型、草稿、不存在条目返回 404；API 不可用返回本地化 503 页面。UI 有中英字典，新语言可以使用英文 UI 后备文案，正式增加语言时需补字典。
+Web 路由中的 locale 是公开前缀（`en` / `zh`），路径为 `/{locale}` 和 `/{locale}/worlds/{world}/stays|experiences/{slug}`。根路径 302 到 `/en` 并保留查询参数。语言切换保留路径和查询参数；无效语言、世界、类型、草稿、不存在条目返回 404；API 不可用返回本地化 503 页面。UI 有中英字典，新语言可以使用英文 UI 后备文案，正式增加语言时需补字典。
 
 ## 实际验收结果
 
-以下结果来自本次真实运行：
+以下结果来自真实运行；安装与 setup 行保留前阶段记录，本次阶段 2.5 重新执行了迁移、seed、检查、构建及全部测试：
 
 | 检查 | 结果 |
 | --- | --- |
@@ -184,8 +199,8 @@ Web 路由为 `/{locale}` 和 `/{locale}/worlds/{world}/stays|experiences/{slug}
 | `npm run setup` | 已有 `.env` 保留，凭据被 Git 忽略 |
 | migrate + seed 连续两遍 | 均正常；seed 无重复内容，并发与编辑后重跑另有测试覆盖 |
 | 类型检查与构建 | TypeScript 与 `astro check` 通过，0 错误 / 0 警告；独立 API 与 Astro 产物构建成功 |
-| `npm test` | 基础、管理 HTTP、翻译执行 3 组套件；Node runner 合计 22 tests 全部通过 |
-| `npm run test:e2e` | 检查、构建、开发生命周期和 6 组 SSR / Chromium 验收通过；Node runner 合计 8 tests |
+| `npm test` | 基础、管理 HTTP、翻译执行与旧 schema 升级 4 组套件；Node runner 合计 **23 tests 全部通过** |
+| `npm run test:e2e` | 检查、构建、开发生命周期、SEO 与 SSR / Chromium 回归通过；Node runner 合计 **17 tests 全部通过** |
 | 浏览器 | Chromium 桌面 1280×800、移动端 390×844；直达、刷新、语言切换及查询保留通过，无脚本错误或横向溢出 |
 
 验收覆盖：
@@ -199,6 +214,16 @@ Web 路由为 `/{locale}` 和 `/{locale}/worlds/{world}/stays|experiences/{slug}
 7. **阶段 2 浏览器全流程**：同域 Cookie 登录、创建双语草稿、审核发布、双窗口编辑冲突后保留输入、下架、历史恢复、JSON 导入预览和执行、退出后的会话撤销都实际通过。原有公开页面与语言路由测试继续通过。
 8. **阶段 2 后端边界**：新增管理角色校验、译文变更使旧源文表单冲突、导入预览无残留、逐项错误和并发幂等、失败重试/超时/非法译文、任务抢占与租约恢复、晚到结果不能覆盖新版本/人工译文/已提交版本。
 
+### 阶段 2.5 的实际验证证据
+
+- **开发库升级**：原先只有 `001`–`003`，已增量执行 `004`；migrate + seed 连续执行两遍。8 条内容、8 个版本、15 条译文、6 次发布、12 条发布语言快照、1 个翻译任务、14 条审核事件、4 个用户、2 个世界保持原值。内容、历史、账号等 11 张表逐行规范化后 SHA-256 前后均为 `b89e081626c9ba615ce6575957afca307f9b0d1b9bdd3b57ba7ad8047f94a578`。没有重置数据库。测试还独立构造了有数据的 `001`–`003` schema 验证升级，以及全新 schema 安装。
+- **路由**：GET / HEAD 覆盖旧前缀多种大小写、首页 / 管理 / 两类详情与末尾斜线组合，Location 一次达到 200 规范页；保留查询与 slug 的原始大小写。未知语言 / 世界 / 类型、草稿与下架均真实 404，API 和 POST 没有被重定向。
+- **SSR / SEO**：初始 sitemap 的 14 个 URL 逐一核对唯一绝对 canonical、标题 / 描述、标准语言标记、双向 hreflang 和英文 x-default；另验默认 / 非默认世界、搜索 / 类型 / 跟踪参数、没有英文时省略 x-default。伪造 Host / X-Forwarded-* 未改变受信域名；错误索引配置返回 503。
+- **回退**：第三语言 `de` 实时启用，未审译文不可见；发布德文后正文 `lang=de`、英语后备界面 `lang=en`，有提示且 noindex。单语发布只在隔离测试中放宽发布要求，验证中文源文回退、草稿译文、公开译文增加、恢复旧语言集合、语言禁用 / 恢复及世界缺译。开发库仍要求中英齐全。
+- **动态 sitemap**：Chromium DOMParser 验证 XML namespace、无解析错误、无重复 URL；额外发布 55 条双语内容，新增 **110 个详情 URL**，普通列表仍为 50 条，sitemap 全量覆盖。全部 sitemap URL 返回 200 且 canonical 相同。草稿、下架、网站限制、隐藏世界、管理、手记独立地址、禁用语言与回退均排除。
+- **运行中生效**：发布、下架、历史恢复、启停语言及世界限制改变后，HTML 与 sitemap 下次请求即更新；Web dist 的聚合 SHA-256 始终为 `354dbb67aa30b5c620c6866db0ecb6f87bfd75af06e78a55c94fdaab1cc0a7f0`，API / Web 没有重启。停止隔离 API 后，中文首页 / 详情 / 管理及 sitemap 返回 503。
+- **浏览器与环境**：Chromium 桌面 / 移动端及完整管理操作回归通过。首次 e2e 被沙箱 socket 权限拦截，获准在沙箱外执行后通过；所有测试使用随机 schema 并清理，浏览器与服务进程退出。远程查看仍使用 `npm run preview` 的构建产物。
+
 复验命令：
 
 ```bash
@@ -207,18 +232,15 @@ npx playwright install chromium --only-shell
 npm run test:e2e
 ```
 
-测试需要数据库连接、创建 schema 的权限及本机端口。首次浏览器测试发现旧缓存与 Playwright `1.63.0` 不匹配，已安装对应 Chromium headless shell `1243` 并重跑通过。截图在 Git 忽略的 `test-results/foundation-mobile.png`。测试不会自动下载浏览器，换环境需执行安装命令。
+测试需要数据库连接、创建 schema 的权限及本机端口。阶段 1 首次浏览器测试发现旧缓存与 Playwright `1.63.0` 不匹配，已安装对应 Chromium headless shell `1243` 并重跑通过。截图在 Git 忽略的 `test-results/foundation-mobile.png`。测试不会自动下载浏览器，换环境需执行安装命令。
 
 ## 剩余问题与下一步
 
-阶段 1、2 的功能验收没有已知阻塞；这不代表多语言 SEO 已完成。以下事项仍未交付：
+阶段 1、2、2.5 验收没有已知阻塞。以下事项仍未交付：
 
-- **临时阶段 2.5**：已核实语言键与 URL / HTML 标记耦合、`hreflang` 为相对地址，且缺少 canonical、动态 sitemap 与索引配置。本次只完成[立项及验收清单](i18n-seo-remediation.md)，代码与运行服务未调整；清单中的测试尚未执行。
 - **元数据管理**：世界、地点、persona 当前由 seed 维护；世界创建/成员邀请、人物资料编辑的界面未开放。已有内容的稳定身份和归属创建后不可改写。
 - **真实翻译**：执行器、适配器契约和失败/过期隔离已验证；真实供应商和术语表尚未接入，默认禁用，不使用其他项目密钥。
 - **页面阶段**：当前简版页面只验收语言、取数、基础字段、价格与手记。搜索/筛选控件、图库、完整详情、关联内容和预订体验仍按阶段 3–5 完成。正式媒体与素材尚未接入。
 - **发布运维**：没有生产 Nginx、常驻服务配置、备份恢复、release 健康检查与流量切换；本机验收不等于生产部署。
 
-下一步先实施阶段 2.5，按 SEO-01 至 SEO-05 完成语言映射、路由兼容、搜索元数据、动态发现入口和回归。从阶段 2 提交 `f03cbef` 及其后的立项文档接续，开始时仍需核对 Git 状态并保留可能新增的工作区改动和数据库历史；正式域名未定不阻塞隔离测试，预览默认不开放索引。
-
-阶段 2.5 验收完成后，再与用户讨论发现首页的布局、模块组合、搜索筛选行为和素材位置，进入阶段 3；视觉方向继续使用 digi-tech Lime。当前管理页面用于维护固定字段，不代表首页或详情的设计定稿。
+下一步先与用户讨论发现首页的布局、模块组合、搜索筛选行为和素材位置，再进入阶段 3；视觉方向继续使用 digi-tech Lime。当前管理页面用于维护固定字段，不代表首页或详情的设计定稿。本次没有推进阶段 3、真实翻译或正式内容。

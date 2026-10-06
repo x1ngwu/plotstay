@@ -1,4 +1,4 @@
-import type { Locale, PublicContent, World } from '@plotstay/contracts';
+import type { Discovery, Locale, PublicContent, World } from '@plotstay/contracts';
 
 export class ApiFailure extends Error {
   constructor(public status: number) { super(`API returned ${status}`); }
@@ -14,10 +14,8 @@ export async function api<T>(path: string, query: Record<string, string> = {}): 
   return response.json() as Promise<T>;
 }
 export const getLocales = () => api<{ locales: Locale[] }>('/api/locales');
+export const getDiscovery = () => api<Discovery>('/api/discovery');
 export const getWorlds = (locale: string) => api<{ worlds: World[] }>('/api/worlds', { locale });
 export const getContents = (locale: string, filters: Record<string, string>) => api<{ contents: PublicContent[] }>('/api/contents', { locale, ...filters });
 export const getContent = (locale: string, world: string, kind: string, slug: string) => api<{ content: PublicContent }>(
   `/api/worlds/${encodeURIComponent(world)}/${encodeURIComponent(kind)}/${encodeURIComponent(slug)}`, { locale });
-export function contentPath(locale: string, content: PublicContent) {
-  return `/${locale}/worlds/${content.worldSlug}/${content.kind === 'stay' ? 'stays' : 'experiences'}/${content.slug}`;
-}

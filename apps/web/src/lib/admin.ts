@@ -1,15 +1,19 @@
 import { textSchema, type ContentText, type ContentAttributes, type Locale } from '@plotstay/contracts';
 
-const root = document.querySelector<HTMLElement>('#admin')!;
+import { bilingual } from './i18n';
+
+const root = document.querySelector<HTMLElement>('#admin');
+if (root) initialize(root);
+function initialize(root: HTMLElement) {
 const locale = root.dataset.locale ?? 'en';
-const l = (zh: string, en: string) => locale === 'zh-CN' ? zh : en;
+const l = bilingual(locale);
 const el = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 const editor = el<HTMLFormElement>('editor');
 const field = (name: string) => editor.elements.namedItem(name) as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 let locales: Locale[] = [], worlds: any[] = [], options: any = {}, detail: any = null, actor: any = null;
 let dirty = false, selectedRevision: string | null = null, previewedImport = '';
 let importIsValid = false;
-const statuses: Record<string, string> = locale === 'zh-CN' ? { draft: '草稿', submitted: '待审核', approved: '已审核', rejected: '已退回', pending: '等待执行', running: '执行中', completed: '完成', failed: '失败', superseded: '已过期' } : {};
+const statuses: Record<string, string> = l('zh', 'en') === 'zh' ? { draft: '草稿', submitted: '待审核', approved: '已审核', rejected: '已退回', pending: '等待执行', running: '执行中', completed: '完成', failed: '失败', superseded: '已过期' } : {};
 const status = (value: string) => statuses[value] ?? value;
 const worldId = () => el<HTMLSelectElement>('world').value;
 const message = (text: string) => { el('message').textContent = text; };
@@ -279,3 +283,5 @@ on('import-apply', async () => {
 });
 window.addEventListener('beforeunload', event => { if (dirty) event.preventDefault(); });
 signIn().catch(error => { if (error.code !== 'SESSION_REQUIRED') message(errorText(error)); });
+
+}

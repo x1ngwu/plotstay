@@ -1,7 +1,8 @@
 ---
 import Base from '../layouts/Base.astro';
 import { messages } from '../lib/i18n';
-const locale = Astro.url.pathname.split('/')[1] === 'zh-CN' ? 'zh-CN' : 'en';
+import { fallbackLocales } from '@plotstay/contracts';
+const locale = Astro.locals.locale ?? fallbackLocales[0]!;
 Astro.response.status = 404;
 ---
-<Base title="404" locale={locale}><h1>{messages(locale).notFound}</h1></Base>
+<Base title="404" locale={locale}><h1>{messages(locale.code).notFound}</h1></Base>

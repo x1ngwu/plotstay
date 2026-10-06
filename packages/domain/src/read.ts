@@ -1,5 +1,5 @@
 import type { Connection } from '@plotstay/database';
-import type { PublicContent, World } from '@plotstay/contracts';
+import type { Discovery, Locale, PublicContent, World } from '@plotstay/contracts';
 import { requireWorld, type Actor } from './auth.ts';
 import { assert } from './errors.ts';
 
@@ -7,22 +7,53 @@ export async function enabledLocale(db: Connection, locale: string) {
   const r = await db.query('SELECT code FROM locales WHERE code=$1 AND enabled', [locale]);
   assert(r.rowCount, 404, 'INVALID_LOCALE', 'Language not found.');
 }
+export async function listLocales(db: Connection): Promise<Locale[]> {
+  return (await db.query('SELECT code,name,path_prefix AS "pathPrefix",language_tag AS "languageTag" FROM locales WHERE enabled ORDER BY code')).rows;
+}
+// All public readers, including discovery, use the same publication and visibility boundary.
+const publicFrom = `FROM contents c JOIN worlds w ON w.id=c.world_id
+  JOIN publications p ON p.id=c.published_publication_id
+  JOIN content_revisions r ON r.id=p.revision_id`;
+const publicVisibility = `w.visible AND NOT w.site_blocked AND NOT c.site_blocked
+  AND (c.parent_content_id IS NULL OR EXISTS (
+    SELECT 1 FROM contents parent WHERE parent.id=c.parent_content_id AND parent.published_publication_id IS NOT NULL AND NOT parent.site_blocked))`;
+const publishedLocales = `ARRAY(SELECT pt.locale FROM publication_locales pt JOIN locales l ON l.code=pt.locale AND l.enabled
+  WHERE pt.publication_id=p.id ORDER BY pt.locale)`;
+const worldLocales = `ARRAY(SELECT l.code FROM locales l WHERE l.enabled AND w.translations ? l.code ORDER BY l.code)`;
+const listingLocales = `ARRAY(SELECT l.code FROM locales l WHERE l.enabled AND w.translations ? l.code
+  AND NOT EXISTS (SELECT 1 ${publicFrom} WHERE ${publicVisibility}
+    AND c.world_id=outer_world.id AND c.kind IN ('stay','experience')
+    AND NOT EXISTS (SELECT 1 FROM publication_locales pt WHERE pt.publication_id=p.id AND pt.locale=l.code)) ORDER BY l.code)`;
 export async function listWorlds(db: Connection, locale: string): Promise<World[]> {
   await enabledLocale(db, locale);
-  const { rows } = await db.query(`SELECT id,slug,theme_id,source_locale,
-    coalesce(translations->$1,translations->source_locale) AS text,
-    CASE WHEN translations ? $1 THEN $1 ELSE source_locale END AS locale
-    FROM worlds WHERE visible AND NOT site_blocked ORDER BY created_at,id`, [locale]);
+  const { rows } = await db.query(`SELECT w.id,w.slug,w.theme_id,w.source_locale,
+    coalesce(w.translations->$1,w.translations->w.source_locale) AS text,
+    CASE WHEN w.translations ? $1 THEN $1 ELSE w.source_locale END AS locale,
+    (SELECT language_tag FROM locales WHERE code=CASE WHEN w.translations ? $1 THEN $1 ELSE w.source_locale END) AS language_tag,
+    ${worldLocales} AS available_locales, ${listingLocales} AS listing_locales
+    FROM worlds w JOIN worlds outer_world ON outer_world.id=w.id
+    WHERE w.visible AND NOT w.site_blocked ORDER BY w.created_at,w.id`, [locale]);
   return rows.map(w => ({ id: w.id, slug: w.slug, themeId: w.theme_id, sourceLocale: w.source_locale,
-    locale: w.locale, name: w.text.name, description: w.text.description, currencyName: w.text.currencyName }));
+    locale: w.locale, name: w.text.name, description: w.text.description, currencyName: w.text.currencyName,
+    languageTag: w.language_tag, availableLocales: w.available_locales, listingLocales: w.listing_locales }));
+}
+export async function publicDiscovery(db: Connection): Promise<Discovery> {
+  // One statement gives discovery a consistent snapshot, including enabled languages.
+  const { rows: [row] } = await db.query(`SELECT
+    (SELECT coalesce(jsonb_agg(jsonb_build_object('code',code,'name',name,'pathPrefix',path_prefix,'languageTag',language_tag) ORDER BY code),'[]') FROM locales WHERE enabled) AS locales,
+    (SELECT coalesce(jsonb_agg(jsonb_build_object('slug',w.slug,'availableLocales',${worldLocales},'listingLocales',${listingLocales}) ORDER BY w.slug),'[]')
+      FROM worlds w JOIN worlds outer_world ON outer_world.id=w.id WHERE w.visible AND NOT w.site_blocked) AS worlds,
+    (SELECT coalesce(jsonb_agg(jsonb_build_object('worldSlug',w.slug,'slug',c.slug,'kind',c.kind,'availableLocales',${publishedLocales}) ORDER BY w.slug,c.kind,c.slug),'[]')
+      ${publicFrom} WHERE ${publicVisibility} AND c.kind IN ('stay','experience')) AS contents`);
+  return row;
 }
 const publicSelect = `SELECT c.id,c.world_id,c.slug,c.kind,w.slug AS world_slug,
   coalesce(pl.names->$1,pl.names->r.source_locale) #>> '{}' AS place_name,
   t.locale,t.body,r.attributes,p.id AS publication_id,p.published_at,
+  (SELECT language_tag FROM locales WHERE code=t.locale) AS language_tag,
+  ${publishedLocales} AS available_locales,
   coalesce(person.profiles->$1,person.profiles->r.source_locale)->>'name' AS persona_name
-  FROM contents c JOIN worlds w ON w.id=c.world_id
-  JOIN publications p ON p.id=c.published_publication_id
-  JOIN content_revisions r ON r.id=p.revision_id
+  ${publicFrom}
   JOIN LATERAL (
     SELECT tx.locale,tx.body FROM publication_locales pt JOIN translations tx ON tx.id=pt.translation_id
     WHERE pt.publication_id=p.id AND tx.locale IN ($1,r.source_locale)
@@ -30,13 +61,11 @@ const publicSelect = `SELECT c.id,c.world_id,c.slug,c.kind,w.slug AS world_slug,
   ) t ON true
   LEFT JOIN places pl ON pl.id=c.place_id
   LEFT JOIN personas person ON person.id=c.persona_id AND person.approved
-  WHERE w.visible AND NOT w.site_blocked AND NOT c.site_blocked
-  AND (c.parent_content_id IS NULL OR EXISTS (
-    SELECT 1 FROM contents parent WHERE parent.id=c.parent_content_id AND parent.published_publication_id IS NOT NULL AND NOT parent.site_blocked))`;
+  WHERE ${publicVisibility}`;
 function mapContent(row: any, requestedLocale: string): PublicContent {
   return { id: row.id, worldId: row.world_id, worldSlug: row.world_slug, slug: row.slug,
     kind: row.kind, placeName: row.place_name, locale: row.locale, requestedLocale,
-    isFallback: row.locale !== requestedLocale, text: row.body, attributes: row.attributes,
+    isFallback: row.locale !== requestedLocale, languageTag: row.language_tag, availableLocales: row.available_locales, text: row.body, attributes: row.attributes,
     publicationId: row.publication_id, publishedAt: row.published_at.toISOString(), personaName: row.persona_name };
 }
 export async function listPublished(db: Connection, locale: string, filters: {

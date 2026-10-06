@@ -26,8 +26,8 @@
     "start:api": "node --env-file=.env apps/api/dist/server.mjs",
     "start:web": "node --env-file=.env apps/web/dist/server/entry.mjs",
     "start:worker": "node --env-file=.env apps/worker/dist/main.mjs",
-    "test": "tsx --test --test-concurrency=1 tests/foundation.test.ts tests/management.test.ts tests/translation.test.ts",
-    "test:e2e": "npm run build && tsx --test --test-concurrency=1 tests/ssr.test.ts tests/dev.test.ts"
+    "test": "tsx --test --test-concurrency=1 tests/foundation.test.ts tests/management.test.ts tests/translation.test.ts tests/seo-migration.test.ts",
+    "test:e2e": "npm run build && tsx --test --test-concurrency=1 tests/ssr.test.ts tests/seo.test.ts tests/dev.test.ts"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",

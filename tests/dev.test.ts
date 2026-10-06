@@ -21,7 +21,7 @@ test('development supervisor starts and stops both services, including in agent 
   const f = await fixture();
   t.after(f.cleanup);
   const apiPort = await freePort(), webPort = await freePort();
-  const apiUrl = `http://127.0.0.1:${apiPort}/api/health`, webUrl = `http://127.0.0.1:${webPort}/zh-CN`;
+  const apiUrl = `http://127.0.0.1:${apiPort}/api/health`, webUrl = `http://127.0.0.1:${webPort}/zh`;
   const child = spawn(process.execPath, ['scripts/dev.mjs'], { stdio: ['ignore', 'pipe', 'pipe'], env: {
     ...process.env, PGOPTIONS: f.options, API_HOST: '127.0.0.1', API_PORT: String(apiPort), HOST: '127.0.0.1',
     PORT: String(webPort), API_INTERNAL_URL: `http://127.0.0.1:${apiPort}`, CI: '1',

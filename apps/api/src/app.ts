@@ -6,7 +6,7 @@ import { idSchema, kindSchema, localeSchema, loginSchema, slugSchema, createCont
   revisionActionSchema, reviewActionSchema, restoreActionSchema, unpublishActionSchema, noteActionSchema, translationActionSchema } from '@plotstay/contracts';
 import type { Database } from '@plotstay/database';
 import { adminDetail, adminList, adminWorlds, assert, digest, DomainError, getActor,
-  getPublished, listPublished, listWorlds, login, createContent, editContent, submitRevision, reviewRevision,
+  getPublished, listPublished, listWorlds, listLocales, publicDiscovery, login, createContent, editContent, submitRevision, reviewRevision,
   restorePublication, unpublishContent, releaseSiteBlock, saveTranslation, importContent, requireWorld, retryTranslation } from '@plotstay/domain';
 
 const localeQuery = z.object({ locale: localeSchema.default('en') }).strict();
@@ -27,6 +27,7 @@ export async function createApp(db: Database, options: { logger?: boolean; webOr
   app.addHook('onRequest', async (request, reply) => {
     reply.header('Cache-Control', 'no-store');
     reply.header('X-Content-Type-Options', 'nosniff');
+    reply.header('X-Robots-Tag', 'noindex');
     if (!['GET', 'HEAD', 'OPTIONS'].includes(request.method)) {
       assert(request.headers.origin === webOrigin, 403, 'ORIGIN_FORBIDDEN', 'Use the configured website origin.');
     }
@@ -54,7 +55,8 @@ export async function createApp(db: Database, options: { logger?: boolean; webOr
       return { status: 'ok' };
     } catch { return reply.code(503).send({ error: { code: 'DATABASE_UNAVAILABLE', message: 'Database is not ready.' } }); }
   });
-  app.get('/api/locales', async () => ({ locales: (await db.query('SELECT code,name FROM locales WHERE enabled ORDER BY code')).rows }));
+  app.get('/api/locales', async () => ({ locales: await listLocales(db) }));
+  app.get('/api/discovery', async () => publicDiscovery(db));
   app.get('/api/worlds', async request => ({ worlds: await listWorlds(db, localeQuery.parse(request.query).locale) }));
   app.get('/api/contents', async request => {
     const { locale, ...filters } = listQuery.parse(request.query);

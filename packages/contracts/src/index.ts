@@ -67,16 +67,37 @@ export const unpublishActionSchema = z.object({ siteBlock: z.boolean().default(f
 export const noteActionSchema = z.object({ note: z.string().trim().max(2000).default('') }).strict();
 export const translationActionSchema = z.object({ body: textSchema, baseTranslationId: idSchema.nullable() }).strict();
 
-export interface Locale { code: string; name: string }
+export interface Locale { code: string; name: string; pathPrefix: string; languageTag: string }
+// Only used to render localised errors when the API cannot supply configuration.
+export const fallbackLocales: Locale[] = [
+  { code: 'en', name: 'English', pathPrefix: 'en', languageTag: 'en' },
+  { code: 'zh-CN', name: '简体中文', pathPrefix: 'zh', languageTag: 'zh-Hans' },
+];
+export function resolveLocale(prefix: string, locales: Locale[]): Locale | undefined {
+  return locales.find(item => item.pathPrefix === prefix.toLowerCase() || item.code.toLowerCase() === prefix.toLowerCase());
+}
+export function homePath(locale: Locale, world = 'lathe-worlds') {
+  return `/${locale.pathPrefix}` + (world === 'lathe-worlds' ? '' : `?world=${encodeURIComponent(world)}`);
+}
+export function contentPath(locale: Locale, content: Pick<PublicContent, 'worldSlug' | 'kind' | 'slug'>) {
+  if (content.kind === 'review') throw new Error('Visitor notes have no standalone page.');
+  return `/${locale.pathPrefix}/worlds/${encodeURIComponent(content.worldSlug)}/${content.kind === 'stay' ? 'stays' : 'experiences'}/${encodeURIComponent(content.slug)}`;
+}
 export interface World {
   id: string; slug: string; name: string; description: string; currencyName: string;
-  themeId: string; locale: string; sourceLocale: string;
+  themeId: string; locale: string; sourceLocale: string; languageTag: string;
+  availableLocales: string[]; listingLocales: string[];
 }
 export interface PublicContent {
   id: string; worldId: string; worldSlug: string; slug: string; kind: ContentKind;
   placeName: string | null; locale: string; requestedLocale: string; isFallback: boolean;
   text: ContentText; attributes: ContentAttributes; publicationId: string; publishedAt: string;
-  personaName: string | null;
+  personaName: string | null; languageTag: string; availableLocales: string[];
+}
+export interface Discovery {
+  locales: Locale[];
+  worlds: Pick<World, 'slug' | 'availableLocales' | 'listingLocales'>[];
+  contents: Pick<PublicContent, 'worldSlug' | 'kind' | 'slug' | 'availableLocales'>[];
 }
 export interface BookingReceipt {
   id: string; createdAt: string; locale: string;
