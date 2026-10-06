@@ -1,0 +1,76 @@
+{
+  "source_url": "https://chatgpt.com/share/6ac4b779-86ac-83ec-b60c-faaac3f70716",
+  "source_title": "产品构想评估",
+  "http_status": 200,
+  "fetched_at": "2026-10-06T09:00:16+00:00",
+  "archived_at": "2026-10-06T09:08:21.266827+00:00",
+  "method": "Decode public HTML React Router stream data without executing page JavaScript; verify the parent chain against linear_conversation and mapping IDs.",
+  "source_html_bytes": 2130825,
+  "source_html_sha256": "8e583149462a776970062df9c4fb33d288e47dd5357816636ea9fd422ca68629",
+  "source_node_count": 306,
+  "parent_chain_matches_linear_conversation": true,
+  "orphan_node_count": 0,
+  "visible_message_count": 45,
+  "user_message_count": 10,
+  "assistant_final_count": 10,
+  "assistant_commentary_count": 25,
+  "original_text_characters": 58500,
+  "citation_groups": 55,
+  "citation_markers_total": 62,
+  "text_complete_for_shared_snapshot": true,
+  "attachments_complete": false,
+  "attachments": [
+    {
+      "height": 2048,
+      "id": "file_000000004cd882099d04be2622f6bd3c",
+      "library_file_id": "libfile_992877b0908481918daad8561ad093d0",
+      "mime_type": "image/png",
+      "name": "d3092e21dad40512864887ccb418d6a9_720.png",
+      "size": 1559624,
+      "width": 944,
+      "message_sequence": 1,
+      "asset_pointer": "sediment://file_000000004cd882099d04be2622f6bd3c?shared_conversation_id=6ac4b779-86ac-83ec-b60c-faaac3f70716",
+      "download_status": "not_downloaded",
+      "http_status": 401,
+      "reason": "The public share attachment download endpoint returned Unauthorized."
+    },
+    {
+      "height": 2048,
+      "id": "file_000000007c1c8209a96fc227d5f7781e",
+      "library_file_id": "libfile_2c4facd056908191b3c6741466659c38",
+      "mime_type": "image/png",
+      "name": "901b49f7c7f55c0bddb88f69e00cabd8_720.png",
+      "size": 1478355,
+      "width": 944,
+      "message_sequence": 1,
+      "asset_pointer": "sediment://file_000000007c1c8209a96fc227d5f7781e?shared_conversation_id=6ac4b779-86ac-83ec-b60c-faaac3f70716",
+      "download_status": "not_downloaded",
+      "http_status": 401,
+      "reason": "The public share attachment download endpoint returned Unauthorized."
+    }
+  ],
+  "readable_transformations": [
+    "Replace citation UI markers with source-provided Markdown links.",
+    "Demote source Markdown headings by one level outside fenced code.",
+    "Add message boundaries, timestamps, index, and attachment availability notes."
+  ],
+  "first_message_id": "af25bea3-5312-4801-aea8-de92d193db88",
+  "last_message_id": "c69d9b93-7888-5ec0-9c78-8952036b46b1",
+  "files": [
+    {
+      "path": "chatgpt-discussion-2026-10-06.md",
+      "bytes": 152769,
+      "sha256": "8ac32a8d118cee88ec2d50992ae8b7da42ce2c7344037eb00df10d477e6c2522"
+    },
+    {
+      "path": "chatgpt-discussion-2026-10-06.json",
+      "bytes": 412065,
+      "sha256": "6355ee95e9818ddf84e9e501f5fae5ed268e26be3d92e2f0394ca0a1e8ebc99d"
+    },
+    {
+      "path": "chatgpt-discussion-2026-10-06.html.gz",
+      "bytes": 521634,
+      "sha256": "c0ad2254a36295fe46d8a013efd23fc695949fa7a92003ece63254b3c41279cb"
+    }
+  ]
+}
