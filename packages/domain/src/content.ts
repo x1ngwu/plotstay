@@ -37,10 +37,11 @@ async function appendRevision(db: PoolClient, actor: Actor, content: any, input:
   const { rows: [glossary] } = await db.query('SELECT id FROM glossaries WHERE world_id=$1 ORDER BY version DESC LIMIT 1', [content.world_id]);
   for (const { code } of locales) {
     if (code !== input.sourceLocale && !input.translations[code]) {
-      await db.query('INSERT INTO translation_jobs(revision_id,locale,glossary_id) VALUES ($1,$2,$3)', [revision.id, code, glossary?.id ?? null]);
+      await db.query('INSERT INTO translation_jobs(revision_id,locale,glossary_id,provider,configuration) VALUES ($1,$2,$3,$4,$5)',
+        [revision.id, code, glossary?.id ?? null, process.env.TRANSLATION_PROVIDER ?? 'disabled', { model: process.env.TRANSLATION_MODEL ?? '' }]);
     }
   }
-  await db.query('UPDATE contents SET head_revision_id=$2 WHERE id=$1', [content.id, revision.id]);
+  await db.query('UPDATE contents SET head_revision_id=$2,draft_token=gen_random_uuid() WHERE id=$1', [content.id, revision.id]);
   await event(db, actor, content, 'draft_saved', revision.id);
   return revision;
 }
@@ -70,11 +71,12 @@ export function editContent(db: Database, actor: Actor, id: string, input: EditC
   return transaction(db, async client => {
     const { content } = await lockContent(client, actor, id);
     assert(content.head_revision_id === input.baseRevisionId, 409, 'REVISION_CONFLICT', 'Another editor saved a new version. Your changes have not been overwritten.');
+    assert(!input.baseDraftToken || content.draft_token === input.baseDraftToken, 409, 'REVISION_CONFLICT', 'Draft translations changed. Your input is preserved; reload before saving.');
     const revision = await appendRevision(client, actor, content, input);
     return { id, revisionId: revision.id as string, number: revision.number as number };
   });
 }
-export function saveTranslation(db: Database, actor: Actor, id: string, revisionId: string, locale: string, body: ContentText) {
+export function saveTranslation(db: Database, actor: Actor, id: string, revisionId: string, locale: string, body: ContentText, baseTranslationId?: string | null) {
   return transaction(db, async client => {
     const { content } = await lockContent(client, actor, id);
     assert(content.head_revision_id === revisionId, 409, 'REVISION_CONFLICT', 'This is no longer the current draft.');
@@ -83,7 +85,12 @@ export function saveTranslation(db: Database, actor: Actor, id: string, revision
     assert(locale !== revision.source_locale, 400, 'SOURCE_EDIT', 'Source changes require a new content revision.');
     const enabled = await client.query('SELECT code FROM locales WHERE code=$1 AND enabled', [locale]);
     assert(enabled.rowCount, 400, 'INVALID_LOCALE', 'Language is not enabled.');
+    if (baseTranslationId !== undefined) {
+      const { rows: [current] } = await client.query('SELECT translation_id FROM revision_locales WHERE revision_id=$1 AND locale=$2', [revisionId, locale]);
+      assert((current?.translation_id ?? null) === baseTranslationId, 409, 'TRANSLATION_CONFLICT', 'This translation changed. Reload it before saving.');
+    }
     await putTranslation(client, revisionId, locale, textSchema.parse(body), 'manual', actor.id);
+    await client.query('UPDATE contents SET draft_token=gen_random_uuid() WHERE id=$1', [id]);
     await event(client, actor, content, 'translation_saved', revisionId, locale);
     return { saved: true };
   });

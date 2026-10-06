@@ -1,0 +1,98 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getLocales } from '../../lib/api';
+const locale = Astro.params.locale ?? 'en';
+const chinese = locale === 'zh-CN';
+const label = (zh: string, en: string) => chinese ? zh : en;
+const { locales } = await getLocales();
+if (!locales.some(item => item.code === locale)) return new Response('Not found', { status: 404 });
+---
+<Base title={label('内容管理', 'Content management')} locale={locale} locales={locales}>
+  <div id="admin" data-locale={locale}>
+    <h1>{label('内容管理', 'Content management')}</h1>
+    <p id="message" role="status" aria-live="polite"></p>
+    <form id="login" class="panel">
+      <label>{label('邮箱', 'Email')}<input name="email" type="email" autocomplete="username" required /></label>
+      <label>{label('密码', 'Password')}<input name="password" type="password" autocomplete="current-password" required /></label>
+      <button>{label('登录', 'Sign in')}</button>
+    </form>
+    <section id="workspace" hidden>
+      <div class="admin-actions"><span id="account"></span><button id="logout">{label('退出登录', 'Sign out')}</button></div>
+      <label>{label('管理世界', 'World')}<select id="world"></select></label>
+      <div class="admin-actions"><button id="new">{label('新建内容', 'New content')}</button><button id="refresh-list">{label('刷新列表', 'Refresh list')}</button></div>
+      <div class="admin-table"><table><thead><tr><th>{label('内容', 'Content')}</th><th>{label('草稿状态', 'Draft status')}</th><th>{label('公开状态', 'Visibility')}</th><th>{label('操作', 'Action')}</th></tr></thead><tbody id="content-list"></tbody></table></div>
+      <details class="panel" id="import-panel">
+        <summary>{label('批量导入', 'Batch import')}</summary>
+        <p>{label('先预览校验结果，再导入为草稿。相同来源与外部编号不会重复导入，已有内容不会被覆盖。', 'Preview validation before importing drafts. Source and external IDs prevent duplicate imports; existing content is preserved.')}</p>
+        <button id="import-example">{label('填入示例', 'Use example')}</button>
+        <label>{label('选择 JSON 文件', 'Choose JSON file')}<input id="import-file" type="file" accept="application/json,.json" /></label>
+        <label>{label('导入内容（JSON）', 'Import data (JSON)')}<textarea id="import-json" rows="12"></textarea></label>
+        <div class="admin-actions"><button id="import-preview">{label('预览校验', 'Validate preview')}</button><button id="import-apply" disabled>{label('导入草稿', 'Import drafts')}</button></div>
+        <pre id="import-results"></pre><h3>{label('最近导入记录', 'Recent imports')}</h3><div id="import-history"></div>
+      </details>
+      <section id="editor-panel" class="panel" hidden>
+        <h2 id="editor-title"></h2>
+        <p id="revision-state"></p>
+        <form id="editor">
+          <fieldset id="identity"><legend>{label('归属与类型（创建后固定）', 'Identity (fixed after creation)')}</legend>
+            <label>{label('类型', 'Type')}<select name="kind"><option value="stay">{label('住宿', 'Stay')}</option><option value="experience">{label('活动', 'Experience')}</option><option value="review">{label('游客手记', 'Visitor note')}</option></select></label>
+            <label>{label('网址标识', 'URL slug')}<input name="slug" pattern="[a-z0-9]+(-[a-z0-9]+)*" maxlength="120" required /></label>
+            <label>{label('地点', 'Place')}<select name="placeId"></select></label>
+            <label>{label('手记所属内容', 'Parent entry for a note')}<select name="parentContentId"></select></label>
+            <label>{label('虚构人物', 'Narrative persona')}<select name="personaId"></select></label>
+          </fieldset>
+          <label>{label('源语言', 'Source language')}<select name="sourceLocale"></select></label>
+          <p>{label('修改源文后，请同时校订译文。也可清空译文并保存，让缺译语言进入任务队列；真实翻译服务暂未启用。', 'After changing the source, review its translations too. Clear translations and save to queue missing languages; the live translation service is not enabled yet.')}</p>
+          <button id="clear-translations" type="button">{label('保留源文并清空译文', 'Keep source and clear translations')}</button>
+          <fieldset><legend>{label('金额与活动属性', 'Price and activity attributes')}</legend>
+            <label>{label('虚构金额（整数；手记留空）', 'Fictional amount (integer; blank for notes)')}<input name="amount" type="number" min="0" max="1000000000" step="1" /></label>
+            <label>{label('活动时长（分钟）', 'Experience duration (minutes)')}<input name="duration" type="number" min="1" max="43200" step="1" /></label>
+            <label>{label('手记叙事评分（可选 1–5）', 'Narrative rating (optional, 1–5)')}<input name="rating" type="number" min="1" max="5" step="1" /></label>
+          </fieldset>
+          <label>{label('图片，每行填写：图片标识 | HTTPS 地址', 'Images, one per line: image ID | HTTPS URL')}<textarea name="images" rows="3"></textarea></label>
+          <div id="language-fields"></div>
+          <button type="submit">{label('保存为新草稿', 'Save as new draft')}</button>
+          <button id="reload-editor" type="button">{label('重新载入最新版本', 'Reload latest version')}</button>
+        </form>
+        <section id="workflow" hidden>
+          <h3>{label('审核与发布', 'Review and publication')}</h3>
+          <p>{label('请检查源文与所有译文。以下操作针对已保存的版本；未保存的输入不会被发布。', 'Check the source and every translation. These actions apply to the saved version.')}</p>
+          <label>{label('审核备注', 'Moderation note')}<textarea id="moderation-note" rows="2"></textarea></label>
+          <div class="admin-actions">
+            <button id="submit-revision">{label('提交审核', 'Submit for review')}</button>
+            <button id="publish">{label('审核通过并发布', 'Approve and publish')}</button>
+            <button id="reject">{label('退回修改', 'Request changes')}</button>
+            <button id="unpublish">{label('下架', 'Unpublish')}</button>
+            <button id="site-block">{label('网站强制下架', 'Site restriction')}</button>
+            <button id="release-block">{label('解除网站限制', 'Lift site restriction')}</button>
+          </div>
+          <h3>{label('历史版本与发布', 'Revision and publication history')}</h3>
+          <p>{label('载入历史版本可检查全文，保存时会创建新草稿。恢复发布只切换公开版本，保留当前草稿。', 'Load a revision to inspect its full text, then save it as a new draft. Restoring a publication preserves the current draft.')}</p>
+          <div id="history"></div>
+          <h3>{label('翻译任务', 'Translation tasks')}</h3><p id="translation-status"></p><div id="jobs"></div>
+          <h3>{label('审核记录', 'Moderation history')}</h3><div id="events"></div>
+        </section>
+      </section>
+    </section>
+  </div>
+</Base>
+<script>
+  import '../../lib/admin';
+</script>
+<style is:global>
+  #admin [hidden] { display: none !important; }
+  #admin label { display: grid; gap: .35rem; margin: .8rem 0; }
+  #admin input, #admin select, #admin textarea, #admin button { font: inherit; color: var(--text); background: var(--surface); border: 1px solid var(--line); padding: .55rem; max-width: 100%; }
+  #admin input, #admin textarea { width: 100%; }
+  #admin button { cursor: pointer; border-color: var(--accent); }
+  #admin button:disabled { cursor: default; opacity: .45; }
+  #admin fieldset { border: 1px solid var(--line); margin: 1rem 0; min-width: 0; }
+  #admin table { width: 100%; border-collapse: collapse; }
+  #admin th, #admin td { padding: .65rem; border-bottom: 1px solid var(--line); text-align: left; }
+  #admin .admin-actions { display: flex; flex-wrap: wrap; gap: .6rem; margin: 1rem 0; }
+  #admin .admin-table { overflow: auto; }
+  #admin pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+  #admin #message { position: sticky; top: 0; background: var(--surface); padding: .7rem; z-index: 1; }
+  #admin #message:empty { display: none; }
+  #admin summary { cursor: pointer; }
+</style>

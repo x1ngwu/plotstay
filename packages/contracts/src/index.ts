@@ -49,7 +49,7 @@ export const createContentSchema = z.object({
   parentContentId: idSchema.nullable().default(null), personaId: idSchema.nullable().default(null),
   ...draftFields
 }).strict();
-export const editContentSchema = z.object({ baseRevisionId: idSchema, ...draftFields }).strict();
+export const editContentSchema = z.object({ baseRevisionId: idSchema, baseDraftToken: idSchema.optional(), ...draftFields }).strict();
 export type CreateContentInput = z.infer<typeof createContentSchema>;
 export type EditContentInput = z.infer<typeof editContentSchema>;
 export const bookingSchema = z.object({ contentId: idSchema, locale: localeSchema,
@@ -57,8 +57,15 @@ export const bookingSchema = z.object({ contentId: idSchema, locale: localeSchem
 export const loginSchema = z.object({ email: z.email().max(254), password: z.string().min(1).max(256) }).strict();
 export const importSchema = z.object({
   worldId: idSchema, source: z.string().trim().min(1).max(100),
-  items: z.array(z.object({ externalId: z.string().trim().min(1).max(160), content: createContentSchema }).strict()).min(1).max(100)
+  items: z.array(z.object({ externalId: z.string().trim().min(1).max(160), content: z.unknown() }).strict()).min(1).max(100)
 }).strict();
+
+export const revisionActionSchema = z.object({ revisionId: idSchema }).strict();
+export const reviewActionSchema = revisionActionSchema.extend({ decision: z.enum(['publish', 'reject']), note: z.string().trim().max(2000).default('') });
+export const restoreActionSchema = z.object({ publicationId: idSchema }).strict();
+export const unpublishActionSchema = z.object({ siteBlock: z.boolean().default(false), note: z.string().trim().max(2000).default('') }).strict();
+export const noteActionSchema = z.object({ note: z.string().trim().max(2000).default('') }).strict();
+export const translationActionSchema = z.object({ body: textSchema, baseTranslationId: idSchema.nullable() }).strict();
 
 export interface Locale { code: string; name: string }
 export interface World {

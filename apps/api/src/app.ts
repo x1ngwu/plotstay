@@ -2,10 +2,12 @@ import Fastify from 'fastify';
 import cookie from '@fastify/cookie';
 import rateLimit from '@fastify/rate-limit';
 import { z } from 'zod';
-import { idSchema, kindSchema, localeSchema, loginSchema, slugSchema } from '@plotstay/contracts';
+import { idSchema, kindSchema, localeSchema, loginSchema, slugSchema, createContentSchema, editContentSchema,
+  revisionActionSchema, reviewActionSchema, restoreActionSchema, unpublishActionSchema, noteActionSchema, translationActionSchema } from '@plotstay/contracts';
 import type { Database } from '@plotstay/database';
 import { adminDetail, adminList, adminWorlds, assert, digest, DomainError, getActor,
-  getPublished, listPublished, listWorlds, login } from '@plotstay/domain';
+  getPublished, listPublished, listWorlds, login, createContent, editContent, submitRevision, reviewRevision,
+  restorePublication, unpublishContent, releaseSiteBlock, saveTranslation, importContent, requireWorld, retryTranslation } from '@plotstay/domain';
 
 const localeQuery = z.object({ locale: localeSchema.default('en') }).strict();
 const listQuery = localeQuery.extend({ world: slugSchema.optional(), kind: kindSchema.optional(),
@@ -15,7 +17,7 @@ const idParams = z.object({ id: idSchema });
 const SESSION = 'plotstay_session';
 
 export async function createApp(db: Database, options: { logger?: boolean; webOrigin?: string; cookieSecure?: boolean } = {}) {
-  const app = Fastify({ logger: options.logger ?? false, bodyLimit: 64 * 1024 });
+  const app = Fastify({ logger: options.logger ?? false, bodyLimit: 2 * 1024 * 1024 });
   await app.register(cookie);
   await app.register(rateLimit, { global: false });
   const webOrigin = options.webOrigin ?? process.env.WEB_ORIGIN ?? 'http://localhost:4321';
@@ -32,6 +34,7 @@ export async function createApp(db: Database, options: { logger?: boolean; webOr
   app.setErrorHandler((error, request, reply) => {
     if (error instanceof z.ZodError) return reply.code(400).send({ error: { code: 'INVALID_INPUT', message: 'Invalid request.', details: error.issues } });
     if (error instanceof DomainError) return reply.code(error.status).send({ error: { code: error.code, message: error.message, ...(error.details ? { details: error.details } : {}) } });
+    if ((error as { code?: string }).code === '23505') return reply.code(409).send({ error: { code: 'ALREADY_EXISTS', message: 'This identifier already exists.' } });
     const status = (error as { statusCode?: number }).statusCode;
     if (status && status >= 400 && status < 500) return reply.code(status).send({ error: { code: 'BAD_REQUEST', message: status === 429 ? 'Too many requests.' : 'Invalid request.' } });
     request.log.error({ err: error }, 'API request failed');
@@ -91,6 +94,70 @@ export async function createApp(db: Database, options: { logger?: boolean; webOr
   app.get('/api/admin/contents/:id', async request => {
     const user = await actor(request.cookies[SESSION]);
     return adminDetail(db, user, idParams.parse(request.params).id);
+  });
+  app.get('/api/admin/worlds/:worldId/options', async request => {
+    const user = await actor(request.cookies[SESSION]);
+    const { worldId } = z.object({ worldId: idSchema }).parse(request.params);
+    await requireWorld(db, user, worldId);
+    const [places, personas, parents] = await Promise.all([
+      db.query('SELECT id,slug,names FROM places WHERE world_id=$1 ORDER BY slug', [worldId]),
+      db.query('SELECT id,profiles FROM personas WHERE approved AND (owner_id=$1 OR $2) ORDER BY created_at', [user.id, user.siteRole === 'admin']),
+      db.query("SELECT id,slug,kind FROM contents WHERE world_id=$1 AND kind IN ('stay','experience') ORDER BY slug", [worldId]),
+    ]);
+    return { places: places.rows, personas: personas.rows, parents: parents.rows, translationProvider: process.env.TRANSLATION_PROVIDER ?? 'disabled' };
+  });
+  app.post('/api/admin/contents', async (request, reply) => {
+    const user = await actor(request.cookies[SESSION]);
+    return reply.code(201).send(await createContent(db, user, createContentSchema.parse(request.body)));
+  });
+  app.post('/api/admin/contents/:id/revisions', async request => {
+    const user = await actor(request.cookies[SESSION]);
+    return editContent(db, user, idParams.parse(request.params).id, editContentSchema.extend({ baseDraftToken: idSchema }).parse(request.body));
+  });
+  app.post('/api/admin/contents/:id/submit', async request => {
+    const user = await actor(request.cookies[SESSION]);
+    return submitRevision(db, user, idParams.parse(request.params).id, revisionActionSchema.parse(request.body).revisionId);
+  });
+  app.post('/api/admin/contents/:id/review', async request => {
+    const user = await actor(request.cookies[SESSION]);
+    const body = reviewActionSchema.parse(request.body);
+    return reviewRevision(db, user, idParams.parse(request.params).id, body.revisionId, body.decision, body.note);
+  });
+  app.post('/api/admin/contents/:id/restore', async request => {
+    const user = await actor(request.cookies[SESSION]);
+    return restorePublication(db, user, idParams.parse(request.params).id, restoreActionSchema.parse(request.body).publicationId);
+  });
+  app.post('/api/admin/contents/:id/unpublish', async request => {
+    const user = await actor(request.cookies[SESSION]);
+    const body = unpublishActionSchema.parse(request.body);
+    return unpublishContent(db, user, idParams.parse(request.params).id, body.siteBlock, body.note);
+  });
+  app.post('/api/admin/contents/:id/release-site-block', async request => {
+    const user = await actor(request.cookies[SESSION]);
+    return releaseSiteBlock(db, user, idParams.parse(request.params).id, noteActionSchema.parse(request.body).note);
+  });
+  app.put('/api/admin/contents/:id/revisions/:revisionId/translations/:locale', async request => {
+    const user = await actor(request.cookies[SESSION]);
+    const params = z.object({ id: idSchema, revisionId: idSchema, locale: localeSchema }).parse(request.params);
+    const body = translationActionSchema.parse(request.body);
+    return saveTranslation(db, user, params.id, params.revisionId, params.locale, body.body, body.baseTranslationId);
+  });
+  for (const mode of ['preview', 'apply'] as const) {
+    app.post(`/api/admin/imports/${mode}`, async request => {
+      const user = await actor(request.cookies[SESSION]);
+      return importContent(db, user, request.body, mode === 'preview');
+    });
+  }
+  app.get('/api/admin/worlds/:worldId/imports', async request => {
+    const user = await actor(request.cookies[SESSION]);
+    const { worldId } = z.object({ worldId: idSchema }).parse(request.params);
+    await requireWorld(db, user, worldId);
+    return { batches: (await db.query('SELECT id,source,results,created_at FROM import_batches WHERE world_id=$1 ORDER BY created_at DESC LIMIT 50', [worldId])).rows };
+  });
+  app.post('/api/admin/translation-jobs/:id/retry', async request => {
+    const user = await actor(request.cookies[SESSION]);
+    z.object({}).strict().parse(request.body);
+    return retryTranslation(db, user, idParams.parse(request.params).id);
   });
   return app;
 }

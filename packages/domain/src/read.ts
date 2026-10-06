@@ -89,7 +89,7 @@ export async function adminDetail(db: Connection, actor: Actor, id: string) {
       FROM content_revisions r WHERE content_id=$1 ORDER BY number DESC`, [id]),
     db.query('SELECT * FROM publications WHERE content_id=$1 ORDER BY published_at DESC,id', [id]),
     db.query('SELECT action,note,actor_id,revision_id,created_at FROM moderation_events WHERE content_id=$1 ORDER BY created_at DESC', [id]),
-    db.query(`SELECT j.id,j.revision_id,j.locale,j.status,j.attempts,j.last_error FROM translation_jobs j
+    db.query(`SELECT j.id,j.revision_id,j.locale,j.status,j.attempts,j.max_attempts,j.last_error,j.provider,j.available_at FROM translation_jobs j
       JOIN content_revisions r ON r.id=j.revision_id WHERE r.content_id=$1 ORDER BY j.created_at DESC`, [id])
   ]);
   return { content, canReview: actor.siteRole === 'admin' || ['owner','admin'].includes(world.role),
