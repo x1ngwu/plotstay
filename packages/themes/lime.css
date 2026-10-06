@@ -1,0 +1,19 @@
+/* digi-tech Lime palette; independent of page layout and business behavior. */
+html[data-theme=lime] {
+  --desktop: #111; --surface: #111512; --text: #d1dfd5; --muted: #87a490;
+  --accent: #33ff99; --line: #344c3d;
+  color-scheme: dark; color: var(--text);
+  font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+  background: var(--desktop);
+  background-image: linear-gradient(#18251c 1px, transparent 1px), linear-gradient(90deg, #18251c 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+[data-theme=lime] .site-header { border-bottom: 2px dotted var(--accent); }
+[data-theme=lime] .brand { font-family: "Courier New", monospace; letter-spacing: .16em; font-weight: bold; }
+[data-theme=lime] a { color: var(--accent); text-underline-offset: .2em; }
+[data-theme=lime] a[aria-current=page] { color: var(--text); }
+[data-theme=lime] .panel { border: 2px dotted var(--accent); background: var(--surface); }
+[data-theme=lime] .eyebrow, [data-theme=lime] footer { color: var(--muted); }
+[data-theme=lime] .notice { border-left: 2px solid var(--accent); padding-left: .75rem; }
+[data-theme=lime] :focus-visible { outline: 2px solid var(--accent); outline-offset: 5px; }
+[data-theme=lime] ::selection { background: var(--accent); color: var(--desktop); }

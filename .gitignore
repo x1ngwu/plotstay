@@ -1,0 +1,15 @@
+node_modules/
+.env
+.env.*
+!.env.example
+dist/
+.astro/
+.runtime/
+releases/
+current
+.release.lock
+coverage/
+test-results/
+playwright-report/
+*.log
+

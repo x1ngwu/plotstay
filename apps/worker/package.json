@@ -1,0 +1,4 @@
+{
+  "name": "@plotstay/worker", "version": "0.1.0", "private": true, "type": "module",
+  "dependencies": { "@plotstay/contracts": "*", "@plotstay/database": "*", "@plotstay/domain": "*" }
+}

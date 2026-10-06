@@ -1,0 +1,45 @@
+---
+import Base from '../../../../../layouts/Base.astro';
+import { ApiFailure, getContent, getContents, getLocales, getWorlds } from '../../../../../lib/api';
+import { messages } from '../../../../../lib/i18n';
+import type { Locale, PublicContent, World } from '@plotstay/contracts';
+const { locale = 'en', world: worldSlug = '', type = '', slug = '' } = Astro.params;
+const ui = messages(locale);
+let locales: Locale[] = [], world: World | undefined, content: PublicContent | undefined, reviews: PublicContent[] = [];
+let failed = false;
+try {
+  ({ locales } = await getLocales());
+  if (!locales.some(item => item.code === locale) || !['stays', 'experiences'].includes(type)) throw new ApiFailure(404);
+  world = (await getWorlds(locale)).worlds.find(item => item.slug === worldSlug);
+  if (!world) throw new ApiFailure(404);
+  ({ content } = await getContent(locale, worldSlug, type === 'stays' ? 'stay' : 'experience', slug));
+  ({ contents: reviews } = await getContents(locale, { world: worldSlug, parentId: content.id }));
+} catch (error) {
+  failed = true;
+  Astro.response.status = error instanceof ApiFailure && [400, 404].includes(error.status) ? 404 : 503;
+}
+---
+<Base title={content?.text.title ?? 'Plotstay'} description={content?.text.summary} locale={locale} locales={locales} theme={world?.themeId}>
+  {failed ? <h1>{Astro.response.status === 404 ? ui.notFound : ui.unavailable}</h1> : <>
+    <a href={`/${locale}?world=${worldSlug}`}>← {ui.home} · {world!.name}</a>
+    <article class="panel" data-content-id={content!.id} data-publication-id={content!.publicationId}>
+      <p class="eyebrow">{ui.sample}</p>
+      {content!.isFallback && <p class="notice">{ui.fallback}</p>}
+      <div lang={content!.locale}>
+        <h1>{content!.text.title}</h1>
+        <p>{content!.placeName}</p>
+        <p class="prose">{content!.text.description}</p>
+        {(['facilities', 'itinerary', 'rules'] as const).map(key => content!.text[key].length > 0 && <section>
+          <h2 lang={locale}>{ui[key]}</h2><ul>{content!.text[key].map(line => <li>{line}</li>)}</ul>
+        </section>)}
+        {content!.text.hostName && <section><h2>{content!.text.hostName}</h2><p>{content!.text.hostBio}</p></section>}
+      </div>
+      {content!.attributes.price && <p>{new Intl.NumberFormat(locale).format(content!.attributes.price.amount)} {world!.currencyName} / {ui[content!.attributes.price.unit]}</p>}
+      {content!.attributes.durationMinutes && <p>{content!.attributes.durationMinutes} {ui.minutes}</p>}
+    </article>
+    {reviews.length > 0 && <section><h2>{ui.notes}</h2>{reviews.map(review => <article class="panel" lang={review.locale}>
+      <h3>{review.text.title}</h3><p>{review.personaName}</p><p>{review.text.description}</p>
+      {review.isFallback && <p lang={locale} class="notice">{ui.fallback}</p>}
+    </article>)}</section>}
+  </>}
+</Base>

@@ -1,0 +1,29 @@
+---
+import '@plotstay/themes/layout.css';
+import '@plotstay/themes/lime.css';
+import type { Locale } from '@plotstay/contracts';
+import { languagePath, messages } from '../lib/i18n';
+interface Props { title: string; description?: string; locale?: string; locales?: Locale[]; theme?: string }
+const { title, description = '', locale = 'en', locales = [], theme = 'lime' } = Astro.props;
+const ui = messages(locale);
+---
+<!doctype html>
+<html lang={locale} data-theme={theme === 'lime' ? theme : 'lime'}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>{title} · Plotstay</title>
+    <meta name="description" content={description} />
+    {locales.map(item => <link rel="alternate" hreflang={item.code} href={languagePath(Astro.url, item.code)} />)}
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href={`/${locale}`}>PLOTSTAY</a>
+      <nav aria-label="Language">
+        {locales.map(item => <a href={languagePath(Astro.url, item.code)} lang={item.code} aria-current={locale === item.code ? 'page' : undefined}>{item.name}</a>)}
+      </nav>
+    </header>
+    <main><slot /></main>
+    <footer>{ui.about}</footer>
+  </body>
+</html>

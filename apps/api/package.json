@@ -1,0 +1,7 @@
+{
+  "name": "@plotstay/api", "version": "0.1.0", "private": true, "type": "module",
+  "dependencies": {
+    "@plotstay/contracts": "*", "@plotstay/database": "*", "@plotstay/domain": "*",
+    "fastify": "5.12.5", "@fastify/cookie": "^11.0.2", "@fastify/rate-limit": "^10.3.0"
+  }
+}

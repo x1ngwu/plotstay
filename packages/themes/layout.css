@@ -1,0 +1,13 @@
+/* Geometry only. Page composition will be discussed before stage 3. */
+* { box-sizing: border-box; }
+body { margin: 0; line-height: 1.6; }
+.site-header, main, footer { max-width: 70rem; margin: auto; padding: 1.25rem; }
+.site-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+nav { display: flex; gap: 1rem; flex-wrap: wrap; }
+main { min-height: 70vh; }
+.entries { padding: 0; list-style: none; }
+.panel { padding: 1.25rem; margin-block: 1.5rem; overflow-wrap: anywhere; }
+h1, h2, h3 { line-height: 1.25; }
+.prose { white-space: pre-line; max-width: 65ch; }
+.eyebrow { font-size: .8rem; }
+footer { font-size: .875rem; }

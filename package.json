@@ -1,0 +1,39 @@
+{
+  "name": "plotstay",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "setup": "node scripts/setup.mjs",
+    "db:up": "docker compose up -d --wait postgres",
+    "db:stop": "docker compose stop postgres",
+    "db:migrate": "tsx packages/database/src/migrate.ts",
+    "db:seed": "tsx scripts/seed.ts",
+    "dev": "node scripts/dev.mjs",
+    "preview": "node scripts/preview.mjs",
+    "dev:api": "tsx watch apps/api/src/server.ts",
+    "dev:web": "npm run dev --workspace @plotstay/web",
+    "check": "tsc --noEmit && npm run check --workspace @plotstay/web",
+    "build": "npm run check && node scripts/build.mjs",
+    "start:api": "node --env-file=.env apps/api/dist/server.mjs",
+    "start:web": "node --env-file=.env apps/web/dist/server/entry.mjs",
+    "test": "tsx --test --test-concurrency=1 tests/foundation.test.ts",
+    "test:e2e": "npm run build && tsx --test --test-concurrency=1 tests/ssr.test.ts tests/dev.test.ts"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "@playwright/test": "^1.63.0",
+    "@types/node": "22.20.5",
+    "@types/pg": "^8.23.1",
+    "esbuild": "^0.28.2",
+    "tsx": "^4.23.15",
+    "typescript": "6.0.3"
+  }
+}
