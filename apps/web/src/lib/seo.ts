@@ -1,4 +1,4 @@
-import { contentPath, homePath, type ContentText, type Discovery, type Locale, type PublicContent, type World } from '@plotstay/contracts';
+import { PAGE_SIZE, parseBrowse, browsePath, filtered, contentPath, homePath, type ContentText, type Discovery, type Locale, type PublicContent, type World } from '@plotstay/contracts';
 import { hasDictionary } from './i18n.ts';
 
 export interface SiteConfig { indexable: boolean; origin?: string }
@@ -40,8 +40,10 @@ function metadata(locale: Locale, variants: Locale[], path: (item: Locale) => st
   return { canonical: absolute(locale), alternates };
 }
 export function homeSeo(url: URL, locale: Locale, locales: Locale[], world: World): Seo {
-  if (url.searchParams.get('q')?.trim() || ['stays', 'experiences'].includes(url.searchParams.get('type') ?? '')) return noIndex();
-  return metadata(locale, eligibleLocales(locales, world.listingLocales), item => homePath(item, world.slug));
+  const state = parseBrowse(url.searchParams);
+  if (filtered(state)) return noIndex();
+  const available = state.view === 'results' ? world.listingLocales : world.listingLocales.filter(l => !world.homeLocales || world.homeLocales.includes(l));
+  return metadata(locale, eligibleLocales(locales, available), item => browsePath(item, state));
 }
 export function detailSeo(locale: Locale, locales: Locale[], world: World, content: PublicContent): Seo {
   return metadata(locale, eligibleLocales(locales, content.availableLocales, world.availableLocales), item => contentPath(item, content));
@@ -49,7 +51,15 @@ export function detailSeo(locale: Locale, locales: Locale[], world: World, conte
 export function sitemapUrls(data: Discovery): string[] {
   const site = siteConfig();
   if (!site.indexable) return [];
-  const paths = data.worlds.flatMap(world => eligibleLocales(data.locales, world.listingLocales).map(locale => homePath(locale, world.slug)));
+  const paths: string[] = [];
+  for (const world of data.worlds) {
+    const available = world.listingLocales.filter(l => !world.homeLocales || world.homeLocales.includes(l));
+    paths.push(...eligibleLocales(data.locales, available).map(locale => homePath(locale, world.slug)));
+    const count = data.contents.filter(c => c.worldSlug === world.slug).length;
+    for (let page = 1; page <= Math.max(1, Math.ceil(count / PAGE_SIZE)); page++) {
+      paths.push(...eligibleLocales(data.locales, world.listingLocales).map(locale => browsePath(locale, { world: world.slug, type: 'all', q: '', view: 'results', page })));
+    }
+  }
   for (const content of data.contents) {
     const world = data.worlds.find(item => item.slug === content.worldSlug);
     if (world) paths.push(...eligibleLocales(data.locales, content.availableLocales, world.availableLocales).map(locale => contentPath(locale, content)));

@@ -98,7 +98,7 @@ test('SEO-01–05: live API, built SSR, XML and publication lifecycle', { timeou
   });
 
   await t.test('SSR canonical, reciprocal actual-language hreflang, parameters and trusted origin', async () => {
-    const urls = await sitemap(); assert.equal(urls.length, 14);
+    const urls = await sitemap(); assert.equal(urls.length, 18);
     for (const canonical of urls) {
       const parsed = new URL(canonical); assert.equal(parsed.origin, origin);
       const data = await inspect(parsed.pathname + parsed.search);

@@ -1,0 +1,58 @@
+---
+import { parseBrowse, browsePath, type BrowseState, type Locale, type PublicPlace, type PublicCategory } from '@plotstay/contracts';
+import { bilingual } from '../lib/i18n';
+interface Props { locale: Locale; state?: BrowseState; places?: PublicPlace[]; categories?: PublicCategory[] }
+const { locale, state = parseBrowse(new URLSearchParams()), places = [], categories = [] } = Astro.props;
+const t = bilingual(locale.code);
+const active = Astro.url.searchParams.get('tab') ?? state.type;
+const tabLink = (type: string) => {
+  const homes = ['all','stays'].includes(type);
+  const next = { ...state, type: state.view ? type as BrowseState['type'] : 'all' as const, page: 1,
+    rooms: homes ? state.rooms : undefined, end: homes ? state.end : undefined,
+    quantity: type === 'services' && state.view ? state.quantity : undefined, time: type === 'services' && state.view ? state.time : undefined,
+    category: categories.find(c => c.slug === state.category && (type === 'all' || type === (c.kind === 'stay' ? 'stays' : c.kind === 'service' ? 'services' : 'experiences'))) ? state.category : undefined,
+  };
+  const path = browsePath(locale, next);
+  return path + (path.includes('?') ? '&' : '?') + 'tab=' + type;
+};
+const types = [['all', t('全部', 'All')], ['stays', t('住宿', 'Homes')], ['experiences', t('活动', 'Experiences')], ['services', t('服务', 'Services')]];
+---
+<form class="search-form" action={`/${locale.pathPrefix}`} method="get" data-search>
+  <input type="hidden" name="view" value="results" />
+  {state.world !== 'lathe-worlds' && <input type="hidden" name="world" value={state.world} />}
+  <fieldset class="search-tabs"><legend class="sr-only">{t('旅行类型', 'Journey type')}</legend>
+    {types.map(([value, label]) => <label><input type="radio" name="type" value={value} checked={active === value} /><span>{label}</span></label>)}
+  </fieldset>
+  <noscript><style>.search-tabs { display: none; }</style><p class="search-note">{t('选择字段：', 'Choose fields: ')}{types.map(([value,label]) => <a class="nojs-tab" href={tabLink(value!)}>{label}</a>)}</p></noscript>
+  <div class="search-fields">
+    <label class="destination-field">{t('想去哪里？', 'Where to?')}<input name="q" value={state.q} maxlength="200" placeholder={t('搜索名称、地点或标签', 'Search places, titles or tags')} /></label>
+    <label>{t('地点', 'Destination')}<select name="place"><option value="">{t('整个世界', 'Anywhere in this world')}</option>{places.map(p => <option value={p.slug} selected={state.place === p.slug}>{p.name}</option>)}</select></label>
+    <label>{t('日期', 'Date')}<input name="start" type="date" value={state.start} min="1900-01-01" max="9999-12-31" /></label>
+    <label data-for="all stays" hidden={!['all','stays'].includes(active)}>{t('返回／退房', 'Return / checkout')}<input name="end" type="date" value={state.end} disabled={!['all','stays'].includes(active)} min={state.start ?? '1900-01-01'} max="9999-12-31" /></label>
+    <label>{t('人数', 'Travellers')}<input name="guests" type="number" min="1" max="99" step="1" value={state.guests} placeholder={t('未定', 'Any')} /></label>
+    <label data-for="all stays" hidden={!['all','stays'].includes(active)}>{t('房间数', 'Rooms')}<input name="rooms" type="number" min="1" max="20" step="1" value={state.rooms} disabled={!['all','stays'].includes(active)} placeholder={t('未定', 'Any')} /></label>
+    <label data-for="services" hidden={active !== 'services'}>{t('数量', 'Quantity')}<input name="quantity" type="number" min="1" max="99" step="1" value={state.quantity} disabled={active !== 'services'} placeholder={t('未定', 'Any')} /></label>
+    <label data-for="services" hidden={active !== 'services'}>{t('时段偏好', 'Preferred time')}<select name="time" disabled={active !== 'services'}><option value="">{t('未定', 'Any time')}</option>{[['morning',t('上午','Morning')],['afternoon',t('下午','Afternoon')],['evening',t('晚间','Evening')]].map(([value,label]) => <option value={value} selected={state.time === value}>{label}</option>)}</select></label>
+    <button class="primary" type="submit">{t('搜索', 'Search')} <span aria-hidden="true">↗</span></button>
+  </div>
+  <div class="search-options"><label>{t('类别', 'Category')} <select name="category"><option value="">{t('所有类别', 'All categories')}</option>{categories.map(c => <option value={c.slug} selected={state.category === c.slug} data-kind={c.kind === 'stay' ? 'stays' : c.kind === 'service' ? 'services' : 'experiences'} hidden={active !== 'all' && active !== (c.kind === 'stay' ? 'stays' : c.kind === 'service' ? 'services' : 'experiences')}>{c.name}</option>)}</select></label><p class="search-note">{t('日期与数量仅记录行程意向，暂不核查余量。', 'Dates and quantities are trip preferences; availability is not checked yet.')}</p></div>
+</form>
+<script>
+  document.querySelectorAll<HTMLFormElement>('[data-search]').forEach(form => {
+    const update = () => {
+      const type = (form.elements.namedItem('type') as RadioNodeList).value;
+      form.querySelectorAll<HTMLElement>('[data-for]').forEach(label => {
+        const active = label.dataset.for!.split(' ').includes(type);
+        label.hidden = !active;
+        label.querySelectorAll<HTMLInputElement | HTMLSelectElement>('input,select').forEach(input => { input.disabled = !active; if (!active) input.value = ''; });
+      });
+      const category = form.elements.namedItem('category') as HTMLSelectElement;
+      for (const option of category.options) { option.hidden = !!option.dataset.kind && type !== 'all' && option.dataset.kind !== type; option.disabled = option.hidden; if (option.selected && option.hidden) category.value = ''; }
+    };
+    form.querySelectorAll('[name=type]').forEach(radio => radio.addEventListener('change', update));
+    const start = form.elements.namedItem('start') as HTMLInputElement;
+    const end = form.elements.namedItem('end') as HTMLInputElement;
+    const validate = () => { end.setCustomValidity(end.value && (!start.value || end.value <= start.value) ? (document.documentElement.lang === 'zh-Hans' ? '退房日期须晚于入住日期。' : 'Checkout must follow the start date.') : ''); };
+    start.addEventListener('change', validate); end.addEventListener('change', validate); update();
+  });
+</script>

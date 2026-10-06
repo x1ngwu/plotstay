@@ -11,10 +11,10 @@ export async function listLocales(db: Connection): Promise<Locale[]> {
   return (await db.query('SELECT code,name,path_prefix AS "pathPrefix",language_tag AS "languageTag" FROM locales WHERE enabled ORDER BY code')).rows;
 }
 // All public readers, including discovery, use the same publication and visibility boundary.
-const publicFrom = `FROM contents c JOIN worlds w ON w.id=c.world_id
+export const publicFrom = `FROM contents c JOIN worlds w ON w.id=c.world_id
   JOIN publications p ON p.id=c.published_publication_id
   JOIN content_revisions r ON r.id=p.revision_id`;
-const publicVisibility = `w.visible AND NOT w.site_blocked AND NOT c.site_blocked
+export const publicVisibility = `w.visible AND NOT w.site_blocked AND NOT c.site_blocked
   AND (c.parent_content_id IS NULL OR EXISTS (
     SELECT 1 FROM contents parent WHERE parent.id=c.parent_content_id AND parent.published_publication_id IS NOT NULL AND NOT parent.site_blocked))`;
 const publishedLocales = `ARRAY(SELECT pt.locale FROM publication_locales pt JOIN locales l ON l.code=pt.locale AND l.enabled
@@ -22,33 +22,39 @@ const publishedLocales = `ARRAY(SELECT pt.locale FROM publication_locales pt JOI
 const worldLocales = `ARRAY(SELECT l.code FROM locales l WHERE l.enabled AND w.translations ? l.code ORDER BY l.code)`;
 const listingLocales = `ARRAY(SELECT l.code FROM locales l WHERE l.enabled AND w.translations ? l.code
   AND NOT EXISTS (SELECT 1 ${publicFrom} WHERE ${publicVisibility}
-    AND c.world_id=outer_world.id AND c.kind IN ('stay','experience')
+    AND c.world_id=outer_world.id AND c.kind IN ('stay','experience','service')
     AND NOT EXISTS (SELECT 1 FROM publication_locales pt WHERE pt.publication_id=p.id AND pt.locale=l.code)) ORDER BY l.code)`;
+const homeLocales = `ARRAY(SELECT l.code FROM locales l WHERE l.enabled AND w.translations ? l.code AND
+  (NOT EXISTS (SELECT 1 FROM world_home_settings hs WHERE hs.world_id=w.id AND hs.published_id IS NOT NULL) OR
+   EXISTS (SELECT 1 FROM world_home_settings hs JOIN world_home_publications hp ON hp.id=hs.published_id
+     JOIN world_home_revisions hr ON hr.id=hp.revision_id WHERE hs.world_id=w.id AND hr.body->'translations' ? l.code)) ORDER BY l.code)`;
 export async function listWorlds(db: Connection, locale: string): Promise<World[]> {
   await enabledLocale(db, locale);
   const { rows } = await db.query(`SELECT w.id,w.slug,w.theme_id,w.source_locale,
     coalesce(w.translations->$1,w.translations->w.source_locale) AS text,
     CASE WHEN w.translations ? $1 THEN $1 ELSE w.source_locale END AS locale,
     (SELECT language_tag FROM locales WHERE code=CASE WHEN w.translations ? $1 THEN $1 ELSE w.source_locale END) AS language_tag,
-    ${worldLocales} AS available_locales, ${listingLocales} AS listing_locales
+    ${worldLocales} AS available_locales, ${listingLocales} AS listing_locales, ${homeLocales} AS home_locales
     FROM worlds w JOIN worlds outer_world ON outer_world.id=w.id
     WHERE w.visible AND NOT w.site_blocked ORDER BY w.created_at,w.id`, [locale]);
   return rows.map(w => ({ id: w.id, slug: w.slug, themeId: w.theme_id, sourceLocale: w.source_locale,
     locale: w.locale, name: w.text.name, description: w.text.description, currencyName: w.text.currencyName,
-    languageTag: w.language_tag, availableLocales: w.available_locales, listingLocales: w.listing_locales }));
+    languageTag: w.language_tag, availableLocales: w.available_locales, listingLocales: w.listing_locales, homeLocales: w.home_locales }));
 }
 export async function publicDiscovery(db: Connection): Promise<Discovery> {
   // One statement gives discovery a consistent snapshot, including enabled languages.
   const { rows: [row] } = await db.query(`SELECT
     (SELECT coalesce(jsonb_agg(jsonb_build_object('code',code,'name',name,'pathPrefix',path_prefix,'languageTag',language_tag) ORDER BY code),'[]') FROM locales WHERE enabled) AS locales,
-    (SELECT coalesce(jsonb_agg(jsonb_build_object('slug',w.slug,'availableLocales',${worldLocales},'listingLocales',${listingLocales}) ORDER BY w.slug),'[]')
+    (SELECT coalesce(jsonb_agg(jsonb_build_object('slug',w.slug,'availableLocales',${worldLocales},'listingLocales',${listingLocales},'homeLocales',${homeLocales}) ORDER BY w.slug),'[]')
       FROM worlds w JOIN worlds outer_world ON outer_world.id=w.id WHERE w.visible AND NOT w.site_blocked) AS worlds,
     (SELECT coalesce(jsonb_agg(jsonb_build_object('worldSlug',w.slug,'slug',c.slug,'kind',c.kind,'availableLocales',${publishedLocales}) ORDER BY w.slug,c.kind,c.slug),'[]')
-      ${publicFrom} WHERE ${publicVisibility} AND c.kind IN ('stay','experience')) AS contents`);
+      ${publicFrom} WHERE ${publicVisibility} AND c.kind IN ('stay','experience','service')) AS contents`);
   return row;
 }
-const publicSelect = `SELECT c.id,c.world_id,c.slug,c.kind,w.slug AS world_slug,
+export const publicSelect = `SELECT c.id,c.world_id,c.slug,c.kind,w.slug AS world_slug,c.place_id,pl.slug AS place_slug,
   coalesce(pl.names->$1,pl.names->r.source_locale) #>> '{}' AS place_name,
+  (SELECT coalesce(hr.body->'translations'->$1,hr.body->'translations'->(hr.body->>'sourceLocale'))->'categoryNames'->>(r.attributes->>'category')
+    FROM world_home_settings hs JOIN world_home_publications hp ON hp.id=hs.published_id JOIN world_home_revisions hr ON hr.id=hp.revision_id WHERE hs.world_id=w.id) AS category_name,
   t.locale,t.body,r.attributes,p.id AS publication_id,p.published_at,
   (SELECT language_tag FROM locales WHERE code=t.locale) AS language_tag,
   ${publishedLocales} AS available_locales,
@@ -62,11 +68,11 @@ const publicSelect = `SELECT c.id,c.world_id,c.slug,c.kind,w.slug AS world_slug,
   LEFT JOIN places pl ON pl.id=c.place_id
   LEFT JOIN personas person ON person.id=c.persona_id AND person.approved
   WHERE ${publicVisibility}`;
-function mapContent(row: any, requestedLocale: string): PublicContent {
+export function mapContent(row: any, requestedLocale: string): PublicContent {
   return { id: row.id, worldId: row.world_id, worldSlug: row.world_slug, slug: row.slug,
-    kind: row.kind, placeName: row.place_name, locale: row.locale, requestedLocale,
-    isFallback: row.locale !== requestedLocale, languageTag: row.language_tag, availableLocales: row.available_locales, text: row.body, attributes: row.attributes,
-    publicationId: row.publication_id, publishedAt: row.published_at.toISOString(), personaName: row.persona_name };
+    kind: row.kind, placeId: row.place_id, placeSlug: row.place_slug, placeName: row.place_name, locale: row.locale, requestedLocale,
+    isFallback: row.locale !== requestedLocale, languageTag: row.language_tag, availableLocales: row.available_locales, text: { tags: [], ...row.body }, attributes: row.attributes,
+    publicationId: row.publication_id, publishedAt: row.published_at.toISOString(), categoryName: row.category_name, personaName: row.persona_name };
 }
 export async function listPublished(db: Connection, locale: string, filters: {
   world?: string; kind?: string; q?: string; parentId?: string; limit?: number; offset?: number
@@ -78,9 +84,9 @@ export async function listPublished(db: Connection, locale: string, filters: {
   if (filters.world) add(' AND w.slug=?', filters.world);
   if (filters.parentId) add(" AND c.kind='review' AND c.parent_content_id=?", filters.parentId);
   else if (filters.kind) add(' AND c.kind=?', filters.kind);
-  else query += " AND c.kind IN ('stay','experience')";
+  else query += " AND c.kind IN ('stay','experience','service')";
   if (filters.q) {
-    add(` AND (t.body->>'title' || ' ' || coalesce(t.body->>'summary','') || ' ' || coalesce(t.body->>'description','') || ' ' || coalesce(pl.names::text,'')) ILIKE ? ESCAPE '\\'`, `%${filters.q.replace(/[\\%_]/g, '\\$&')}%`);
+    add(` AND (t.body->>'title' || ' ' || coalesce(t.body->>'summary','') || ' ' || coalesce(t.body->>'description','') || ' ' || coalesce(coalesce(pl.names->$1,pl.names->r.source_locale) #>> '{}','') || ' ' || coalesce(t.body->>'tags','')) ILIKE ? ESCAPE '\\'`, `%${filters.q.replace(/[\\%_]/g, '\\$&')}%`);
   }
   query += ' ORDER BY p.published_at DESC,c.id';
   add(' LIMIT ?', filters.limit ?? 50);

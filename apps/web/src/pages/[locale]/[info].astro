@@ -1,0 +1,28 @@
+---
+import Base from '../../layouts/Base.astro';
+import { fallbackLocales } from '@plotstay/contracts';
+import { bilingual, messages } from '../../lib/i18n';
+const { locales, locale: selectedLocale, localeFailure } = Astro.locals;
+const locale = selectedLocale ?? fallbackLocales[0]!;
+const t = bilingual(locale.code);
+const host = Astro.params.info === 'host';
+const failed = localeFailure || !selectedLocale || !['help','host'].includes(Astro.params.info ?? '');
+if (failed) Astro.response.status = localeFailure ? 503 : 404;
+const title = host ? t('让你的世界，有人来住。','Make room in your world.') : t('旅途开始之前。','Before you set off.');
+---
+<Base title={title} locale={locale} locales={locales}>
+  {failed ? <h1>{localeFailure ? messages(locale.code).unavailable : messages(locale.code).notFound}</h1> : <article class="panel info-page">
+    <p class="eyebrow">PLOTSTAY / {host ? t('创作说明','FOR CREATORS') : t('帮助中心','HELP CENTRE')}</p><h1>{title}</h1>
+    {host ? <>
+      <p>{t('一间轮班休息舱，一次当地漫步，一项奇妙的服务。用日常细节，写出你心中的世界。','A rest cabin, a local walk, an unusual service. Build a world through the little details of everyday life.')}</p>
+      <h2>{t('从一个好故事开始','Start with a good story')}</h2><p>{t('准备名称、介绍、地点、图片说明和虚构报价。住宿、活动与服务都支持中英内容；保存后经过审核才会公开。','Prepare a title, description, place, image descriptions and fictional price. Homes, experiences and services support Chinese and English; drafts are reviewed before publication.')}</p>
+      <h2>{t('已有创作者账号','Already have a creator account?')}</h2><p>{t('登录后可管理你有权限的世界内容，保存草稿、导入作品，并查看版本记录。','Sign in to manage listings in your assigned worlds, save drafts, import works and review their history.')}</p>
+      <a class="button" href={`/${locale.pathPrefix}/admin`}>{t('登录管理','Sign in to manage')}</a><p>{t('公开注册与房东申请尚未开放。你仍可以自由浏览所有已发布的故事。','Public registration and host applications are not open yet. You are welcome to explore every published story.')}</p>
+    </> : <>
+      <h2>{t('这些旅程是真的吗？','Are these real trips?')}</h2><p>{t('PlotStay 是虚构旅行创作体验。所有住宿、活动、服务、价格和游客手记均为故事内容，不提供真实预订或收费。','PlotStay is a fictional travel experience. All homes, activities, services, prices and visitor notes belong to the story. No real bookings or payments are offered.')}</p>
+      <h2>{t('日期和人数如何使用？','What happens to my trip preferences?')}</h2><p>{t('搜索会保留你选择的日期、人数与房间数，翻页、切换语言和进入详情时都能带上。这些条件暂不核查余量，也不影响搜索匹配。','Your dates, travellers and room counts travel with you through search, pagination, language changes and listing details. They do not yet check availability or narrow your search results.')}</p>
+      <h2>{t('优惠与会员权益','Offers and membership')}</h2><p>{t('首页优惠是世界内的叙事入口，目前没有优惠结算、积分或会员资格系统。所有已发布内容均可自由探索。','Homepage offers are part of the fictional setting. Discounts, points and memberships are not active systems. All published content is open to explore.')}</p>
+      <h2>{t('想参与创作？','Want to contribute a story?')}</h2><a href={`/${locale.pathPrefix}/host`}>{t('阅读创作说明','Read the creator guide')} ↗</a>
+    </>}
+  </article>}
+</Base>

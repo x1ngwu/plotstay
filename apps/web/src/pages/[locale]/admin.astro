@@ -21,7 +21,7 @@ if (failed) Astro.response.status = localeFailure ? 503 : 404;
       <div class="admin-actions"><span id="account"></span><button id="logout">{label('退出登录', 'Sign out')}</button></div>
       <label>{label('管理世界', 'World')}<select id="world"></select></label>
       <div class="admin-actions"><button id="new">{label('新建内容', 'New content')}</button><button id="refresh-list">{label('刷新列表', 'Refresh list')}</button></div>
-      <div class="admin-table"><table><thead><tr><th>{label('内容', 'Content')}</th><th>{label('草稿状态', 'Draft status')}</th><th>{label('公开状态', 'Visibility')}</th><th>{label('操作', 'Action')}</th></tr></thead><tbody id="content-list"></tbody></table></div>
+      <label>{label('筛选类型', 'Filter type')}<select id="filter-kind"><option value="">{label('全部', 'All')}</option><option value="stay">{label('住宿', 'Homes')}</option><option value="experience">{label('活动', 'Experiences')}</option><option value="service">{label('服务', 'Services')}</option><option value="review">{label('手记', 'Notes')}</option></select></label><div class="admin-table"><table><thead><tr><th>{label('内容', 'Content')}</th><th>{label('草稿状态', 'Draft status')}</th><th>{label('公开状态', 'Visibility')}</th><th>{label('操作', 'Action')}</th></tr></thead><tbody id="content-list"></tbody></table></div>
       <details class="panel" id="import-panel">
         <summary>{label('批量导入', 'Batch import')}</summary>
         <p>{label('先预览校验结果，再导入为草稿。相同来源与外部编号不会重复导入，已有内容不会被覆盖。', 'Preview validation before importing drafts. Source and external IDs prevent duplicate imports; existing content is preserved.')}</p>
@@ -36,7 +36,7 @@ if (failed) Astro.response.status = localeFailure ? 503 : 404;
         <p id="revision-state"></p>
         <form id="editor">
           <fieldset id="identity"><legend>{label('归属与类型（创建后固定）', 'Identity (fixed after creation)')}</legend>
-            <label>{label('类型', 'Type')}<select name="kind"><option value="stay">{label('住宿', 'Stay')}</option><option value="experience">{label('活动', 'Experience')}</option><option value="review">{label('游客手记', 'Visitor note')}</option></select></label>
+            <label>{label('类型', 'Type')}<select name="kind"><option value="stay">{label('住宿', 'Stay')}</option><option value="experience">{label('活动', 'Experience')}</option><option value="service">{label('服务', 'Service')}</option><option value="review">{label('游客手记', 'Visitor note')}</option></select></label>
             <label>{label('网址标识', 'URL slug')}<input name="slug" pattern="[a-z0-9]+(-[a-z0-9]+)*" maxlength="120" required /></label>
             <label>{label('地点', 'Place')}<select name="placeId"></select></label>
             <label>{label('手记所属内容', 'Parent entry for a note')}<select name="parentContentId"></select></label>
@@ -45,11 +45,12 @@ if (failed) Astro.response.status = localeFailure ? 503 : 404;
           <label>{label('源语言', 'Source language')}<select name="sourceLocale"></select></label>
           <p>{label('修改源文后，请同时校订译文。也可清空译文并保存，让缺译语言进入任务队列；真实翻译服务暂未启用。', 'After changing the source, review its translations too. Clear translations and save to queue missing languages; the live translation service is not enabled yet.')}</p>
           <button id="clear-translations" type="button">{label('保留源文并清空译文', 'Keep source and clear translations')}</button>
-          <fieldset><legend>{label('金额与活动属性', 'Price and activity attributes')}</legend>
+          <fieldset><legend>{label('价格与分类', 'Price and category')}</legend>
             <label>{label('虚构金额（整数；手记留空）', 'Fictional amount (integer; blank for notes)')}<input name="amount" type="number" min="0" max="1000000000" step="1" /></label>
-            <label>{label('活动时长（分钟）', 'Experience duration (minutes)')}<input name="duration" type="number" min="1" max="43200" step="1" /></label>
+            <label>{label('活动／服务时长（分钟；服务可选）', 'Duration (minutes; optional for services)')}<input name="duration" type="number" min="1" max="43200" step="1" /></label>
             <label>{label('手记叙事评分（可选 1–5）', 'Narrative rating (optional, 1–5)')}<input name="rating" type="number" min="1" max="5" step="1" /></label>
           </fieldset>
+          <label>{label('分类', 'Category')}<select name="category"></select></label>
           <label>{label('图片，每行填写：图片标识 | HTTPS 地址', 'Images, one per line: image ID | HTTPS URL')}<textarea name="images" rows="3"></textarea></label>
           <div id="language-fields"></div>
           <button type="submit">{label('保存为新草稿', 'Save as new draft')}</button>

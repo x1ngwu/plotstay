@@ -48,8 +48,9 @@ function line(text: string) { const item = document.createElement('p'); item.tex
 function confirmDiscard() { return !dirty || confirm(l('放弃未保存的输入？', 'Discard unsaved input?')); }
 const textFields = [
   ['title', '名称', 'Title', false], ['summary', '短介绍', 'Summary', false], ['description', '完整介绍', 'Description', false],
+  ['tags', '标签（每行一项）', 'Tags (one per line)', true],
   ['facilities', '设施（每行一项）', 'Facilities (one per line)', true], ['rules', '须知（每行一项）', 'Rules (one per line)', true],
-  ['itinerary', '行程（每行一项）', 'Itinerary (one per line)', true], ['hostName', '房东／向导名称', 'Host / guide name', false],
+  ['itinerary', '行程（每行一项）', 'Itinerary (one per line)', true], ['hostName', '房东／向导／提供者名称', 'Host / guide / provider name', false],
   ['hostBio', '人物介绍', 'Host / guide biography', false], ['imageAlts', '图片说明（图片 ID 对应文字，JSON）', 'Image descriptions (image ID to text, JSON)', false],
 ] as const;
 function renderTextFields(translations: Record<string, ContentText>) {
@@ -96,10 +97,11 @@ function formValue() {
   }) };
   if (kind !== 'review') {
     if (field('amount').value === '') throw new Error(l('请填写虚构金额。', 'Enter the fictional amount.'));
-    attributes.price = { amount: Number(field('amount').value), unit: kind === 'stay' ? 'night' : 'person' };
+    attributes.price = { amount: Number(field('amount').value), unit: kind === 'stay' ? 'night' : kind === 'service' ? 'session' : 'person' };
   }
-  if (kind === 'experience') attributes.durationMinutes = Number(field('duration').value);
+  if (kind === 'experience' || (kind === 'service' && field('duration').value)) attributes.durationMinutes = Number(field('duration').value);
   if (kind === 'review' && field('rating').value) attributes.rating = Number(field('rating').value);
+  if (field('category').value) attributes.category = field('category').value;
   const shared = { sourceLocale, text, translations: texts, attributes };
   return detail ? { ...shared, baseRevisionId: detail.content.head_revision_id, baseDraftToken: detail.content.draft_token } : {
     ...shared, worldId: worldId(), kind, slug: field('slug').value,
@@ -109,7 +111,7 @@ function formValue() {
 }
 async function refreshList() {
   const data = await api(`/admin/worlds/${worldId()}/contents`);
-  const rows = data.contents.map((content: any) => {
+  const rows = data.contents.filter((c: any) => !el<HTMLSelectElement>('filter-kind').value || c.kind === el<HTMLSelectElement>('filter-kind').value).map((content: any) => {
     const tr = document.createElement('tr');
     for (const text of [content.title, `${content.number} · ${status(content.status)}`, content.site_blocked ? l('网站限制', 'Site restricted') : content.published_publication_id ? l('已公开', 'Published') : l('未公开', 'Unpublished')]) {
       const td = document.createElement('td'); td.textContent = text; tr.append(td);
@@ -142,6 +144,8 @@ async function signIn() {
 }
 function fillRevision(revision: any) {
   field('sourceLocale').value = revision.source_locale;
+  refreshCategories();
+  field('category').value = revision.attributes.category ?? '';
   field('amount').value = revision.attributes.price?.amount?.toString() ?? '';
   field('duration').value = revision.attributes.durationMinutes?.toString() ?? '';
   field('rating').value = revision.attributes.rating?.toString() ?? '';
@@ -149,7 +153,16 @@ function fillRevision(revision: any) {
   renderTextFields(revision.translations);
   selectedRevision = revision.id;
 }
+function refreshCategories() {
+  const value = field('category').value;
+  const kind = detail?.content.kind ?? field('kind').value;
+  (field('category') as HTMLSelectElement).replaceChildren(option('', l('无', 'None')), ...(options.categories ?? []).filter((c: any) => c.kind === kind).map((c: any) => option(c.slug, c.slug)));
+  field('category').value = value;
+}
+field('kind').addEventListener('change', refreshCategories);
+el('filter-kind').addEventListener('change', () => { void refreshList().catch(error => message(errorText(error))); });
 function identity() {
+  refreshCategories();
   (field('sourceLocale') as HTMLSelectElement).replaceChildren(...locales.map(item => option(item.code, item.name)));
   for (const [name, list, title] of [
     ['placeId', options.places, (item: any) => item.names[locale] ?? item.slug],

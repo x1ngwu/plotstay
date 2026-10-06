@@ -26,9 +26,15 @@ async function appendRevision(db: PoolClient, actor: Actor, content: any, input:
   assert(allowed.has(input.sourceLocale) && Object.keys(input.translations).every(l => allowed.has(l)), 400, 'INVALID_LOCALE', 'Language is not enabled.');
   assert(!Object.hasOwn(input.translations, input.sourceLocale), 400, 'DUPLICATE_SOURCE', 'Use text for the source language.');
   if (content.kind !== 'review') {
-    assert(input.attributes.price && input.attributes.price.unit === (content.kind === 'stay' ? 'night' : 'person'), 400, 'INVALID_PRICE', 'The price unit must match the content type.');
+    assert(input.attributes.price && input.attributes.price.unit === (content.kind === 'stay' ? 'night' : content.kind === 'service' ? 'session' : 'person'), 400, 'INVALID_PRICE', 'The price unit must match the content type.');
     if (content.kind === 'experience') assert(input.attributes.durationMinutes, 400, 'DURATION_REQUIRED', 'An experience needs a duration.');
   } else assert(!input.attributes.price, 400, 'INVALID_PRICE', 'Reviews do not have a booking price.');
+  if (input.attributes.category) {
+    const { rows: [home] } = await db.query(`SELECT r.body FROM world_home_settings s
+      JOIN world_home_publications p ON p.id=s.published_id JOIN world_home_revisions r ON r.id=p.revision_id WHERE s.world_id=$1`, [content.world_id]);
+    assert(home?.body.categories.some((c: any) => c.slug === input.attributes.category && c.kind === content.kind),
+      400, 'INVALID_CATEGORY', 'Choose a published category for this world and content type.');
+  }
   const { rows: [previous] } = await db.query('SELECT coalesce(max(number),0)::int AS number FROM content_revisions WHERE content_id=$1', [content.id]);
   const { rows: [revision] } = await db.query(`INSERT INTO content_revisions(content_id,number,source_locale,source_text,attributes,created_by)
     VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`, [content.id, previous.number + 1, input.sourceLocale, input.text, input.attributes, actor.id]);
@@ -52,8 +58,8 @@ export async function createContentInTransaction(db: PoolClient, actor: Actor, i
     assert(place.rowCount, 400, 'INVALID_PLACE', 'The place must belong to this world.');
   }
   if (input.kind === 'review') {
-    const parent = await db.query("SELECT id FROM contents WHERE id=$1 AND world_id=$2 AND kind IN ('stay','experience')", [input.parentContentId, input.worldId]);
-    assert(parent.rowCount, 400, 'INVALID_PARENT', 'A review needs a stay or experience in this world.');
+    const parent = await db.query("SELECT id FROM contents WHERE id=$1 AND world_id=$2 AND kind IN ('stay','experience','service')", [input.parentContentId, input.worldId]);
+    assert(parent.rowCount, 400, 'INVALID_PARENT', 'A review needs a stay, experience or service in this world.');
   } else assert(!input.parentContentId, 400, 'INVALID_PARENT', 'Only reviews have a parent entry.');
   if (input.personaId) {
     const persona = await db.query('SELECT id FROM personas WHERE id=$1 AND approved AND (owner_id=$2 OR $3)', [input.personaId, actor.id, actor.siteRole === 'admin']);

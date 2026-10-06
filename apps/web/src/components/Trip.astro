@@ -1,0 +1,15 @@
+---
+import { hasTrip, type BrowseState, type Locale } from '@plotstay/contracts';
+import { bilingual } from '../lib/i18n';
+const { state, locale } = Astro.props as { state: BrowseState; locale: Locale };
+const t = bilingual(locale.code);
+---
+{hasTrip(state) && <aside class="trip-summary" aria-label={t('行程条件','Trip preferences')}>
+  <strong>{t('行程条件', 'Trip preferences')}</strong>
+  {state.start && <span>{state.start}{state.end ? ` → ${state.end}` : ''}</span>}
+  {state.guests && <span>{state.guests} {t('人','travellers')}</span>}
+  {state.rooms && <span>{state.rooms} {t('间客房','rooms')}</span>}
+  {state.quantity && <span>{t('数量','Quantity')}: {state.quantity}</span>}
+  {state.time && <span>{({morning:t('上午','Morning'), afternoon:t('下午','Afternoon'), evening:t('晚间','Evening')})[state.time]}</span>}
+  <small>{t('已保留你的选择，尚未核查余量。','Your choices are saved; availability has not been checked.')}</small>
+</aside>}

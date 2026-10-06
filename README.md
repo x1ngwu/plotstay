@@ -1,8 +1,8 @@
 # Plotstay
 
-虚构世界中的住宿与活动。Astro 按需渲染 + 独立 Node.js / TypeScript API + PostgreSQL。
+虚构世界中的住宿、活动与服务。Astro 按需渲染 + 独立 Node.js / TypeScript API + PostgreSQL。
 
-阶段 1、2、[2.5 多语言 URL 与 SEO 修复](docs/i18n-seo-remediation.md)已完成验收，使用手工中英 dummy data。中文规范路径为 `/zh`（标记 `zh-Hans`），旧 `/zh-CN` 自动跳转；预览默认关闭索引。游客页面仍为基础浏览页，下一步先讨论阶段 3 首页布局，保持 digi-tech Lime。
+阶段 1、2、[2.5 多语言 URL 与 SEO 修复](docs/i18n-seo-remediation.md)已完成验收，使用手工中英 dummy data。中文规范路径为 `/zh`（标记 `zh-Hans`），旧 `/zh-CN` 自动跳转；预览默认关闭索引。阶段 3 S3-00–S3-05 功能与布局已获确认：发现首页、独立 Services、行程条件、世界配置与完整 SSR 分页已可用。样式以原版 digi-tech Lime 为准，并按用户提供的 Airbnb 参考包校准发现栏目尺寸与间距；中英文案已审定发布，当前视觉版本获用户认可并授权提交，见[视觉校准记录](docs/phase-3-visual-alignment.md)。
 
 ```bash
 npm ci
@@ -10,6 +10,7 @@ npm run setup
 npm run db:up
 npm run db:migrate
 npm run db:seed
+npm run db:seed:discovery # 可选：追加多地点、服务及首页配置演示
 npm run dev
 ```
 
@@ -19,7 +20,7 @@ npm run dev
 
 管理入口：`http://localhost:4321/zh/admin`（英文为 `/en/admin`）。使用 `.env` 中的 `ADMIN_EMAIL` / `ADMIN_PASSWORD` 登录，可编辑、导入、审核发布、下架及恢复历史发布。浏览器通过 Web 的同域 `/api` 转发访问独立后端，不需另开 SSH 转发端口。
 
-SEO 配置与写请求的 `WEB_ORIGIN` 独立：`SITE_INDEXABLE` 默认 `false`；正式启用需要 `SITE_INDEXABLE=true` 及有效 HTTPS origin 的 `SITE_URL`。当前预览保持关闭，动态 `/sitemap.xml` 为空；隔离测试会显式打开索引验证。不要为 dummy data 开放索引。新增 `004_locale_urls.sql` 使用 `npm run db:migrate` 增量应用，不改写历史迁移或重置数据。
+SEO 配置与写请求的 `WEB_ORIGIN` 独立：`SITE_INDEXABLE` 默认 `false`；正式启用需要 `SITE_INDEXABLE=true` 及有效 HTTPS origin 的 `SITE_URL`。当前预览保持关闭，动态 `/sitemap.xml` 为空；隔离测试会显式打开索引验证。不要为 dummy data 开放索引。增量迁移包含 `004_locale_urls.sql` 与 `005_discovery.sql` 使用 `npm run db:migrate` 增量应用，不改写历史迁移或重置数据。
 
 翻译任务执行器已实现，外部供应商保持禁用。`npm run start:worker` 启动独立 worker；`node --env-file=.env apps/worker/dist/main.mjs --once` 可检查一次后退出。测试适配器只在测试中注入，不会生成冒充正式译文的公开内容。
 
@@ -30,3 +31,5 @@ npm run test:e2e              # 类型检查、构建、独立服务与浏览器
 ```
 
 运行参数、接口、实际验证结果和下一步见 [开发进度与交接](docs/development-status.md)。产品与架构依据见 [文档索引](docs/README.md)。
+
+完整列表：`/zh?view=results`；服务：`/zh/worlds/lathe-worlds/services/augmetic-tune-up`；帮助与创作说明：`/zh/help`、`/zh/host`。本次 31 项后端测试与 25 项端到端测试通过，隔离验收从首页遍历 73 条公开内容无遗漏。正式素材、完整详情、模拟预订、公开注册与生产部署仍按后续阶段推进。

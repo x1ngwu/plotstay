@@ -1,37 +1,45 @@
 ---
+import Trip from '../../../../../components/Trip.astro';
 import Base from '../../../../../layouts/Base.astro';
 import { ApiFailure, getContent, getContents, getWorlds } from '../../../../../lib/api';
-import { messages, uiLocale } from '../../../../../lib/i18n';
-import { homePath, fallbackLocales, type PublicContent, type World } from '@plotstay/contracts';
+import { bilingual, messages, uiLocale } from '../../../../../lib/i18n';
+import { browsePath, detailReturn, parseBrowse, fallbackLocales, type PublicContent, type World } from '@plotstay/contracts';
 import { contentDescription, detailSeo, noIndex } from '../../../../../lib/seo';
 const { world: worldSlug = '', type = '', slug = '' } = Astro.params;
 const { locales, locale: selectedLocale, localeFailure } = Astro.locals;
 const locale = selectedLocale ?? fallbackLocales[0]!;
 const ui = messages(locale.code);
+const t = bilingual(locale.code);
+let state = parseBrowse(new URLSearchParams());
 const interfaceTag = [...locales, ...fallbackLocales].find(item => item.code === uiLocale(locale.code))!.languageTag;
 let world: World | undefined, content: PublicContent | undefined, reviews: PublicContent[] = [];
 let failed = false;
 try {
   if (localeFailure) throw new ApiFailure(503);
-  if (!selectedLocale || !['stays', 'experiences'].includes(type)) throw new ApiFailure(404);
+  if (!selectedLocale || !['stays', 'experiences', 'services'].includes(type)) throw new ApiFailure(404);
   world = (await getWorlds(locale.code)).worlds.find(item => item.slug === worldSlug);
   if (!world) throw new ApiFailure(404);
-  ({ content } = await getContent(locale.code, worldSlug, type === 'stays' ? 'stay' : 'experience', slug));
+  ({ content } = await getContent(locale.code, worldSlug, type === 'stays' ? 'stay' : type === 'services' ? 'service' : 'experience', slug));
+  try { state = detailReturn(Astro.url.searchParams,worldSlug); } catch { throw new ApiFailure(404); }
   ({ contents: reviews } = await getContents(locale.code, { world: worldSlug, parentId: content.id }));
 } catch (error) {
   failed = true;
   Astro.response.status = error instanceof ApiFailure && [400, 404].includes(error.status) ? 404 : 503;
 }
 ---
-<Base title={content?.text.title ?? 'Plotstay'} description={content ? contentDescription(content.text) : undefined} locale={locale} locales={locales} theme={world?.themeId} seo={failed ? noIndex() : detailSeo(locale, locales, world!, content!)}>
+<Base title={content?.text.title ?? 'Plotstay'} description={content ? contentDescription(content.text) : undefined} locale={locale} locales={locales} theme={world?.themeId} world={world} seo={failed ? noIndex() : detailSeo(locale, locales, world!, content!)}>
   {failed ? <h1>{Astro.response.status === 404 ? ui.notFound : ui.unavailable}</h1> : <>
-    <a href={homePath(locale, worldSlug)}>← {ui.home} · {world!.name}</a>
-    <article class="panel" data-content-id={content!.id} data-publication-id={content!.publicationId}>
+    <a data-back href={browsePath(locale, state)}>← {ui.home} · {world!.name}</a>
+    <Trip state={state} locale={locale} />
+    <article class="panel detail-panel" data-content-id={content!.id} data-publication-id={content!.publicationId}>
       <p class="eyebrow">{ui.sample}</p>
       {content!.isFallback && <p class="notice">{ui.fallback}</p>}
       <div lang={content!.languageTag}>
         <h1>{content!.text.title}</h1>
         <p>{content!.placeName}</p>
+        <div class:list={['card-cover','detail-cover',`cover-${content!.kind}`]}><span class="cover-diagram" aria-hidden="true">{content!.kind === 'stay' ? '⌂' : content!.kind === 'service' ? '⌘' : '✳'}</span>{content!.attributes.images[0] && <img src={content!.attributes.images[0].url} alt={content!.text.imageAlts[content!.attributes.images[0].id] ?? ''} width="960" height="500" />}</div>
+        {content!.attributes.category && <p>{t('类别', 'Category')}: {content!.categoryName ?? content!.attributes.category}</p>}
+        {content!.text.tags?.length > 0 && <p>{content!.text.tags.join(' · ')}</p>}
         <p class="prose">{content!.text.description}</p>
         {(['facilities', 'itinerary', 'rules'] as const).map(key => content!.text[key].length > 0 && <section>
           <h2 lang={interfaceTag}>{ui[key]}</h2><ul>{content!.text[key].map(line => <li>{line}</li>)}</ul>

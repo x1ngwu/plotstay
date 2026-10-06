@@ -1,0 +1,27 @@
+---
+import { contentPath, type PublicContent, type World, type Locale } from '@plotstay/contracts';
+import { messages } from '../lib/i18n';
+interface Props { content: PublicContent; world: World; locale: Locale; href?: string; category?: string }
+const { content, world, locale, category, href = contentPath(Astro.props.locale, Astro.props.content) } = Astro.props;
+const ui = messages(locale.code);
+const cover = content.attributes.images[0];
+---
+<li class="content-card" data-content-id={content.id}>
+  <a class="cover-link" href={href} tabindex="-1" aria-hidden="true">
+    <div class:list={['card-cover', `cover-${content.kind}`]}>
+      <span class="cover-diagram" aria-hidden="true">{content.kind === 'stay' ? '⌂' : content.kind === 'experience' ? '✳' : '⌘'}</span>
+      {cover && <img src={cover.url} alt={content.text.imageAlts[cover.id] ?? ''} loading="lazy" width="480" height="340" />}
+      <span class="cover-code" aria-hidden="true">{content.kind === 'stay' ? ui.stays : content.kind === 'experience' ? ui.experiences : ui.services} / PLOTSTAY</span>
+    </div>
+  </a>
+  <div class="card-copy" lang={content.languageTag}>
+    <p class="card-place">{content.placeName ?? world.name}</p>
+    <h3><a href={href}>{content.text.title}</a></h3>
+    {category && <p class="card-meta">{category}</p>}
+    {content.kind === 'service' && content.text.hostName && <p class="card-meta">{content.text.hostName}</p>}
+    <p class="card-summary">{content.text.summary}</p>
+    {content.attributes.durationMinutes && <p class="card-meta">{content.attributes.durationMinutes} {ui.minutes}</p>}
+    {content.isFallback && <p class="notice">{ui.fallback}</p>}
+  </div>
+  {content.attributes.price && <p class="card-price"><strong>{new Intl.NumberFormat(locale.languageTag).format(content.attributes.price.amount)}</strong> {world.currencyName} <span>/ {ui[content.attributes.price.unit]}</span></p>}
+</li>

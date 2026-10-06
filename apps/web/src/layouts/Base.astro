@@ -1,12 +1,13 @@
 ---
 import '@plotstay/themes/layout.css';
 import '@plotstay/themes/lime.css';
-import { fallbackLocales, homePath, type Locale } from '@plotstay/contracts';
-import { hasDictionary, languagePath, messages, uiLocale } from '../lib/i18n';
+import { fallbackLocales, homePath, type Locale, type World } from '@plotstay/contracts';
+import { bilingual, hasDictionary, languagePath, messages, uiLocale } from '../lib/i18n';
 import { noIndex, type Seo } from '../lib/seo';
-interface Props { title: string; description?: string; locale?: Locale; locales?: Locale[]; theme?: string; seo?: Seo }
-const { title, description = '', locale = fallbackLocales[0]!, locales = [], theme = 'lime', seo = noIndex() } = Astro.props;
+interface Props { title: string; description?: string; locale?: Locale; locales?: Locale[]; theme?: string; seo?: Seo; world?: World }
+const { title, description = '', locale = fallbackLocales[0]!, locales = [], theme = 'lime', seo = noIndex(), world } = Astro.props;
 const ui = messages(locale.code);
+const t = bilingual(locale.code);
 const interfaceTag = [...locales, ...fallbackLocales].find(item => item.code === uiLocale(locale.code))!.languageTag;
 if (!seo.canonical) Astro.response.headers.set('X-Robots-Tag', 'noindex, follow');
 ---
@@ -22,13 +23,54 @@ if (!seo.canonical) Astro.response.headers.set('X-Robots-Tag', 'noindex, follow'
     {seo.alternates.map(item => <link rel="alternate" hreflang={item.tag} href={item.url} />)}
   </head>
   <body>
+    <a class="skip-link" href="#main">{t('跳到内容', 'Skip to content')}</a>
     <header class="site-header">
-      <a class="brand" href={homePath(locale)}>PLOTSTAY</a>
-      <nav aria-label="Language">
-        {locales.map(item => <a href={languagePath(Astro.url, item)} lang={item.languageTag} aria-current={locale.code === item.code ? 'page' : undefined}>{item.name}</a>)}
-      </nav>
+      <div class="header-left">
+        <a class="brand" href={homePath(locale, world?.slug)} aria-label="PlotStay">
+          <svg viewBox="0 0 40 40" fill="none" aria-hidden="true"><path d="M7 31 15 7l18 5-19 9-7 10Z" fill="currentColor"/><path d="m18 24 7 7 7-14M5 35h8" stroke="currentColor" stroke-width="2"/></svg><span class="brand-wordmark">PlotStay</span>
+        </a>
+        <details class="header-menu world-menu"><summary>{world?.name ?? 'Lathe Worlds'} ▾</summary><div class="menu-panel"><a href={homePath(locale)}>Lathe Worlds <span aria-hidden="true">✓</span></a></div></details>
+      </div>
+      <div class="header-actions">
+        <a class="host-link" href={`/${locale.pathPrefix}/host`}>{t('成为房东', 'Become a host')}</a>
+        <a class="icon-button" data-account-link href={`/${locale.pathPrefix}/admin`} aria-label={t('账号登录', 'Sign in')}><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="8" r="3"/><path d="M5 21v-3a7 7 0 0 1 14 0v3"/></svg></a>
+        <details class="header-menu"><summary class="icon-button" aria-label={t('菜单', 'Menu')}><span aria-hidden="true">☰</span></summary><div class="menu-panel">
+          <nav aria-label="Language">{locales.map(item => <a href={languagePath(Astro.url, item)} lang={item.languageTag} aria-current={locale.code === item.code ? 'page' : undefined}>{item.name}</a>)}</nav>
+          <a href={`/${locale.pathPrefix}/help`}>{t('帮助中心', 'Help centre')}</a>
+          <a href={`/${locale.pathPrefix}/host`}>{t('成为房东', 'Become a host')}</a>
+          <a data-sign-in href={`/${locale.pathPrefix}/admin`}>{t('现有账号登录', 'Sign in to your account')}</a>
+          <a data-manage hidden href={`/${locale.pathPrefix}/admin`}>{t('管理我的内容', 'Manage my listings')}</a>
+          <button data-sign-out hidden>{t('退出登录', 'Sign out')}</button><span data-account-status role="status"></span>
+        </div></details>
+      </div>
     </header>
-    <main>{!hasDictionary(locale.code) && <p class="notice">{ui.uiFallback}</p>}<slot /></main>
-    <footer>{ui.about}</footer>
+    <main id="main">{!hasDictionary(locale.code) && <p class="notice">{ui.uiFallback}</p>}<slot /></main>
+    <footer><div><a class="brand" href={homePath(locale)}><span class="brand-wordmark">PlotStay</span> ↗</a><p>{ui.about}</p></div><nav><a href={homePath(locale, world?.slug) + (world && world.slug !== 'lathe-worlds' ? '&' : '?') + 'view=results'}>{t('浏览全部', 'Browse everything')}</a><a href={`/${locale.pathPrefix}/help`}>{t('帮助中心', 'Help centre')}</a><a href={`/${locale.pathPrefix}/host`}>{t('创作说明', 'For creators')}</a></nav></footer>
+    <script>
+      document.addEventListener('keydown', event => {
+        if (event.key !== 'Escape') return;
+        const menu = document.activeElement?.closest('details[open]') as HTMLDetailsElement | null;
+        if (menu) { menu.open = false; menu.querySelector('summary')?.focus(); }
+      });
+      const updateAccount = async () => {
+        try {
+          const response = await fetch('/api/auth/me');
+          if (!response.ok) return;
+          document.querySelector<HTMLElement>('[data-sign-in]')!.hidden = true;
+          document.querySelector<HTMLElement>('[data-sign-out]')!.hidden = false;
+          const worlds = await fetch('/api/admin/worlds');
+          if (worlds.ok && (await worlds.json()).worlds.length) document.querySelector<HTMLElement>('[data-manage]')!.hidden = false;
+        } catch { /* The login link remains usable when account lookup fails. */ }
+      };
+      void updateAccount();
+      document.querySelector('[data-sign-out]')?.addEventListener('click', async () => {
+        try {
+          const response = await fetch('/api/auth/logout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+          if (!response.ok) throw new Error();
+          location.reload();
+        } catch { document.querySelector('[data-account-status]')!.textContent = document.documentElement.lang === 'zh-Hans' ? '退出失败，请重试。' : 'Could not sign out. Please retry.'; }
+      });
+      document.querySelectorAll('img').forEach(img => { const fallback = () => { img.hidden = true; }; img.addEventListener('error', fallback); if (img.complete && !img.naturalWidth) fallback(); });
+    </script>
   </body>
 </html>

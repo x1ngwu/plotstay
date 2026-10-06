@@ -1,52 +1,71 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { ApiFailure, getContents, getWorlds } from '../../lib/api';
-import { messages } from '../../lib/i18n';
-import { contentPath, homePath, fallbackLocales, type PublicContent, type World } from '@plotstay/contracts';
+import Card from '../../components/Card.astro';
+import Search from '../../components/Search.astro';
+import Trip from '../../components/Trip.astro';
+import { ApiFailure, getBrowse } from '../../lib/api';
+import { bilingual, messages } from '../../lib/i18n';
+import { browsePath, detailPath, parseBrowse, fallbackLocales, type BrowseResponse, type HomeConfig } from '@plotstay/contracts';
 import { homeSeo, noIndex } from '../../lib/seo';
 const { locales, locale: selectedLocale, localeFailure } = Astro.locals;
 const locale = selectedLocale ?? fallbackLocales[0]!;
-const ui = messages(locale.code);
-let worlds: World[] = [], world: World | undefined, contents: PublicContent[] = [];
+const ui = messages(locale.code), t = bilingual(locale.code);
+let data: BrowseResponse | undefined;
+let state = parseBrowse(new URLSearchParams());
 let failed = false;
 try {
   if (localeFailure) throw new ApiFailure(503);
   if (!selectedLocale) throw new ApiFailure(404);
-  ({ worlds } = await getWorlds(locale.code));
-  const selected = Astro.url.searchParams.get('world') ?? 'lathe-worlds';
-  world = worlds.find(item => item.slug === selected);
-  if (!world) throw new ApiFailure(404);
-  const type = Astro.url.searchParams.get('type') ?? 'all';
-  if (!['all', 'stays', 'experiences'].includes(type)) throw new ApiFailure(404);
-  const filters: Record<string, string> = { world: world.slug };
-  if (type !== 'all') filters.kind = type === 'stays' ? 'stay' : 'experience';
-  const q = Astro.url.searchParams.get('q')?.trim();
-  if (q) filters.q = q;
-  ({ contents } = await getContents(locale.code, filters));
+  try { state = parseBrowse(Astro.url.searchParams); } catch { throw new ApiFailure(404); }
+  if (Astro.url.searchParams.has('tab') && !['all','stays','experiences','services'].includes(Astro.url.searchParams.get('tab')!)) throw new ApiFailure(404);
+  data = await getBrowse(locale.code, new URLSearchParams(browsePath(locale,state).split('?')[1]));
 } catch (error) {
   failed = true;
-  Astro.response.status = error instanceof ApiFailure && [400, 404].includes(error.status) ? 404 : 503;
+  Astro.response.status = error instanceof ApiFailure && [400,404].includes(error.status) ? 404 : 503;
 }
+const world = data?.world, home = data?.home, results = state.view === 'results';
+const browse = (patch = {}) => browsePath(locale,state,{view:'results', page:1, ...patch});
+const target = (value: HomeConfig['benefits'][number]['target']) => value.page === 'results'
+  ? browse({type:value.type,place:value.place,category:value.category,q:'',end:value.type === 'experiences' || value.type === 'services' ? undefined : state.end,rooms:value.type === 'experiences' || value.type === 'services' ? undefined : state.rooms, quantity:undefined,time:undefined})
+  : `/${locale.pathPrefix}/${value.page}`;
+const icons: Record<string,string> = { orbit:'◎', walk:'↟', signal:'≋', tool:'⌘', home:'⌂', star:'✳' };
+const pageTitle = world ? (results ? `${t('全部旅程','Explore')} · ${world.name}${state.page > 1 ? ` · ${t('第','Page ')}${state.page}${t('页','')}` : ''}` : world.name) : 'PlotStay';
+const groups = data ? Array.from(new Map(data.listing.contents.map(c => [c.placeId, c.placeName])).entries()) : [];
 ---
-<Base title={world?.name ?? 'Plotstay'} description={world?.description} locale={locale} locales={locales} theme={world?.themeId} seo={failed ? noIndex() : homeSeo(Astro.url, locale, locales, world!)}>
-  {failed ? <h1>{Astro.response.status === 404 ? ui.notFound : ui.unavailable}</h1> : <>
-    <p class="eyebrow">{ui.sample}</p>
-    <h1 lang={world!.languageTag}>{world!.name}</h1>
-    <p lang={world!.languageTag}>{world!.description}</p>
-    {world!.locale !== locale.code && <p class="notice">{ui.fallback}</p>}
-    <nav class="worlds" aria-label="World">
-      {worlds.map(item => <a href={homePath(locale, item.slug)} lang={item.languageTag} aria-current={world?.id === item.id ? 'page' : undefined}>{item.name}</a>)}
-    </nav>
-    <ul class="entries">
-      {contents.map(content => <li class="panel" data-content-id={content.id}>
-        <span class="eyebrow">{content.kind === 'stay' ? ui.stays : ui.experiences}</span>
-        <h2 lang={content.languageTag}><a href={contentPath(locale, content)}>{content.text.title}</a></h2>
-        <p>{content.placeName}</p>
-        <p lang={content.languageTag}>{content.text.summary}</p>
-        {content.isFallback && <p class="notice">{ui.fallback}</p>}
-        {content.attributes.price && <p>{new Intl.NumberFormat(locale.languageTag).format(content.attributes.price.amount)} {world!.currencyName} / {ui[content.attributes.price.unit]}</p>}
-      </li>)}
-    </ul>
-    {contents.length === 0 && <p>{ui.empty}</p>}
+<Base title={pageTitle} description={world?.description} world={world} locale={locale} locales={locales} theme={world?.themeId} seo={failed ? noIndex() : homeSeo(Astro.url, locale, locales, world!)}>
+  {failed ? <section class="panel"><h1>{Astro.response.status === 404 ? ui.notFound : ui.unavailable}</h1><p>{t('检查地址与行程条件，或回到世界首页继续浏览。','Check the address and trip preferences, or return to discovery.')}</p><a href={browsePath(locale,parseBrowse(new URLSearchParams()))}>{t('返回首页','Back to discovery')} ↗</a></section> : <>
+    {results ? <>
+      <p class="eyebrow">{world!.name} / {t('探索全部','EXPLORE EVERYTHING')}</p><h1 class="results-title">{t('找到下一段故事。','Find your next story.')}</h1>
+      <Search locale={locale} state={state} places={data!.places} categories={data!.categories} />
+      <Trip locale={locale} state={state} />
+      <div class="section-heading results-summary"><p>{data!.listing.total} {t('个旅程灵感','places to start')} · {t('第','Page ')}{state.page} / {data!.listing.pages}{t('页','')}</p><a href={browsePath(locale,parseBrowse(new URLSearchParams({world:state.world})))}>{t('返回发现首页','Back to discovery')}</a></div>
+      {data!.listing.total === 0 && <section class="panel"><h2>{t('这一站，还没有匹配的故事。','No stories match this search yet.')}</h2><p>{t('试试其他关键词，或浏览整个世界。','Try another phrase, or explore the whole world.')}</p><a href={browsePath(locale,{...state,type:'all',q:'',place:undefined,category:undefined,page:1})}>{t('清除筛选','Clear filters')}</a></section>}
+      {groups.map(([id,name]) => <section class="result-group" data-place-id={id ?? 'none'}><h2>{name ?? t('世界其他地方','Elsewhere in the world')}</h2><ul class="results-grid">{data!.listing.contents.filter(c=>c.placeId === id).map(content=><Card content={content} world={world!} locale={locale} href={detailPath(locale,content,state)} category={data!.categories.find(c=>c.slug === content.attributes.category)?.name} />)}</ul></section>)}
+      <nav class="pagination" aria-label={t('分页','Pagination')}>
+        {state.page > 1 && <a rel="prev" href={browsePath(locale,state,{page:state.page-1})}>← {t('上一页','Previous')}</a>}
+        {Array.from({length:data!.listing.pages},(_,i)=>i+1).filter(p=>p === 1 || p === data!.listing.pages || Math.abs(p-state.page)<=2).map((p,i,arr)=><>{i>0 && p>arr[i-1]!+1 && <span>…</span>}<a href={browsePath(locale,state,{page:p})} aria-current={p === state.page ? 'page' : undefined}>{p}</a></>)}
+        {state.page < data!.listing.pages && <a rel="next" href={browsePath(locale,state,{page:state.page+1})}>{t('下一页','Next')} →</a>}
+      </nav>
+    </> : <>
+      <section class="window"><div class="window-bar"><span>PLOTSTAY / {world!.name}</span><span aria-hidden="true">— □ ×</span></div><div class="hero" style={home?.config.background ? {'--hero-image':`url("${home.config.background.url}")`} : undefined}>
+        <div class="hero-copy" lang={home?.languageTag ?? world!.languageTag}><p class="eyebrow">{home?.text.eyebrow ?? t('下一站：想象之外','YOUR NEXT STOP: SOMEWHERE IMPOSSIBLE')}</p><h1>{home?.text.title ?? world!.name}</h1><p><strong>{world!.name}</strong> · {home?.text.intro ?? world!.description}</p>{home?.config.background && <span class="sr-only">{home.text.backgroundAlt}</span>}</div>
+        {(home?.isFallback || world!.locale !== locale.code) && <p class="notice">{ui.fallback}</p>}
+        <Search locale={locale} state={state} places={data!.places} categories={data!.categories} />
+      </div></section>
+      {home?.config.promotion && home.text.promotion && <section class="promo" lang={home.languageTag}><div><p class="eyebrow">{home.text.promotion.audience}</p><h2>{home.text.promotion.title}</h2><p>{home.text.promotion.body}</p>{home.config.promotion.endsAt && <p><time datetime={home.config.promotion.endsAt}>{home.config.promotion.endsAt.replace('T',' ').replace('Z',' UTC')}</time></p>}</div>{home.config.promotion.image && <img class="promo-image" src={home.config.promotion.image.url} alt="" loading="lazy" width="160" height="120" />}<a class="button" href={target(home.config.promotion.target)}>{home.text.promotion.button} ↗</a></section>}
+      {data!.categories.some(c=>c.kind === 'experience' && c.count>0) && <section class="content-section"><div class="section-heading"><h2>{t('探索附近的活动','Explore experiences nearby')}</h2></div><nav class="category-list" aria-label={t('活动类别','Experience categories')}>{data!.categories.filter(c=>c.kind === 'experience' && c.count>0).map(c=><a href={browse({type:'experiences',category:c.slug,rooms:undefined,end:undefined})}><span aria-hidden="true">{icons[c.icon]}</span><span lang={home?.languageTag}>{c.name}</span></a>)}</nav></section>}
+      {data!.sections.filter(s=>s.contents.length>0).map(section=><section class="content-section" data-section={section.id}>
+        <div class="section-heading"><h2 lang={home?.languageTag}>{section.id.startsWith('place-') ? t(`住在${section.title}`,`Stay in ${section.title}`) : (section.title || (section.type === 'stays' ? t('{world}的热门住宿','Popular homes in {world}') : t('{world}的热门活动','Popular experiences in {world}'))).replace('{world}',world!.name)}</h2><div class="rail-actions"><button class="rail-arrow" data-direction="-1" aria-label={t('向左浏览','Scroll left')} hidden>←</button><button class="rail-arrow" data-direction="1" aria-label={t('向右浏览','Scroll right')} hidden>→</button><a href={browse({type:section.type,place:section.place,category:section.category,rooms:section.type === 'stays' ? state.rooms : undefined,end:section.type === 'stays' ? state.end : undefined})}>{t('查看全部','View all')} ↗</a></div></div>
+        <ul class="card-track" tabindex="0" aria-label={section.title || section.id}>{section.contents.map(content=><Card content={content} world={world!} locale={locale} href={detailPath(locale,content,state)} category={data!.categories.find(c=>c.slug===content.attributes.category)?.name} />)}</ul>
+      </section>)}
+      <p class="browse-all"><a class="button" data-browse-all href={browse({type:'all',place:undefined,category:undefined,q:''})}>{t('浏览这个世界的全部住宿、活动与服务','Explore every home, experience and service')} ↗</a></p>
+      {home && <div class="benefits" lang={home.languageTag}>{home.text.benefits.map((text,i)=><section class="benefit"><span class="benefit-icon" aria-hidden="true">{icons[home.config.benefits[i]!.icon]}</span><h3>{text.title}</h3><p>{text.body}</p><a href={target(home.config.benefits[i]!.target)}>{text.button} ↗</a></section>)}</div>}
+    </>}
   </>}
 </Base>
+<script>
+  document.querySelectorAll<HTMLButtonElement>('.rail-arrow').forEach(button=>{
+    button.hidden=false;
+    button.addEventListener('click',()=>{ const track=button.closest('.content-section')?.querySelector('.card-track'); track?.scrollBy({left:track.clientWidth * Number(button.dataset.direction),behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'}); });
+  });
+</script>

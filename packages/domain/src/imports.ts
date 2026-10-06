@@ -23,11 +23,17 @@ export async function importContent(db: Database, actor: Actor, raw: unknown, dr
         // The same external item is serialized across concurrently submitted batches.
         await client.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))', [JSON.stringify([input.worldId, input.source, item.externalId])]);
         const hash = digest(JSON.stringify(content));
+        // Prior imports predate optional translated tags. Empty tags must not turn an unchanged legacy import into a conflict.
+        const legacy = structuredClone(content) as any;
+        const texts = [legacy.text, ...Object.values(legacy.translations)] as any[];
+        const emptyTags = texts.every(text => !text.tags?.length);
+        if (emptyTags) for (const text of texts) delete text.tags;
+        const legacyHash = emptyTags ? digest(JSON.stringify(legacy)) : null;
         const { rows: [existing] } = await client.query('SELECT * FROM import_items WHERE world_id=$1 AND source=$2 AND external_id=$3', [input.worldId, input.source, item.externalId]);
         if (existing) {
           results.push({ externalId: item.externalId, contentId: existing.content_id,
-            status: existing.payload_hash === hash ? 'unchanged' : 'conflict',
-            ...(existing.payload_hash === hash ? {} : { message: 'This imported item has changed. Edit its existing draft explicitly.' }) });
+            status: (existing.payload_hash === hash || existing.payload_hash === legacyHash) ? 'unchanged' : 'conflict',
+            ...((existing.payload_hash === hash || existing.payload_hash === legacyHash) ? {} : { message: 'This imported item has changed. Edit its existing draft explicitly.' }) });
         } else {
           const created = await createContentInTransaction(client, actor, content);
           await client.query('INSERT INTO import_items(world_id,source,external_id,content_id,payload_hash,batch_id) VALUES ($1,$2,$3,$4,$5,$6)', [input.worldId, input.source, item.externalId, created.id, hash, batch.id]);

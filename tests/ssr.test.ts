@@ -60,18 +60,21 @@ test('built PostgreSQL → standalone API → Astro → browser', { timeout: 120
       page.on('pageerror', error => errors.push(error.message));
       await page.goto(webUrl + roomPath);
       assert.equal(await page.locator('h1').innerText(), 'Observation Room');
+      await page.locator('.header-actions summary').click();
       await page.getByRole('link', { name: '简体中文', exact: true }).click();
       assert.equal(new URL(page.url()).pathname, '/zh/worlds/lathe-worlds/stays/observation-room');
       assert.equal(await page.locator('h1').innerText(), '观察室');
       await page.reload();
       assert.equal(await page.locator('h1').innerText(), '观察室');
       await page.goto(webUrl + '/en?world=test-harbour&type=stays&q=Harbour');
+      await page.locator('.header-actions summary').click();
       await page.getByRole('link', { name: '简体中文', exact: true }).click();
       assert.equal(new URL(page.url()).search, '?world=test-harbour&type=stays&q=Harbour');
       await page.setViewportSize({ width: 390, height: 844 });
       await page.goto(webUrl + '/zh');
       assert.equal(await page.locator('html').getAttribute('data-theme'), 'lime');
-      assert.equal(await page.locator('body').evaluate(element => getComputedStyle(element).color), 'rgb(209, 223, 213)');
+      // Main ink is #33ff99 in the original digi-tech Lime reference.
+      assert.equal(await page.locator('body').evaluate(element => getComputedStyle(element).color), 'rgb(51, 255, 153)');
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
       assert.deepEqual(errors, []);
       await page.screenshot({ path: 'test-results/foundation-mobile.png', fullPage: true });

@@ -3,10 +3,11 @@ import cookie from '@fastify/cookie';
 import rateLimit from '@fastify/rate-limit';
 import { z } from 'zod';
 import { idSchema, kindSchema, localeSchema, loginSchema, slugSchema, createContentSchema, editContentSchema,
+  parseBrowse,
   revisionActionSchema, reviewActionSchema, restoreActionSchema, unpublishActionSchema, noteActionSchema, translationActionSchema } from '@plotstay/contracts';
 import type { Database } from '@plotstay/database';
 import { adminDetail, adminList, adminWorlds, assert, digest, DomainError, getActor,
-  getPublished, listPublished, listWorlds, listLocales, publicDiscovery, login, createContent, editContent, submitRevision, reviewRevision,
+  browseWorld, publicHome, saveHomeDraft, publishHome, getPublished, listPublished, listWorlds, listLocales, publicDiscovery, login, createContent, editContent, submitRevision, reviewRevision,
   restorePublication, unpublishContent, releaseSiteBlock, saveTranslation, importContent, requireWorld, retryTranslation } from '@plotstay/domain';
 
 const localeQuery = z.object({ locale: localeSchema.default('en') }).strict();
@@ -58,6 +59,13 @@ export async function createApp(db: Database, options: { logger?: boolean; webOr
   app.get('/api/locales', async () => ({ locales: await listLocales(db) }));
   app.get('/api/discovery', async () => publicDiscovery(db));
   app.get('/api/worlds', async request => ({ worlds: await listWorlds(db, localeQuery.parse(request.query).locale) }));
+  app.get('/api/browse', async request => {
+    const query = z.record(z.string(), z.string()).parse(request.query);
+    const locale = localeSchema.parse(query.locale ?? 'en');
+    let state;
+    try { state = parseBrowse(new URLSearchParams(query)); } catch { throw new DomainError(400, 'INVALID_INPUT', 'Invalid browse parameters.'); }
+    return browseWorld(db, locale, state);
+  });
   app.get('/api/contents', async request => {
     const { locale, ...filters } = listQuery.parse(request.query);
     return { contents: await listPublished(db, locale, filters) };
@@ -104,9 +112,21 @@ export async function createApp(db: Database, options: { logger?: boolean; webOr
     const [places, personas, parents] = await Promise.all([
       db.query('SELECT id,slug,names FROM places WHERE world_id=$1 ORDER BY slug', [worldId]),
       db.query('SELECT id,profiles FROM personas WHERE approved AND (owner_id=$1 OR $2) ORDER BY created_at', [user.id, user.siteRole === 'admin']),
-      db.query("SELECT id,slug,kind FROM contents WHERE world_id=$1 AND kind IN ('stay','experience') ORDER BY slug", [worldId]),
+      db.query("SELECT id,slug,kind FROM contents WHERE world_id=$1 AND kind IN ('stay','experience','service') ORDER BY slug", [worldId]),
     ]);
-    return { places: places.rows, personas: personas.rows, parents: parents.rows, translationProvider: process.env.TRANSLATION_PROVIDER ?? 'disabled' };
+    const home = await publicHome(db, worldId, 'en');
+    return { categories: home?.config.categories ?? [], places: places.rows, personas: personas.rows, parents: parents.rows, translationProvider: process.env.TRANSLATION_PROVIDER ?? 'disabled' };
+  });
+  app.put('/api/admin/worlds/:worldId/home', async request => {
+    const user = await actor(request.cookies[SESSION]);
+    const { worldId } = z.object({ worldId: idSchema }).parse(request.params);
+    const input = z.object({ body: z.unknown(), baseRevisionId: idSchema.nullable() }).strict().parse(request.body);
+    return saveHomeDraft(db, user, worldId, input.body, input.baseRevisionId);
+  });
+  app.post('/api/admin/worlds/:worldId/home/publish', async request => {
+    const user = await actor(request.cookies[SESSION]);
+    const { worldId } = z.object({ worldId: idSchema }).parse(request.params);
+    return publishHome(db, user, worldId, revisionActionSchema.parse(request.body).revisionId);
   });
   app.post('/api/admin/contents', async (request, reply) => {
     const user = await actor(request.cookies[SESSION]);

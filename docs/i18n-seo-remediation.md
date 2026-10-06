@@ -67,7 +67,7 @@
 | 未知语言、世界、草稿、下架内容 | 维持真实 404；API 故障维持 503，不返回带错误提示的 200。均不输出 canonical / `hreflang` 或进入 sitemap |
 | 开发、预览和 dummy data 环境 | 全站 `noindex`，索引开关关闭时不输出正式 canonical / `hreflang`，sitemap 返回空 URL 集合；通过隔离测试显式打开开关验收正式模式 |
 
-参数是否改变内容按路由定义判断。阶段 2.5 已交付的实现仅以 `world`、`type`、`q` 承载列表状态；分页已列入[阶段 3 必做项](plan.md#阶段-3-必做分页与内部链接)。最新首页方案区分发现首页与完整结果列表，建议新增结果状态、`page`、地点与类别条件；已确认增加服务类型，日期 / 数量只保存为行程意向。实施时同步扩展 URL、索引及测试规则，分别保留首页和完整列表的规范身份，纳入服务详情的语言对应与 sitemap，不能默认删除一切 query。SEO 地址清理不等于清除用户的浏览状态；新增规则尚未交付，详见[阶段 3 方案](phase-3-discovery.md)。
+参数是否改变内容按路由定义判断。阶段 2.5 已交付的实现仅以 `world`、`type`、`q` 承载列表状态；分页已列入[阶段 3 必做项](plan.md#阶段-3-必做分页与内部链接)。最新首页方案区分发现首页与完整结果列表，建议新增结果状态、`page`、地点与类别条件；已确认增加服务类型，日期 / 数量只保存为行程意向。实施时同步扩展 URL、索引及测试规则，分别保留首页和完整列表的规范身份，纳入服务详情的语言对应与 sitemap，不能默认删除一切 query。SEO 地址清理不等于清除用户的浏览状态；新增规则已在阶段 3 实现并验收，详见[阶段 3 方案](phase-3-discovery.md)与[实际结果](development-status.md#阶段-3-实际交付与验收)。
 
 ## 动态站点地图与 robots
 
@@ -133,3 +133,9 @@ SEO 测试仅在随机 schema / 端口、`SITE_URL=https://plotstay-seo.invalid`
 - [Google：URL 结构](https://developers.google.com/search/docs/crawling-indexing/url-structure)：路径区分大小写；相同内容的大小写变体应统一。
 - [Google：规范网址](https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls)：规范页面可自引用，语言版本应选择同语言 canonical；内部链接、sitemap 与规范声明保持一致，推荐绝对地址。
 - [Google：使用 noindex 阻止索引](https://developers.google.com/search/docs/crawling-indexing/block-indexing)：通过 HTML 或响应头声明；搜索引擎需要能够抓取页面才能读取该规则。
+
+## 阶段 3 追加规则（已交付）
+
+发现首页仍为 `/{locale}`；完整列表使用 `?view=results`，第 2 页起保留 `page` 的自引用 canonical，并只关联同一角色 / 页码的可索引语言页。sitemap 动态增加完整列表分页及服务详情。非空 q、非默认 type、place、category 与行程参数的结果均 noindex，不输出 canonical / hreflang。语言切换保留查询和行程，有关键词时回到第一页。未提供新字段的旧快照仍可读。旧表中的住宿 / 活动规则现扩展到 Services。
+
+本地索引模式与关闭索引模式均有回归，完整遍历证据与当前运行地址见[阶段 3 交接](development-status.md#阶段-3-实际交付与验收)。
