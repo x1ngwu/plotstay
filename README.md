@@ -18,6 +18,8 @@ npm run dev
 
 远程查看时使用构建版预览，避免通过 SSH 隧道加载开发工具脚本：先停止 `npm run dev`，再执行 `npm run build && npm run preview`。Web/API 仍使用相同端口；`preview` 同时启动两端，Ctrl+C 一起停止。代码修改后需重新构建和启动，数据库内容发布仍即时生效。
 
+`start:web` 通过 `apps/web/server.mjs` 加载已构建的 Astro handler，启用 Brotli / gzip；浏览时不会编译。字体按字符分包，构建资源使用内容哈希及长期缓存，HTML 继续 `no-store`。优化后的字体规则和同条件测速见[加载优化记录](docs/font-previews.md#加载优化2026-10-07)。
+
 管理入口：`http://localhost:4321/zh/admin`（英文为 `/en/admin`）。使用 `.env` 中的 `ADMIN_EMAIL` / `ADMIN_PASSWORD` 登录，可编辑、导入、审核发布、下架及恢复历史发布。浏览器通过 Web 的同域 `/api` 转发访问独立后端，不需另开 SSH 转发端口。
 
 SEO 配置与写请求的 `WEB_ORIGIN` 独立：`SITE_INDEXABLE` 默认 `false`；正式启用需要 `SITE_INDEXABLE=true` 及有效 HTTPS origin 的 `SITE_URL`。当前预览保持关闭，动态 `/sitemap.xml` 为空；隔离测试会显式打开索引验证。不要为 dummy data 开放索引。增量迁移包含 `004_locale_urls.sql` 与 `005_discovery.sql` 使用 `npm run db:migrate` 增量应用，不改写历史迁移或重置数据。
@@ -30,6 +32,8 @@ npx playwright install chromium --only-shell
 npm run test:e2e              # 类型检查、构建、独立服务与浏览器验收
 ```
 
+当前字体为英文 C、中文默认 B；中文可在右上角菜单选择“细点阵”或“街机像素”，浏览器会记住选择。`/font-preview` 保留原版及全部对照方案，见[字体规则](docs/font-previews.md)。
+
 运行参数、接口、实际验证结果和下一步见 [开发进度与交接](docs/development-status.md)。产品与架构依据见 [文档索引](docs/README.md)。
 
-完整列表：`/zh?view=results`；服务：`/zh/worlds/lathe-worlds/services/augmetic-tune-up`；帮助与创作说明：`/zh/help`、`/zh/host`。本次 31 项后端测试与 25 项端到端测试通过，隔离验收从首页遍历 73 条公开内容无遗漏。正式素材、完整详情、模拟预订、公开注册与生产部署仍按后续阶段推进。
+完整列表：`/zh?view=results`；服务：`/zh/worlds/lathe-worlds/services/augmetic-tune-up`；帮助与创作说明：`/zh/help`、`/zh/host`。阶段 3 的 31 项后端测试通过；加载优化后重跑 26 项端到端测试通过，隔离验收从首页遍历 73 条公开内容无遗漏。正式素材、完整详情、模拟预订、公开注册与生产部署仍按后续阶段推进。

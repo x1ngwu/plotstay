@@ -1,0 +1,43 @@
+---
+import type { PixelFontStyle } from '../lib/typography';
+interface Props { selected: PixelFontStyle }
+const { selected } = Astro.props;
+---
+<div class="font-preference" data-font-preference role="group" aria-labelledby="font-preference-label" hidden>
+  <span id="font-preference-label">中文字体</span>
+  <div class="font-options">
+    <button type="button" data-chinese-font="terminal" aria-pressed={selected === 'terminal'}>细点阵</button>
+    <button type="button" data-chinese-font="arcade" aria-pressed={selected === 'arcade'}>街机像素</button>
+  </div>
+</div>
+<script>
+  import { CHINESE_FONT_COOKIE, chineseFontPreference, type PixelFontStyle } from '../lib/typography';
+  const buttons = document.querySelectorAll<HTMLButtonElement>('[data-chinese-font]');
+  document.querySelector('[data-font-preference]')?.removeAttribute('hidden');
+  const applyFont = (selected: PixelFontStyle) => {
+    document.documentElement.dataset.fontStyle = selected;
+    buttons.forEach(item => item.setAttribute('aria-pressed', String(item.dataset.chineseFont === selected)));
+  };
+  buttons.forEach(button => button.addEventListener('click', () => {
+    const selected = chineseFontPreference(button.dataset.chineseFont);
+    if (!selected) return;
+    applyFont(selected);
+    try {
+      document.cookie = `${CHINESE_FONT_COOKIE}=${selected}; Path=/; Max-Age=31536000; SameSite=Lax${location.protocol === 'https:' ? '; Secure' : ''}`;
+    } catch { /* Switching still works for this page when browser storage is disabled. */ }
+  }));
+  window.addEventListener('pageshow', event => {
+    if (!event.persisted || !buttons.length) return;
+    const prefix = `${CHINESE_FONT_COOKIE}=`;
+    const saved = document.cookie.split(';').map(item => item.trim()).find(item => item.startsWith(prefix))?.slice(prefix.length);
+    applyFont(chineseFontPreference(saved) ?? 'terminal');
+  });
+</script>
+<style>
+  .font-preference { display: grid; gap: .5rem; padding-top: .75rem; border-top: 1px dotted var(--line); }
+  .font-preference > span { font-size: .8rem; color: var(--muted); }
+  .font-options { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+  .font-options button { font-size: .85rem; text-align: center; }
+  .font-options button[aria-pressed=true] { background: var(--accent); color: var(--desktop); }
+  .font-options button[aria-pressed=true]:hover { background: var(--accent-light); color: var(--desktop); }
+</style>

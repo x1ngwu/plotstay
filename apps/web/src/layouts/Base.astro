@@ -1,21 +1,29 @@
 ---
 import '@plotstay/themes/layout.css';
 import '@plotstay/themes/lime.css';
+import '@plotstay/themes/pixel.css';
 import { fallbackLocales, homePath, type Locale, type World } from '@plotstay/contracts';
 import { bilingual, hasDictionary, languagePath, messages, uiLocale } from '../lib/i18n';
 import { noIndex, type Seo } from '../lib/seo';
-interface Props { title: string; description?: string; locale?: Locale; locales?: Locale[]; theme?: string; seo?: Seo; world?: World }
-const { title, description = '', locale = fallbackLocales[0]!, locales = [], theme = 'lime', seo = noIndex(), world } = Astro.props;
+import type { FontPreview } from '../lib/font-preview';
+import { CHINESE_FONT_COOKIE, fontStyleForLocale } from '../lib/typography';
+import FontPreference from '../components/FontPreference.astro';
+import { fontPreloads } from '../lib/font-preloads';
+interface Props { title: string; description?: string; locale?: Locale; locales?: Locale[]; theme?: string; seo?: Seo; world?: World; fontPreview?: FontPreview; preloadDisplayFonts?: boolean }
+const { title, description = '', locale = fallbackLocales[0]!, locales = [], theme = 'lime', seo = noIndex(), world, fontPreview, preloadDisplayFonts = false } = Astro.props;
 const ui = messages(locale.code);
 const t = bilingual(locale.code);
 const interfaceTag = [...locales, ...fallbackLocales].find(item => item.code === uiLocale(locale.code))!.languageTag;
+const preferredFont = fontStyleForLocale(interfaceTag, Astro.cookies.get(CHINESE_FONT_COOKIE)?.value);
+const fontStyle = fontPreview ?? preferredFont;
 if (!seo.canonical) Astro.response.headers.set('X-Robots-Tag', 'noindex, follow');
 ---
 <!doctype html>
-<html lang={interfaceTag} data-theme={theme === 'lime' ? theme : 'lime'}>
+<html lang={interfaceTag} data-theme={theme === 'lime' ? theme : 'lime'} data-font-style={fontStyle} data-font-preview={fontPreview}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
+    {fontPreloads(fontStyle, interfaceTag, preloadDisplayFonts).map(font => <link rel="preload" href={font.href} as="font" type={font.type} crossorigin="anonymous" />)}
     <title>{title} · Plotstay</title>
     <meta name="description" content={description} />
     {!seo.canonical && <meta name="robots" content="noindex, follow" />}
@@ -36,6 +44,7 @@ if (!seo.canonical) Astro.response.headers.set('X-Robots-Tag', 'noindex, follow'
         <a class="icon-button" data-account-link href={`/${locale.pathPrefix}/admin`} aria-label={t('账号登录', 'Sign in')}><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="8" r="3"/><path d="M5 21v-3a7 7 0 0 1 14 0v3"/></svg></a>
         <details class="header-menu"><summary class="icon-button" aria-label={t('菜单', 'Menu')}><span aria-hidden="true">☰</span></summary><div class="menu-panel">
           <nav aria-label="Language">{locales.map(item => <a href={languagePath(Astro.url, item)} lang={item.languageTag} aria-current={locale.code === item.code ? 'page' : undefined}>{item.name}</a>)}</nav>
+          {!fontPreview && interfaceTag.startsWith('zh') && <FontPreference selected={preferredFont} />}
           <a href={`/${locale.pathPrefix}/help`}>{t('帮助中心', 'Help centre')}</a>
           <a href={`/${locale.pathPrefix}/host`}>{t('成为房东', 'Become a host')}</a>
           <a data-sign-in href={`/${locale.pathPrefix}/admin`}>{t('现有账号登录', 'Sign in to your account')}</a>

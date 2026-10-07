@@ -11,5 +11,5 @@ export default defineConfig({
   session: false,
   server: { host: process.env.HOST ?? '127.0.0.1', port: Number(process.env.PORT ?? 4321) },
   // dev is supervised by scripts/dev.mjs; do not silently select another port.
-  vite: { server: { strictPort: true } },
+  vite: { server: { strictPort: true }, build: { assetsInlineLimit: 0 } },
 });

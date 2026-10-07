@@ -1,0 +1,598 @@
+[
+  {
+    "source": "DinkieBitmap-7px.woff2",
+    "sourceSha256": "f333cd7318d424b633817faeae4dbeaf656427ca3b475ee845488bb0c8541002",
+    "exposedCodepoints": 7519,
+    "files": [
+      {
+        "file": "dinkie-7-punctuation.woff2",
+        "glyphs": 12,
+        "bytes": 800
+      },
+      {
+        "file": "dinkie-7-core.woff2",
+        "glyphs": 531,
+        "bytes": 16776
+      },
+      {
+        "file": "dinkie-7-u018.woff2",
+        "glyphs": 27,
+        "bytes": 1468
+      },
+      {
+        "file": "dinkie-7-u01a.woff2",
+        "glyphs": 7,
+        "bytes": 900
+      },
+      {
+        "file": "dinkie-7-u01b.woff2",
+        "glyphs": 2,
+        "bytes": 708
+      },
+      {
+        "file": "dinkie-7-u01d.woff2",
+        "glyphs": 2,
+        "bytes": 696
+      },
+      {
+        "file": "dinkie-7-u01f.woff2",
+        "glyphs": 1,
+        "bytes": 640
+      },
+      {
+        "file": "dinkie-7-u020.woff2",
+        "glyphs": 1,
+        "bytes": 636
+      },
+      {
+        "file": "dinkie-7-u021.woff2",
+        "glyphs": 1,
+        "bytes": 644
+      },
+      {
+        "file": "dinkie-7-u022.woff2",
+        "glyphs": 2,
+        "bytes": 676
+      },
+      {
+        "file": "dinkie-7-u023.woff2",
+        "glyphs": 1,
+        "bytes": 648
+      },
+      {
+        "file": "dinkie-7-u024.woff2",
+        "glyphs": 2,
+        "bytes": 692
+      },
+      {
+        "file": "dinkie-7-u027.woff2",
+        "glyphs": 323,
+        "bytes": 8680
+      },
+      {
+        "file": "dinkie-7-u028.woff2",
+        "glyphs": 174,
+        "bytes": 5556
+      },
+      {
+        "file": "dinkie-7-u029.woff2",
+        "glyphs": 213,
+        "bytes": 6520
+      },
+      {
+        "file": "dinkie-7-u02a.woff2",
+        "glyphs": 268,
+        "bytes": 7652
+      },
+      {
+        "file": "dinkie-7-u02b.woff2",
+        "glyphs": 202,
+        "bytes": 5768
+      },
+      {
+        "file": "dinkie-7-u02c.woff2",
+        "glyphs": 182,
+        "bytes": 5700
+      },
+      {
+        "file": "dinkie-7-u02d.woff2",
+        "glyphs": 156,
+        "bytes": 4952
+      },
+      {
+        "file": "dinkie-7-u02e.woff2",
+        "glyphs": 169,
+        "bytes": 5344
+      },
+      {
+        "file": "dinkie-7-u02f.woff2",
+        "glyphs": 201,
+        "bytes": 6384
+      },
+      {
+        "file": "dinkie-7-u030.woff2",
+        "glyphs": 164,
+        "bytes": 5312
+      },
+      {
+        "file": "dinkie-7-u031.woff2",
+        "glyphs": 229,
+        "bytes": 6512
+      },
+      {
+        "file": "dinkie-7-u032.woff2",
+        "glyphs": 147,
+        "bytes": 4868
+      },
+      {
+        "file": "dinkie-7-u033.woff2",
+        "glyphs": 174,
+        "bytes": 5556
+      },
+      {
+        "file": "dinkie-7-u034.woff2",
+        "glyphs": 151,
+        "bytes": 4760
+      },
+      {
+        "file": "dinkie-7-u035.woff2",
+        "glyphs": 102,
+        "bytes": 4016
+      },
+      {
+        "file": "dinkie-7-u036.woff2",
+        "glyphs": 265,
+        "bytes": 8380
+      },
+      {
+        "file": "dinkie-7-u037.woff2",
+        "glyphs": 138,
+        "bytes": 5168
+      },
+      {
+        "file": "dinkie-7-u038.woff2",
+        "glyphs": 123,
+        "bytes": 4704
+      },
+      {
+        "file": "dinkie-7-u039.woff2",
+        "glyphs": 153,
+        "bytes": 5284
+      },
+      {
+        "file": "dinkie-7-u03a.woff2",
+        "glyphs": 169,
+        "bytes": 5364
+      },
+      {
+        "file": "dinkie-7-u03b.woff2",
+        "glyphs": 170,
+        "bytes": 5476
+      },
+      {
+        "file": "dinkie-7-u03c.woff2",
+        "glyphs": 165,
+        "bytes": 5220
+      },
+      {
+        "file": "dinkie-7-u03d.woff2",
+        "glyphs": 151,
+        "bytes": 4972
+      },
+      {
+        "file": "dinkie-7-u03e.woff2",
+        "glyphs": 68,
+        "bytes": 3032
+      },
+      {
+        "file": "dinkie-7-u03f.woff2",
+        "glyphs": 196,
+        "bytes": 6764
+      },
+      {
+        "file": "dinkie-7-u040.woff2",
+        "glyphs": 208,
+        "bytes": 6276
+      },
+      {
+        "file": "dinkie-7-u041.woff2",
+        "glyphs": 240,
+        "bytes": 6644
+      },
+      {
+        "file": "dinkie-7-u042.woff2",
+        "glyphs": 141,
+        "bytes": 4496
+      },
+      {
+        "file": "dinkie-7-u043.woff2",
+        "glyphs": 161,
+        "bytes": 5112
+      },
+      {
+        "file": "dinkie-7-u044.woff2",
+        "glyphs": 122,
+        "bytes": 4484
+      },
+      {
+        "file": "dinkie-7-u045.woff2",
+        "glyphs": 96,
+        "bytes": 3424
+      },
+      {
+        "file": "dinkie-7-u046.woff2",
+        "glyphs": 199,
+        "bytes": 6636
+      },
+      {
+        "file": "dinkie-7-u047.woff2",
+        "glyphs": 151,
+        "bytes": 5000
+      },
+      {
+        "file": "dinkie-7-u048.woff2",
+        "glyphs": 180,
+        "bytes": 5724
+      },
+      {
+        "file": "dinkie-7-u049.woff2",
+        "glyphs": 9,
+        "bytes": 940
+      },
+      {
+        "file": "dinkie-7-u04a.woff2",
+        "glyphs": 243,
+        "bytes": 7080
+      },
+      {
+        "file": "dinkie-7-u04b.woff2",
+        "glyphs": 171,
+        "bytes": 5476
+      },
+      {
+        "file": "dinkie-7-u04c.woff2",
+        "glyphs": 105,
+        "bytes": 3972
+      },
+      {
+        "file": "dinkie-7-u04d.woff2",
+        "glyphs": 100,
+        "bytes": 3652
+      },
+      {
+        "file": "dinkie-7-u04e.woff2",
+        "glyphs": 74,
+        "bytes": 2832
+      },
+      {
+        "file": "dinkie-7-u04f.woff2",
+        "glyphs": 141,
+        "bytes": 4748
+      },
+      {
+        "file": "dinkie-7-u07f.woff2",
+        "glyphs": 135,
+        "bytes": 2984
+      },
+      {
+        "file": "dinkie-7-u17c.woff2",
+        "glyphs": 1,
+        "bytes": 616
+      }
+    ]
+  },
+  {
+    "source": "DinkieBitmap-9px.woff2",
+    "sourceSha256": "bf185dd590bd180fb5cfd7f9ec0c289aadeae505128a067552d84cb5f7420c24",
+    "exposedCodepoints": 11149,
+    "files": [
+      {
+        "file": "dinkie-9-punctuation.woff2",
+        "glyphs": 12,
+        "bytes": 796
+      },
+      {
+        "file": "dinkie-9-core.woff2",
+        "glyphs": 531,
+        "bytes": 21348
+      },
+      {
+        "file": "dinkie-9-u018.woff2",
+        "glyphs": 25,
+        "bytes": 1412
+      },
+      {
+        "file": "dinkie-9-u01a.woff2",
+        "glyphs": 84,
+        "bytes": 3644
+      },
+      {
+        "file": "dinkie-9-u01b.woff2",
+        "glyphs": 1,
+        "bytes": 636
+      },
+      {
+        "file": "dinkie-9-u01c.woff2",
+        "glyphs": 4,
+        "bytes": 820
+      },
+      {
+        "file": "dinkie-9-u01e.woff2",
+        "glyphs": 1,
+        "bytes": 652
+      },
+      {
+        "file": "dinkie-9-u01f.woff2",
+        "glyphs": 1,
+        "bytes": 648
+      },
+      {
+        "file": "dinkie-9-u020.woff2",
+        "glyphs": 2,
+        "bytes": 732
+      },
+      {
+        "file": "dinkie-9-u021.woff2",
+        "glyphs": 1,
+        "bytes": 656
+      },
+      {
+        "file": "dinkie-9-u022.woff2",
+        "glyphs": 1,
+        "bytes": 612
+      },
+      {
+        "file": "dinkie-9-u024.woff2",
+        "glyphs": 2,
+        "bytes": 752
+      },
+      {
+        "file": "dinkie-9-u027.woff2",
+        "glyphs": 351,
+        "bytes": 11764
+      },
+      {
+        "file": "dinkie-9-u028.woff2",
+        "glyphs": 249,
+        "bytes": 9936
+      },
+      {
+        "file": "dinkie-9-u029.woff2",
+        "glyphs": 304,
+        "bytes": 11380
+      },
+      {
+        "file": "dinkie-9-u02a.woff2",
+        "glyphs": 341,
+        "bytes": 12596
+      },
+      {
+        "file": "dinkie-9-u02b.woff2",
+        "glyphs": 290,
+        "bytes": 11096
+      },
+      {
+        "file": "dinkie-9-u02c.woff2",
+        "glyphs": 278,
+        "bytes": 11048
+      },
+      {
+        "file": "dinkie-9-u02d.woff2",
+        "glyphs": 210,
+        "bytes": 8704
+      },
+      {
+        "file": "dinkie-9-u02e.woff2",
+        "glyphs": 263,
+        "bytes": 10152
+      },
+      {
+        "file": "dinkie-9-u02f.woff2",
+        "glyphs": 305,
+        "bytes": 11544
+      },
+      {
+        "file": "dinkie-9-u030.woff2",
+        "glyphs": 262,
+        "bytes": 10488
+      },
+      {
+        "file": "dinkie-9-u031.woff2",
+        "glyphs": 331,
+        "bytes": 12048
+      },
+      {
+        "file": "dinkie-9-u032.woff2",
+        "glyphs": 240,
+        "bytes": 10288
+      },
+      {
+        "file": "dinkie-9-u033.woff2",
+        "glyphs": 285,
+        "bytes": 10744
+      },
+      {
+        "file": "dinkie-9-u034.woff2",
+        "glyphs": 217,
+        "bytes": 8876
+      },
+      {
+        "file": "dinkie-9-u035.woff2",
+        "glyphs": 191,
+        "bytes": 8972
+      },
+      {
+        "file": "dinkie-9-u036.woff2",
+        "glyphs": 338,
+        "bytes": 13292
+      },
+      {
+        "file": "dinkie-9-u037.woff2",
+        "glyphs": 226,
+        "bytes": 10608
+      },
+      {
+        "file": "dinkie-9-u038.woff2",
+        "glyphs": 201,
+        "bytes": 9464
+      },
+      {
+        "file": "dinkie-9-u039.woff2",
+        "glyphs": 251,
+        "bytes": 10652
+      },
+      {
+        "file": "dinkie-9-u03a.woff2",
+        "glyphs": 243,
+        "bytes": 9860
+      },
+      {
+        "file": "dinkie-9-u03b.woff2",
+        "glyphs": 239,
+        "bytes": 10228
+      },
+      {
+        "file": "dinkie-9-u03c.woff2",
+        "glyphs": 214,
+        "bytes": 8936
+      },
+      {
+        "file": "dinkie-9-u03d.woff2",
+        "glyphs": 222,
+        "bytes": 9308
+      },
+      {
+        "file": "dinkie-9-u03e.woff2",
+        "glyphs": 235,
+        "bytes": 10968
+      },
+      {
+        "file": "dinkie-9-u03f.woff2",
+        "glyphs": 280,
+        "bytes": 12808
+      },
+      {
+        "file": "dinkie-9-u040.woff2",
+        "glyphs": 269,
+        "bytes": 10904
+      },
+      {
+        "file": "dinkie-9-u041.woff2",
+        "glyphs": 301,
+        "bytes": 10496
+      },
+      {
+        "file": "dinkie-9-u042.woff2",
+        "glyphs": 203,
+        "bytes": 8196
+      },
+      {
+        "file": "dinkie-9-u043.woff2",
+        "glyphs": 204,
+        "bytes": 8680
+      },
+      {
+        "file": "dinkie-9-u044.woff2",
+        "glyphs": 194,
+        "bytes": 8840
+      },
+      {
+        "file": "dinkie-9-u045.woff2",
+        "glyphs": 258,
+        "bytes": 10348
+      },
+      {
+        "file": "dinkie-9-u046.woff2",
+        "glyphs": 289,
+        "bytes": 11928
+      },
+      {
+        "file": "dinkie-9-u047.woff2",
+        "glyphs": 245,
+        "bytes": 10168
+      },
+      {
+        "file": "dinkie-9-u048.woff2",
+        "glyphs": 271,
+        "bytes": 10920
+      },
+      {
+        "file": "dinkie-9-u049.woff2",
+        "glyphs": 209,
+        "bytes": 9664
+      },
+      {
+        "file": "dinkie-9-u04a.woff2",
+        "glyphs": 333,
+        "bytes": 12808
+      },
+      {
+        "file": "dinkie-9-u04b.woff2",
+        "glyphs": 254,
+        "bytes": 10324
+      },
+      {
+        "file": "dinkie-9-u04c.woff2",
+        "glyphs": 242,
+        "bytes": 10288
+      },
+      {
+        "file": "dinkie-9-u04d.woff2",
+        "glyphs": 196,
+        "bytes": 8460
+      },
+      {
+        "file": "dinkie-9-u04e.woff2",
+        "glyphs": 174,
+        "bytes": 7992
+      },
+      {
+        "file": "dinkie-9-u04f.woff2",
+        "glyphs": 201,
+        "bytes": 8744
+      },
+      {
+        "file": "dinkie-9-u07f.woff2",
+        "glyphs": 68,
+        "bytes": 2616
+      },
+      {
+        "file": "dinkie-9-u100.woff2",
+        "glyphs": 2,
+        "bytes": 632
+      },
+      {
+        "file": "dinkie-9-u105.woff2",
+        "glyphs": 1,
+        "bytes": 620
+      },
+      {
+        "file": "dinkie-9-u106.woff2",
+        "glyphs": 1,
+        "bytes": 660
+      },
+      {
+        "file": "dinkie-9-u12f.woff2",
+        "glyphs": 1,
+        "bytes": 668
+      },
+      {
+        "file": "dinkie-9-u17c.woff2",
+        "glyphs": 2,
+        "bytes": 668
+      }
+    ]
+  },
+  {
+    "source": "apps/web/public/themes/lime/fonts/zen-hei-sharp-core.woff2",
+    "sourceSha256": "c4f076d2acb87af23809a8e5a9a0a1681b6adfe5a7fc92851a5d2a37747ffd82",
+    "exposedCodepoints": 306,
+    "files": [
+      {
+        "file": "pixel-fallback.woff2",
+        "glyphs": 306,
+        "bytes": 22064
+      }
+    ]
+  }
+]

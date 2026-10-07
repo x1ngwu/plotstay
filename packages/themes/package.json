@@ -1,4 +1,4 @@
 {
   "name": "@plotstay/themes", "version": "0.1.0", "private": true, "type": "module",
-  "exports": { "./lime.css": "./lime.css", "./layout.css": "./layout.css" }
+  "exports": { "./lime.css": "./lime.css", "./layout.css": "./layout.css", "./pixel.css": "./pixel.css" }
 }

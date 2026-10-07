@@ -5,7 +5,7 @@
 
 @font-face {
   font-family: Chicago;
-  src: url('/themes/lime/fonts/ChicagoFLF.woff2') format('woff2');
+  src: url('../../apps/web/src/assets/fonts/pixel/ChicagoFLF.woff2') format('woff2');
   font-style: normal;
   font-weight: 400;
   font-display: swap;

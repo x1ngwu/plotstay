@@ -1,0 +1,60 @@
+/* Same approved B/C typography, with lazy Unicode subsets and hashed assets. */
+@import './pixel-fonts.css';
+@font-face {
+  font-family: 'Preview Dinkie Code';
+  src: url('../../apps/web/src/assets/fonts/pixel/DinkieBitmap-9pxCode.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Preview Red Alert';
+  src: url('../../apps/web/src/assets/fonts/pixel/cc-red-alert-inet.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Preview Press Start K';
+  src: url('../../apps/web/src/assets/fonts/pixel/press-start-k.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* A: add a quiet pixel accent to titles; keep the current reading fonts. */
+html[data-theme=lime][data-font-style=soft] :is(h1, h2, h3) {
+  font-family: 'Preview Dinkie 9', 'Preview Dinkie Code', var(--body-font);
+  font-synthesis: none;
+}
+
+/* B: one restrained bitmap family for both display text and reading. */
+html[data-theme=lime][data-font-style=terminal] {
+  --body-font: 'Preview Dinkie 9', 'Preview Dinkie Code', 'PlotStay Pixel Fallback', 'PlotStay Zen Hei Sharp', sans-serif;
+  --mono: 'Preview Dinkie 9', 'Preview Dinkie Code', 'Courier New', monospace;
+  --preview-heading: 'Preview Dinkie 9', 'Preview Dinkie Code', var(--body-font);
+  font-synthesis: none;
+}
+
+/* C: wide arcade lettering for large display text; compact Red Alert for UI. */
+html[data-theme=lime][data-font-style=arcade] {
+  --body-font: 'Preview Dinkie 9', 'Preview Red Alert', 'PlotStay Pixel Fallback', 'PlotStay Zen Hei Sharp', sans-serif;
+  --mono: 'Preview Dinkie 9', 'Preview Red Alert', 'Courier New', monospace;
+  --preview-heading: 'Preview Dinkie 7', 'Preview Red Alert', var(--body-font);
+  font-synthesis: none;
+}
+html[data-theme=lime]:is([data-font-style=terminal], [data-font-style=arcade])
+  :is(.hero-copy h1, .promo h2, .section-heading h2, .benefit h3) {
+  font-family: var(--preview-heading);
+}
+html[data-theme=lime][data-font-style=arcade] :is(.hero-copy h1, .promo h2) {
+  font-family: 'Preview Dinkie 7', 'Preview Press Start K', var(--body-font);
+}
+
+/* Compact English rail headings keep the existing title/action row at 320px. */
+@media (max-width: 600px) {
+  html[data-theme=lime]:is([data-font-style=soft], [data-font-style=terminal])
+    .content-section > .section-heading h2 {
+    font-family: 'Preview Dinkie 9', 'Preview Red Alert', var(--body-font);
+  }
+}

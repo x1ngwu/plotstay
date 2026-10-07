@@ -7,6 +7,7 @@ import { ApiFailure, getBrowse } from '../../lib/api';
 import { bilingual, messages } from '../../lib/i18n';
 import { browsePath, detailPath, parseBrowse, fallbackLocales, type BrowseResponse, type HomeConfig } from '@plotstay/contracts';
 import { homeSeo, noIndex } from '../../lib/seo';
+import { getFontPreview } from '../../lib/font-preview';
 const { locales, locale: selectedLocale, localeFailure } = Astro.locals;
 const locale = selectedLocale ?? fallbackLocales[0]!;
 const ui = messages(locale.code), t = bilingual(locale.code);
@@ -24,6 +25,7 @@ try {
   Astro.response.status = error instanceof ApiFailure && [400,404].includes(error.status) ? 404 : 503;
 }
 const world = data?.world, home = data?.home, results = state.view === 'results';
+const fontPreview = !failed && !results ? getFontPreview(Astro.url.searchParams.get('font-preview')) : undefined;
 const browse = (patch = {}) => browsePath(locale,state,{view:'results', page:1, ...patch});
 const target = (value: HomeConfig['benefits'][number]['target']) => value.page === 'results'
   ? browse({type:value.type,place:value.place,category:value.category,q:'',end:value.type === 'experiences' || value.type === 'services' ? undefined : state.end,rooms:value.type === 'experiences' || value.type === 'services' ? undefined : state.rooms, quantity:undefined,time:undefined})
@@ -32,7 +34,7 @@ const icons: Record<string,string> = { orbit:'◎', walk:'↟', signal:'≋', to
 const pageTitle = world ? (results ? `${t('全部旅程','Explore')} · ${world.name}${state.page > 1 ? ` · ${t('第','Page ')}${state.page}${t('页','')}` : ''}` : world.name) : 'PlotStay';
 const groups = data ? Array.from(new Map(data.listing.contents.map(c => [c.placeId, c.placeName])).entries()) : [];
 ---
-<Base title={pageTitle} description={world?.description} world={world} locale={locale} locales={locales} theme={world?.themeId} seo={failed ? noIndex() : homeSeo(Astro.url, locale, locales, world!)}>
+<Base title={pageTitle} description={world?.description} world={world} locale={locale} locales={locales} theme={world?.themeId} fontPreview={fontPreview} preloadDisplayFonts={!failed && !results} seo={failed || fontPreview ? noIndex() : homeSeo(Astro.url, locale, locales, world!)}>
   {failed ? <section class="panel"><h1>{Astro.response.status === 404 ? ui.notFound : ui.unavailable}</h1><p>{t('检查地址与行程条件，或回到世界首页继续浏览。','Check the address and trip preferences, or return to discovery.')}</p><a href={browsePath(locale,parseBrowse(new URLSearchParams()))}>{t('返回首页','Back to discovery')} ↗</a></section> : <>
     {results ? <>
       <p class="eyebrow">{world!.name} / {t('探索全部','EXPLORE EVERYTHING')}</p><h1 class="results-title">{t('找到下一段故事。','Find your next story.')}</h1>

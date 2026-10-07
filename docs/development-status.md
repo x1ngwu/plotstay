@@ -4,6 +4,10 @@
 
 最新反馈：用户提供 `example_pages.zip`，明确分类图标与整张封面卡片的大小及排布都应接近 Airbnb，并要求所有发现栏目标题横条复用顶部 `PLOTSTAY / 世界` 的 Lime 样式。此次按保存页面与截图调整共用 CSS，包括发现区响应式列数；模块顺序、功能及审定文案保持不变。参考包优先于之前未对准栏目类型的在线采样，详见[参考包校准](phase-3-visual-alignment.md#用户参考包校准2026-年-10-月-7-日)。
 
+后续字体确认（2026 年 10 月 7 日）：在阶段 3 已提交版本 `daf5a98` 上，制作[三套像素字体对照](font-previews.md)后，用户选择**英文 C、中文默认 B，并保留中文 C**。已在统一布局接入语言默认字体，中文可从右上角菜单的“中文字体”切换 B / C，并记住浏览器偏好；列表、详情等页面沿用同一选择。`/font-preview` 保留全部方案用于回看。未推进阶段 4，也未修改内容数据。
+
+加载优化（同日）：预览原本已是构建版，主要额外传输来自整包像素字体、后备字库与未压缩资源。现已完成无字形改动的字体分包、按语言预载、Brotli / gzip 和资源哈希缓存。模拟 1 Mbps / 150 ms 的冷访问中，中英首页传输量分别由约 655 / 720 KB 降至 109 / 106 KB，字体就绪由 5.86 / 6.41 秒降至 1.55 / 1.51 秒。26 项端到端测试与 54 个页面视口检查通过，已更新原 `4321 / 4310` 构建版预览；细节与证据见[字体加载优化](font-previews.md#加载优化2026-10-07)。
+
 产品边界见[产品计划](plan.md)，技术选择见[架构方案](architecture.md)，确认经过见[决策记录](decisions.md)。本文记录当前实现和实际验证结果。
 
 ## 阶段状态
@@ -107,7 +111,7 @@ npm run dev
 
 **通过 SSH 远程查看时使用 `npm run preview`。** 先停止 dev，再执行 `npm run build && npm run preview`，通过 SSH 将本机端口转发到服务器的 `127.0.0.1:4321`。dev 与 preview 共用 `scripts/serve.mjs` 管理进程，preview 以 `NODE_ENV=production` 运行已有构建产物，Ctrl+C 同时停止两端。代码修改需要重新构建并启动；数据库内容发布无需重建。
 
-用户反馈远程打开慢后进行了对照检查：本机开发页面 HTML 响应约 20–60 ms，但浏览器另加载 20 个开发 JavaScript 资源，总传输约 1.78 MB；同一基础页面的构建版总传输约 4.1 KB，没有 JavaScript 请求。已切换原端口到构建版预览并验证。该测量来自服务器本机浏览器，未测得用户机器到服务器的实际 SSH 网络耗时；切换消除了开发工具的额外传输，不能据此断言所有远端延迟都已解决。
+早期基础页面的历史对照：本机开发 HTML 响应约 20–60 ms，但浏览器另加载 20 个开发 JavaScript 资源，总传输约 1.78 MB；当时基础页面的构建版总传输约 4.1 KB，没有 JavaScript 请求，随后切换原端口到构建版预览。该数据不代表当前阶段 3 页面；当前像素字体加载量及慢网模拟见本文开头的加载优化记录。两轮检查均未测得用户机器到服务器的实际 SSH 网络耗时。
 
 独立构建产物运行方式：
 
@@ -119,7 +123,7 @@ NODE_ENV=production npm run start:api
 NODE_ENV=production npm run start:web
 ```
 
-API 产物为 `apps/api/dist/server.mjs`，Astro 产物为 `apps/web/dist/server/entry.mjs`，worker 为 `apps/worker/dist/main.mjs`。start 脚本从根 `.env` 加载环境，外部已有环境变量优先。数据库和 seed 不依赖 dist。
+API 产物为 `apps/api/dist/server.mjs`，Astro 产物为 `apps/web/dist/server/entry.mjs`，worker 为 `apps/worker/dist/main.mjs`。`start:web` 使用 `apps/web/server.mjs` 包装 Astro 的静态资源与 SSR handler，关闭 adapter 自动监听并添加 Brotli / gzip；不启动开发服务器或运行构建。start 脚本从根 `.env` 加载环境，外部已有环境变量优先。数据库和 seed 不依赖 dist。
 
 关键配置为 `DATABASE_URL`、`API_HOST` / `API_PORT`、`API_INTERNAL_URL`、`HOST` / `PORT`、`WEB_ORIGIN`、`COOKIE_SECURE`、`SITE_URL`、`SITE_INDEXABLE`。Web 只通过 `API_INTERNAL_URL` 取数，不导入数据库包。浏览器读到完整 SSR HTML。
 
@@ -332,4 +336,4 @@ SITE_INDEXABLE=false npm run preview
 
 ## 新 session 开发入口
 
-先核对工作区与提交，必须阅读本文件、阶段 3 方案、[视觉校准记录](phase-3-visual-alignment.md)、计划、架构与 SEO 规范，再开发。当前版本已获用户认可并授权提交，下一步按用户新指示推进，不自动进入阶段 4。后续样式调整保持业务功能，不确定先问。唯一美术依据为原版 `digi-tech-lime-desktop`；仅品牌字标点阵镂空，大标题使用原版正文字体，插画保留；分类、封面和间距参照用户提供的 Airbnb 存档。预览是会话进程，重新核实监听状态；不要重置数据或改写 `001`–`005`。本轮首页文案已获审定并以新版本发布；后续文字仍须遵循文档并单独审定，不能把其他演示稿当作定稿。
+先核对工作区与提交，必须阅读本文件、阶段 3 方案、[视觉校准记录](phase-3-visual-alignment.md)、计划、架构与 SEO 规范，再开发。阶段 3 视觉已获用户认可；后续字体与速度优化的实际提交状态以 Git 为准，下一步按用户新指示推进，不自动进入阶段 4。后续样式调整保持业务功能，不确定先问。美术依据为原版 `digi-tech-lime-desktop`，品牌字标保留 Chicago 点阵镂空；字体遵循后续确认的英文 C / 中文默认 B、可选 C。插画保留，分类、封面和间距参照用户提供的 Airbnb 存档。预览是会话进程，重新核实监听状态；不要重置数据或改写 `001`–`005`。本轮首页文案已获审定并以新版本发布；后续文字仍须遵循文档并单独审定，不能把其他演示稿当作定稿。

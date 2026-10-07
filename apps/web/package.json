@@ -1,5 +1,19 @@
 {
-  "name": "@plotstay/web", "version": "0.1.0", "private": true, "type": "module",
-  "scripts": { "dev": "astro dev --ignore-lock", "build": "astro build", "check": "astro check" },
-  "dependencies": { "astro": "7.3.5", "@astrojs/node": "11.1.6", "@plotstay/contracts": "*", "@plotstay/themes": "*", "dotenv": "^17.2.0" }
+  "name": "@plotstay/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev --ignore-lock",
+    "build": "astro build",
+    "check": "astro check"
+  },
+  "dependencies": {
+    "@astrojs/node": "11.1.6",
+    "@plotstay/contracts": "*",
+    "@plotstay/themes": "*",
+    "astro": "7.3.5",
+    "compression": "^1.8.2",
+    "dotenv": "^17.2.0"
+  }
 }

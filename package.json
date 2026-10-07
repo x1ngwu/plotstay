@@ -24,7 +24,7 @@
     "check": "tsc --noEmit && npm run check --workspace @plotstay/web",
     "build": "npm run check && node scripts/build.mjs",
     "start:api": "node --env-file=.env apps/api/dist/server.mjs",
-    "start:web": "node --env-file=.env apps/web/dist/server/entry.mjs",
+    "start:web": "node --env-file=.env apps/web/server.mjs",
     "start:worker": "node --env-file=.env apps/worker/dist/main.mjs",
     "test": "tsx --test --test-concurrency=1 tests/foundation.test.ts tests/management.test.ts tests/translation.test.ts tests/seo-migration.test.ts tests/discovery.test.ts",
     "test:e2e": "npm run build && tsx --test --test-concurrency=1 tests/ssr.test.ts tests/seo.test.ts tests/dev.test.ts tests/discovery-e2e.test.ts",

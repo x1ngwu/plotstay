@@ -31,7 +31,7 @@ test('SEO-01–05: live API, built SSR, XML and publication lifecycle', { timeou
     t.after(() => stop(child)); return { child, logs: () => output };
   };
   const api = launch('apps/api/dist/server.mjs'); await waitFor(apiUrl + '/api/health', api.child, api.logs);
-  const web = launch('apps/web/dist/server/entry.mjs'); await waitFor(webUrl + '/en', web.child, web.logs);
+  const web = launch('apps/web/server.mjs'); await waitFor(webUrl + '/en', web.child, web.logs);
   const initialHash = await artifactHash();
   const browser = await chromium.launch({ headless: true }); t.after(() => browser.close());
   const page = await browser.newPage();
@@ -166,7 +166,7 @@ test('SEO-01–05: live API, built SSR, XML and publication lifecycle', { timeou
 
   await t.test('preview is noindex with empty sitemap; invalid indexed config fails explicitly', async () => {
     const previewPort = await unusedPort(); const previewUrl = `http://127.0.0.1:${previewPort}`;
-    const preview = launch('apps/web/dist/server/entry.mjs', { PORT: String(previewPort), SITE_INDEXABLE: undefined, SITE_URL: undefined });
+    const preview = launch('apps/web/server.mjs', { PORT: String(previewPort), SITE_INDEXABLE: undefined, SITE_URL: undefined });
     await waitFor(previewUrl + '/en', preview.child, preview.logs);
     for (const path of ['/en', '/zh/admin', '/unknown', '/sitemap.xml', '/robots.txt']) {
       const res = await fetch(previewUrl + path); const body = await res.text();
@@ -175,7 +175,7 @@ test('SEO-01–05: live API, built SSR, XML and publication lifecycle', { timeou
       if (path === '/robots.txt') assert.ok(!body.includes('Sitemap:') && !body.includes('Disallow:'));
     }
     await stop(preview.child);
-    const badPort = await unusedPort(); const bad = launch('apps/web/dist/server/entry.mjs', { PORT: String(badPort), SITE_URL: '' });
+    const badPort = await unusedPort(); const bad = launch('apps/web/server.mjs', { PORT: String(badPort), SITE_URL: '' });
     // The standalone server imports middleware on its first request; any request fails closed.
     let response: Response | undefined;
     for (let i = 0; i < 100; i++) {

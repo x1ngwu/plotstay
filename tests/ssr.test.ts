@@ -1,6 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
+import { get } from 'node:http';
+import { brotliDecompressSync, gunzipSync } from 'node:zlib';
 import { chromium, expect } from '@playwright/test';
 import { createContentSchema, editContentSchema } from '@plotstay/contracts';
 import { createContent, editContent, getPublished, reviewRevision, submitRevision, unpublishContent } from '@plotstay/domain';
@@ -24,7 +26,7 @@ test('built PostgreSQL → standalone API → Astro → browser', { timeout: 120
   };
   const api = launch('apps/api/dist/server.mjs');
   await waitFor(apiUrl + '/api/health', api.child, api.logs);
-  const web = launch('apps/web/dist/server/entry.mjs');
+  const web = launch('apps/web/server.mjs');
   await waitFor(webUrl + '/en', web.child, web.logs);
   const initialHash = await artifactHash();
   const roomPath = '/en/worlds/lathe-worlds/stays/observation-room';
@@ -50,6 +52,47 @@ test('built PostgreSQL → standalone API → Astro → browser', { timeout: 120
       '/en/worlds/lathe-worlds/invalid/observation-room', '/unknown/path']) {
       assert.equal((await fetch(webUrl + path)).status, 404, path);
     }
+  });
+
+  await t.test('built server compresses responses and preserves cache, HEAD and byte-range semantics', async () => {
+    const raw = (path: string, headers: Record<string, string> = {}, method = 'GET') =>
+      new Promise<{ status: number; headers: import('node:http').IncomingHttpHeaders; body: Buffer }>((resolve, reject) => {
+        const request = get(webUrl + path, { headers, method }, response => {
+          const chunks: Buffer[] = [];
+          response.on('data', chunk => chunks.push(chunk));
+          response.on('error', reject);
+          response.on('end', () => resolve({ status: response.statusCode!, headers: response.headers, body: Buffer.concat(chunks) }));
+        });
+        request.on('error', reject);
+      });
+    const plain = await raw('/zh', { 'accept-encoding': 'identity' });
+    const css = plain.body.toString().match(/href="([^\"]+\.css)"/)?.[1];
+    assert.ok(css && css.startsWith('/_astro/'));
+    for (const path of ['/zh', css]) {
+      const identity = await raw(path, { 'accept-encoding': 'identity' });
+      for (const encoding of ['br', 'gzip']) {
+        const packed = await raw(path, { 'accept-encoding': encoding });
+        assert.equal(packed.status, 200);
+        assert.equal(packed.headers['content-encoding'], encoding);
+        assert.match(String(packed.headers.vary), /Accept-Encoding/i);
+        assert.deepEqual(encoding === 'br' ? brotliDecompressSync(packed.body) : gunzipSync(packed.body), identity.body);
+        assert.ok(packed.body.length < identity.body.length / 2, `${path} compresses substantially`);
+        assert.equal(packed.headers['cache-control'], identity.headers['cache-control']);
+      }
+      const head = await raw(path, { 'accept-encoding': 'br' }, 'HEAD');
+      assert.equal(head.status, 200);
+      assert.equal(head.body.length, 0);
+    }
+    assert.equal(plain.headers['cache-control'], 'no-store');
+    const fontPath = plain.body.toString().match(/href="([^\"]+\.woff2)"/)?.[1];
+    assert.ok(fontPath && fontPath.startsWith('/_astro/'));
+    const font = await raw(fontPath);
+    assert.match(String(font.headers['cache-control']), /max-age=31536000.*immutable/);
+    const partial = await raw(fontPath, { range: 'bytes=0-31', 'accept-encoding': 'br' });
+    assert.equal(partial.status, 206);
+    assert.equal(partial.headers['content-encoding'], undefined);
+    assert.equal(partial.headers['content-range'], `bytes 0-31/${font.body.length}`);
+    assert.deepEqual(partial.body, font.body.subarray(0, 32));
   });
 
   await t.test('browser language navigation keeps detail, world and query; desktop and mobile render', async () => {
