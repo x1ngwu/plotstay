@@ -3,11 +3,11 @@ import cookie from '@fastify/cookie';
 import rateLimit from '@fastify/rate-limit';
 import { z } from 'zod';
 import { idSchema, kindSchema, localeSchema, loginSchema, slugSchema, createContentSchema, editContentSchema,
-  parseBrowse,
+  parseBrowse, detailQuerySchema,
   revisionActionSchema, reviewActionSchema, restoreActionSchema, unpublishActionSchema, noteActionSchema, translationActionSchema } from '@plotstay/contracts';
 import type { Database } from '@plotstay/database';
 import { adminDetail, adminList, adminWorlds, assert, digest, DomainError, getActor,
-  browseWorld, publicHome, saveHomeDraft, publishHome, getPublished, listPublished, listWorlds, listLocales, publicDiscovery, login, createContent, editContent, submitRevision, reviewRevision,
+  browseWorld, publishedDetail, publicHome, saveHomeDraft, publishHome, getPublished, listPublished, listWorlds, listLocales, publicDiscovery, login, createContent, editContent, submitRevision, reviewRevision,
   restorePublication, unpublishContent, releaseSiteBlock, saveTranslation, importContent, requireWorld, retryTranslation } from '@plotstay/domain';
 
 const localeQuery = z.object({ locale: localeSchema.default('en') }).strict();
@@ -80,6 +80,12 @@ export async function createApp(db: Database, options: { logger?: boolean; webOr
     const content = await getPublished(db, localeQuery.parse(request.query).locale, params);
     assert(content, 404, 'NOT_FOUND', 'Content not found.');
     return { content };
+  });
+
+  app.get('/api/worlds/:world/:kind/:slug/detail', async request => {
+    const params = z.object({ world: slugSchema, kind: z.enum(['stay', 'experience', 'service']), slug: slugSchema }).parse(request.params);
+    const query = detailQuerySchema.parse(request.query);
+    return publishedDetail(db, query.locale, params, query.notesPage);
   });
 
   app.post('/api/auth/login', { config: { rateLimit: { max: 10, timeWindow: '1 minute' } } }, async (request, reply) => {

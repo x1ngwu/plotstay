@@ -1,0 +1,31 @@
+---
+import type { ContentDetail, Locale } from '@plotstay/contracts';
+import { bilingual } from '../../../lib/i18n';
+import Icon from './Icon.astro';
+const { detail, locale } = Astro.props as { detail: ContentDetail; locale: Locale };
+const { content: c, reviewSummary: r, reviews } = detail, s = c.text.stay, a = c.attributes.stay;
+const t = bilingual(locale.code), pending = t('待补充', 'To be added');
+const facts = [t(`${a?.guests ?? '—'} 位旅客`, `${a?.guests ?? '—'} guest${a?.guests === 1 ? '' : 's'}`), t(`${a?.bedrooms ?? '—'} 间卧室`, `${a?.bedrooms ?? '—'} bedroom${a?.bedrooms === 1 ? '' : 's'}`), t(`${a?.beds ?? '—'} 张床`, `${a?.beds ?? '—'} bed${a?.beds === 1 ? '' : 's'}`), s?.bathroom || t('卫浴信息待补充', 'Bathroom details to be added')];
+const highlights = [...(s?.highlights ?? []), ...c.text.highlights.map(title => ({icon:'star', title, description:pending}))];
+if (!highlights.length) highlights.push(...['key','space','bath'].map((icon, i) => ({icon, title:[t('入住方式','Arrival'),t('房间空间','The room'),t('卫浴安排','Bathroom arrangement')][i]!, description:pending})));
+---
+<section id="stay-specs" class="stay-specs" data-stay-module="01" aria-labelledby="specs-heading">
+  <h2 id="specs-heading" lang={c.languageTag}>{s?.propertyType || t('住宿类型待补充','Property type to be added')} · {c.placeName ?? c.worldSlug}</h2>
+  <ul class="stay-spec-list">{facts.map(fact => <li>{fact}</li>)}</ul>
+  {a?.demo && <p class="stay-demo">{t('含演示占位资料', 'Includes demonstration details')}</p>}
+</section>
+<a id="stay-reputation" class="stay-reputation" data-stay-module="02" href="#notes" aria-label={t(`查看全部 ${reviews.total} 条游客手记`,`Read all ${reviews.total} visitor notes`)}>
+  <div class="stay-favorite"><Icon name="star"/><strong lang={c.languageTag}>{s?.favoriteTitle || t('旅客口碑','Guest impressions')}</strong></div>
+  <p lang={c.languageTag}>{s?.favoriteDescription || t('旅客喜爱说明待补充。','Guest favorite details to be added.')}</p>
+  <div class="stay-score"><strong>{r.rating?.toFixed(2) ?? '—'}</strong><span aria-label={r.rating ? t('满分 5 分','Out of 5 stars') : t('暂无评分','Not rated')}>{r.rating ? '★'.repeat(Math.round(r.rating)) + '☆'.repeat(5-Math.round(r.rating)) : '☆☆☆☆☆'}</span></div>
+  <div class="stay-count"><strong>{reviews.total}</strong><span>{t('条手记','Reviews')}</span></div>
+</a>
+<a id="stay-host-summary" class="stay-host-summary" href="#host" data-stay-module="03">
+  <span class="stay-avatar" aria-hidden="true"><Icon name="person"/></span>
+  <span><strong>{t('房东：','Hosted by ')}<span lang={c.languageTag}>{c.text.hostName || t('房东姓名待补充','Host name to be added')}</span></strong>
+  <span class="stay-muted"><span lang={c.languageTag}>{s?.hostBadge || t('身份待补充','Host status to be added')}</span> · {a?.hostYears === undefined ? t('接待年限待补充','Hosting experience to be added') : t(`${a.hostYears} 年接待经验`,`${a.hostYears} year${a.hostYears === 1 ? '' : 's'} hosting`)}</span></span>
+</a>
+<section id="highlights" class="stay-highlights" data-stay-module="04" aria-labelledby="highlights-heading">
+  <h2 id="highlights-heading" class="stay-small-heading">{t('住宿亮点','Listing highlights')}</h2>
+  <ul>{highlights.map(item => <li><Icon name={item.icon}/><div lang={c.languageTag}><h3>{item.title}</h3><p>{item.description}</p></div></li>)}</ul>
+</section>

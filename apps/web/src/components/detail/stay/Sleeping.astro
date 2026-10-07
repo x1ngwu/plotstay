@@ -1,0 +1,15 @@
+---
+import type { PublicContent, Locale } from '@plotstay/contracts';
+import { bilingual } from '../../../lib/i18n';
+import DetailSection from '../DetailSection.astro';
+import Icon from './Icon.astro';
+const {content:c,locale} = Astro.props as {content:PublicContent;locale:Locale};
+const t=bilingual(locale.code), rooms=c.text.stay?.sleeping ?? [];
+const image=c.attributes.images[0];
+---
+<DetailSection id="sleeping" title={t('你将在哪里休息','Where you’ll sleep')} languageTag={c.languageTag}>
+  <ul class="stay-sleeping">{(rooms.length ? rooms : [{name:t('睡眠安排','Sleeping arrangements'),description:t('卧室与床铺详情待补充。','Bedroom and bed details will be added.')}]).map(room=><li>
+    <div class="stay-sleeping-image"><Icon name="bed"/>{image && <img src={image.url} alt={c.text.imageAlts[image.id] ?? ''} loading="lazy" width="240" height="160"/>}</div>
+    <h3>{room.name}</h3><p>{room.description}</p>
+  </li>)}</ul>
+</DetailSection>

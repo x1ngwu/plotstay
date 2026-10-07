@@ -1,0 +1,26 @@
+---
+import type { PublicContent, Locale } from '@plotstay/contracts';
+import { bilingual } from '../../../lib/i18n';
+import DetailSection from '../DetailSection.astro';
+import Expand from './Expand.astro';
+import Icon from './Icon.astro';
+const { content: c, locale } = Astro.props as { content: PublicContent; locale: Locale };
+const t = bilingual(locale.code), s = c.text.stay, a = c.attributes.stay;
+const pending = t('待补充','To be added');
+const rules = [...new Set([...c.text.rules,...(s?.houseRules ?? [])])];
+---
+<div data-stay-module="10"><DetailSection id="rules" title={t('入住须知','Things to know')}>
+  <div class="stay-policies">
+    <section id="cancellation"><Icon name="clock"/><h3>{t('取消政策','Cancellation policy')}</h3><p class="prose" lang={c.languageTag}>{s?.cancellation || t('取消政策待补充。','Cancellation policy will be added.')}</p><p>{t('请查看房东的完整政策说明。','Review the host’s full policy for details.')}</p>
+      <Expand locale={locale} label={t('了解更多','Learn more')}><p class="prose" lang={c.languageTag}>{s?.cancellationDetails || pending}</p></Expand>
+    </section>
+    <section id="house-rules"><Icon name="key"/><h3>{t('房屋守则','House rules')}</h3>
+      <ul><li>{t('入住：','Check-in: ')}<span lang={c.languageTag}>{s?.checkIn || pending}</span></li><li>{t('退房：','Checkout: ')}<span lang={c.languageTag}>{s?.checkOut || pending}</span></li><li>{t('最多接待：','Maximum guests: ')}{a?.guests ?? pending}{a?.guests && t(' 位旅客','')}</li></ul>
+      <Expand locale={locale} label={t('了解更多','Learn more')}><ul lang={c.languageTag}>{rules.length ? rules.map(rule=><li>{rule}</li>) : <li>{t('完整房屋守则待补充。','Full house rules will be added.')}</li>}</ul></Expand>
+    </section>
+    <section id="safety"><Icon name="alarm"/><h3>{t('安全与房产信息','Safety & property')}</h3>
+      <ul lang={c.languageTag}>{s?.safety.length ? s.safety.map(item=><li>{item.title}</li>) : <li>{t('报警设备及共用区域说明待补充。','Alarm equipment and shared-area information will be added.')}</li>}</ul>
+      <Expand locale={locale} label={t('了解更多','Learn more')}><ul class="stay-safety-details" lang={c.languageTag}>{s?.safety.length ? s.safety.map(item=><li><Icon name={item.icon}/><div><strong>{item.title}</strong><p>{item.description}</p></div></li>) : <li>{t('完整安全信息待补充。','Full safety details will be added.')}</li>}</ul></Expand>
+    </section>
+  </div>
+</DetailSection></div>

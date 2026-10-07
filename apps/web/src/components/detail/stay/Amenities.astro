@@ -1,0 +1,21 @@
+---
+import type { PublicContent, Locale } from '@plotstay/contracts';
+import { bilingual } from '../../../lib/i18n';
+import DetailSection from '../DetailSection.astro';
+import Icon from './Icon.astro';
+import Expand from './Expand.astro';
+const { content: c, locale } = Astro.props as { content: PublicContent; locale: Locale };
+const t = bilingual(locale.code), s = c.text.stay;
+const amenities = [...(s?.amenities ?? []), ...c.text.facilities.filter(name => !s?.amenities.some(a => a.name === name)).map(name => ({name,icon:'star',status:'available',description:'',category:t('其他设施','Other amenities')}))];
+const status = (value: string) => value === 'unavailable' ? t('不提供','Unavailable') : value === 'unreported' ? t('未说明','Not reported') : t('提供','Available');
+const preview = [...amenities.slice(0,8), ...amenities.filter(a => a.status !== 'available').slice(0,2)];
+const categories = [...new Set(amenities.map(a => a.category || t('设施','Amenities')))];
+---
+<div data-stay-module="06"><DetailSection id="facilities" title={t('这里提供什么','What this place offers')} languageTag={c.languageTag}>
+  <ul class="stay-amenity-preview">{preview.map(item => <li data-status={item.status}><Icon name={item.icon}/><span><span class:list={{'amenity-unavailable':item.status === 'unavailable'}}>{item.name}</span>{item.status !== 'available' && <small>{status(item.status)}</small>}</span></li>)}</ul>
+  {!amenities.length && <p class="stay-placeholder">{t('设施清单待补充，可用状态尚未说明。','The amenity list and availability details will be added.')}</p>}
+  <Expand locale={locale} id="stay-amenities-all" label={amenities.length ? t(`查看全部 ${amenities.length} 项设施`,`Show all ${amenities.length} amenities`) : t('查看设施说明','View amenity details')}>
+    {categories.map(category => <section class="stay-amenity-category"><h3>{category}</h3><ul>{amenities.filter(a => (a.category || t('设施','Amenities')) === category).map(item => <li data-amenity data-status={item.status}><Icon name={item.icon}/><div><strong class:list={{'amenity-unavailable':item.status === 'unavailable'}}>{item.name}</strong><span class="stay-status">{status(item.status)}</span>{item.description && <p>{item.description}</p>}</div></li>)}</ul></section>)}
+    {!amenities.length && <p>{t('房东尚未提供完整设施资料。','The host has not provided a complete amenity list.')}</p>}
+  </Expand>
+</DetailSection></div>

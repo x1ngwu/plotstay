@@ -1,0 +1,68 @@
+---
+import type { PublicContent, Locale } from '@plotstay/contracts';
+import { bilingual } from '../../lib/i18n';
+const { content, locale } = Astro.props as { content: PublicContent; locale: Locale };
+const t = bilingual(locale.code);
+const images = content.attributes.images;
+const symbol = content.kind === 'stay' ? '⌂' : content.kind === 'experience' ? '✳' : '⌘';
+const label = (index: number) => `${t('查看图片', 'View image')} ${index + 1} / ${images.length}`;
+---
+<section class="detail-gallery" data-gallery aria-label={t('图库', 'Photo gallery')}>
+  {images.length ? <>
+    <a class:list={['gallery-main', 'card-cover', `cover-${content.kind}`]} data-gallery-open="0" href={images[0]!.url} aria-label={label(0)}>
+      <span class="cover-diagram" aria-hidden="true">{symbol}</span>
+      <img src={images[0]!.url} alt={content.text.imageAlts[images[0]!.id] ?? ''} lang={content.languageTag} width="1200" height="660" fetchpriority="high" />
+      <span class="gallery-count">{t('查看图片', 'View photos')} · {images.length}</span>
+    </a>
+    <ol class:list={['gallery-thumbs', { 'gallery-single-thumb': images.length === 1 }]}>
+      {images.map((item, index) => <li><a data-gallery-item data-gallery-open={index} href={item.url} aria-label={label(index)}>
+        <span aria-hidden="true">{index + 1}</span><img src={item.url} alt={content.text.imageAlts[item.id] ?? ''} lang={content.languageTag} width="160" height="100" loading="lazy" />
+      </a></li>)}
+    </ol>
+    <dialog class="gallery-dialog panel" aria-label={t('图片查看器', 'Photo viewer')}>
+      <div class="gallery-toolbar"><span data-gallery-position role="status" aria-live="polite"></span><button type="button" data-gallery-close autofocus>{t('关闭', 'Close')} ×</button></div>
+      <div class="gallery-stage"><span data-gallery-error hidden>{t('图片暂时无法显示。', 'This image is unavailable.')}</span><img data-gallery-full alt="" lang={content.languageTag} /></div>
+      <p data-gallery-caption class="gallery-caption" lang={content.languageTag}></p>
+      {images.length > 1 && <div class="gallery-controls"><button type="button" data-gallery-prev aria-label={t('上一张图片', 'Previous image')}>← {t('上一张', 'Previous')}</button><button type="button" data-gallery-next aria-label={t('下一张图片', 'Next image')}>{t('下一张', 'Next')} →</button></div>}
+    </dialog>
+  </> : <div class:list={['gallery-main', 'card-cover', 'gallery-empty', `cover-${content.kind}`]}><span class="cover-diagram" aria-hidden="true">{symbol}</span><span class="gallery-count">{t('暂无图片', 'No photos yet')}</span></div>}
+</section>
+<script>
+  document.querySelectorAll<HTMLElement>('[data-gallery]').forEach(root => {
+    const dialog = root.querySelector<HTMLDialogElement>('dialog');
+    if (!dialog) return;
+    const items = [...root.querySelectorAll<HTMLAnchorElement>('[data-gallery-item]')];
+    const full = dialog.querySelector<HTMLImageElement>('[data-gallery-full]')!;
+    const error = dialog.querySelector<HTMLElement>('[data-gallery-error]')!;
+    let index = 0, trigger: HTMLElement | null = null;
+    const show = (next: number) => {
+      index = (next + items.length) % items.length;
+      const item = items[index]!;
+      full.hidden = false; error.hidden = true;
+      full.alt = item.querySelector('img')?.alt ?? '';
+      full.src = item.href;
+      dialog.querySelector('[data-gallery-position]')!.textContent = `${index + 1} / ${items.length}`;
+      dialog.querySelector('[data-gallery-caption]')!.textContent = full.alt;
+    };
+    full.addEventListener('error', () => { full.hidden = true; error.hidden = false; });
+    full.addEventListener('load', () => { full.hidden = false; error.hidden = true; });
+    root.querySelectorAll<HTMLElement>('[data-gallery-open]').forEach(link => link.addEventListener('click', event => {
+      if (event instanceof MouseEvent && (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey || event.button)) return;
+      event.preventDefault(); trigger = link; show(Number(link.dataset.galleryOpen)); dialog.showModal();
+    }));
+    dialog.querySelector('[data-gallery-close]')!.addEventListener('click', () => dialog.close());
+    dialog.querySelector('[data-gallery-prev]')?.addEventListener('click', () => show(index - 1));
+    dialog.querySelector('[data-gallery-next]')?.addEventListener('click', () => show(index + 1));
+    dialog.addEventListener('keydown', event => {
+      if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') { event.preventDefault(); show(index + (event.key === 'ArrowLeft' ? -1 : 1)); }
+      if (event.key === 'Tab') {
+        const buttons = [...dialog.querySelectorAll<HTMLButtonElement>('button:not([disabled])')];
+        const first = buttons[0]!, last = buttons[buttons.length - 1]!;
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+      }
+    });
+    dialog.addEventListener('click', event => { if (event.target === dialog) { const r = dialog.getBoundingClientRect(); if (event.clientX < r.left || event.clientX > r.right || event.clientY < r.top || event.clientY > r.bottom) dialog.close(); } });
+    dialog.addEventListener('close', () => trigger?.focus());
+  });
+</script>

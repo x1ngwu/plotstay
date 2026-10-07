@@ -1,0 +1,11 @@
+---
+import type { PublicContent, Locale } from '@plotstay/contracts';
+import { bilingual } from '../../lib/i18n';
+import DetailSection from './DetailSection.astro';
+const { content, locale } = Astro.props as { content: PublicContent; locale: Locale };
+const t = bilingual(locale.code);
+const role = content.kind === 'stay' ? t('房东', 'Your host') : content.kind === 'experience' ? t('向导', 'Your guide') : t('服务提供者', 'Your service provider');
+---
+{(content.text.hostName || content.text.hostBio) && <DetailSection id="host" title={role} languageTag={content.languageTag}>
+  <div class="detail-person"><div class="person-symbol" aria-hidden="true"><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 8h12v13H14zM8 36V25h24v11M18 13h4" /></svg></div><div>{content.text.hostName && <h3>{content.text.hostName}</h3>}{content.text.hostBio && <p class="prose">{content.text.hostBio}</p>}</div></div>
+</DetailSection>}

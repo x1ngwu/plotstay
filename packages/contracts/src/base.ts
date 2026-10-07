@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { stayTextSchema, stayAttributesSchema, reviewTextSchema, reviewRatingsSchema } from './stay.ts';
 
 export const localeSchema = z.string().regex(/^[a-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/).max(35);
 export const idSchema = z.uuid();
@@ -17,7 +18,12 @@ export const textSchema = z.object({
   itinerary: lines,
   hostName: z.string().trim().max(100).default(''),
   hostBio: z.string().trim().max(3000).default(''),
-  imageAlts: z.record(z.string().max(80), z.string().max(500)).default({})
+  imageAlts: z.record(z.string().max(80), z.string().max(500)).default({}),
+  highlights: lines,
+  included: lines,
+  serviceItems: lines,
+  stay: stayTextSchema.optional(),
+  review: reviewTextSchema.optional()
 }).strict();
 export type ContentText = z.infer<typeof textSchema>;
 
@@ -35,7 +41,9 @@ export const attributesSchema = z.object({
   price: z.object({ amount: z.number().int().min(0).max(1000000000), unit: z.enum(['night', 'person', 'session']) }).strict().optional(),
   category: slugSchema.optional(),
   durationMinutes: z.number().int().positive().max(43200).optional(),
-  rating: z.number().int().min(1).max(5).optional()
+  rating: z.number().int().min(1).max(5).optional(),
+  stay: stayAttributesSchema.optional(),
+  reviewRatings: reviewRatingsSchema.optional()
 }).strict().refine(a => new Set(a.images.map(i => i.id)).size === a.images.length, 'Image IDs must be unique.');
 export type ContentAttributes = z.infer<typeof attributesSchema>;
 

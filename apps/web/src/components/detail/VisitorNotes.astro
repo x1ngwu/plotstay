@@ -1,0 +1,19 @@
+---
+import type { ContentPage, Locale } from '@plotstay/contracts';
+import { bilingual, messages, uiLocale } from '../../lib/i18n';
+import DetailSection from './DetailSection.astro';
+const { reviews, locale, pageHref } = Astro.props as { reviews: ContentPage; locale: Locale; pageHref: (page: number) => string };
+const t = bilingual(locale.code), ui = messages(locale.code);
+---
+{reviews.total > 0 && <DetailSection id="notes" title={`${ui.notes} · ${reviews.total}`}>
+  <div class="detail-notes">{reviews.contents.map(review => <article class="visitor-note" lang={review.languageTag} data-note-id={review.id}>
+    {review.personaName && <p class="note-author">{review.personaName}</p>}
+    <h3>{review.text.title}</h3><p class="prose">{review.text.description}</p>
+    {review.isFallback && <p class="notice" lang={uiLocale(locale.code) === 'zh-CN' ? 'zh-Hans' : 'en'}>{ui.fallback}</p>}
+  </article>)}</div>
+  {reviews.pages > 1 && <nav class="pagination" aria-label={t('手记分页', 'Visitor notes pages')}>
+    {reviews.page > 1 && <a data-notes-prev href={pageHref(reviews.page - 1)}>← {t('上一页', 'Previous')}</a>}
+    <span aria-current="page">{reviews.page} / {reviews.pages}</span>
+    {reviews.page < reviews.pages && <a data-notes-next href={pageHref(reviews.page + 1)}>{t('下一页', 'Next')} →</a>}
+  </nav>}
+</DetailSection>}

@@ -71,7 +71,7 @@ export const publicSelect = `SELECT c.id,c.world_id,c.slug,c.kind,w.slug AS worl
 export function mapContent(row: any, requestedLocale: string): PublicContent {
   return { id: row.id, worldId: row.world_id, worldSlug: row.world_slug, slug: row.slug,
     kind: row.kind, placeId: row.place_id, placeSlug: row.place_slug, placeName: row.place_name, locale: row.locale, requestedLocale,
-    isFallback: row.locale !== requestedLocale, languageTag: row.language_tag, availableLocales: row.available_locales, text: { tags: [], ...row.body }, attributes: row.attributes,
+    isFallback: row.locale !== requestedLocale, languageTag: row.language_tag, availableLocales: row.available_locales, text: { tags: [], highlights: [], included: [], serviceItems: [], ...row.body }, attributes: row.attributes,
     publicationId: row.publication_id, publishedAt: row.published_at.toISOString(), categoryName: row.category_name, personaName: row.persona_name };
 }
 export async function listPublished(db: Connection, locale: string, filters: {

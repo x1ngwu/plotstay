@@ -1,0 +1,35 @@
+---
+import { browsePath, type BrowseState, type PublicContent, type Locale, type World } from '@plotstay/contracts';
+import { bilingual } from '../../../lib/i18n';
+import DetailSection from '../DetailSection.astro';
+import Expand from './Expand.astro';
+import Icon from './Icon.astro';
+const { content: c, locale, state, world } = Astro.props as { content: PublicContent; locale: Locale; state: BrowseState; world: World };
+const t = bilingual(locale.code), s = c.text.stay;
+const kinds = [
+ {kind:'activities',icon:'walk',label:t('寻找当地活动','Find things to do')},
+ {kind:'cafe',icon:'cup',label:t('试试附近的咖啡馆','Try a local café')},
+ {kind:'transit',icon:'transit',label:t('查找公共交通','Find public transit')},
+ {kind:'dining',icon:'food',label:t('探索附近餐饮','Explore dining')},
+];
+const nearbyPath = browsePath(locale,{...state,world:c.worldSlug,view:'results',type:'experiences',place:c.placeSlug ?? undefined,page:1,category:undefined,q:'',rooms:undefined,end:undefined,quantity:undefined,time:undefined});
+---
+<div data-stay-module="08"><DetailSection id="location" title={t('你将入住的地区','Where you’ll be')}>
+  <h3 class="stay-location-title" lang={c.languageTag}>{c.placeName ?? world.name} · {world.name}</h3>
+  <p class="prose" lang={c.languageTag}>{s?.neighborhood || t('周边环境介绍待补充。','Neighborhood details will be added.')}</p>
+  <figure class="stay-map">
+    <div class="stay-map-canvas" role="img" aria-label={t('虚构区域示意图：住宿位于中央，附近有接驳站、休息区和公共用餐区。','Fictional area sketch: the stay is in the centre, with a shuttle stop, lounge and shared dining area nearby.')}>
+      <svg class="stay-map-lines" viewBox="0 0 1000 360" preserveAspectRatio="none" aria-hidden="true"><path class="map-block" d="M40 28h175v90H40zM300 28h180v90H300zM620 28h330v90H620zM40 245h260v85H40zM395 245h270v85H395zM765 245h185v85H765z"/><path class="map-route" d="M-10 176H1010M250-10v175l90 145v60M720-10v155l-70 65v160"/><path class="map-trail" d="M70 200h865M273 0v160l90 150v60M740 0v162l-66 59v155"/></svg>
+      <span class="map-label map-transit"><Icon name="transit"/>{t('接驳站','Shuttle stop')}</span>
+      <span class="map-label map-cafe"><Icon name="cup"/>{t('旅客休息区','Guest lounge')}</span>
+      <span class="map-label map-dining"><Icon name="food"/>{t('公共用餐区','Dining area')}</span>
+      <span class="map-home"><Icon name="home"/><strong>{t('你的住宿','Your stay')}</strong></span>
+      <span class="map-compass" aria-hidden="true">N ↑</span>
+    </div>
+    <figcaption lang={c.languageTag}>{s?.locationNote || t('虚构区域示意图 · 不对应现实坐标','Fictional area sketch · no real-world coordinates')}</figcaption>
+  </figure>
+  <div class="stay-nearby">{kinds.map(item => <div><Icon name={item.icon}/><Expand locale={locale} label={s?.nearby.find(n=>n.kind === item.kind)?.title || item.label}>
+    <p lang={c.languageTag}>{s?.nearby.find(n=>n.kind === item.kind)?.description || t('周边地点与路线资料待补充。','Nearby places and directions will be added.')}</p>
+    {item.kind === 'activities' && <a href={nearbyPath}>{t('浏览该地区的活动','Browse local experiences')} →</a>}
+  </Expand></div>)}</div>
+</DetailSection></div>

@@ -1,0 +1,195 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { spawn } from 'node:child_process';
+import { mkdir, writeFile } from 'node:fs/promises';
+import { chromium, expect } from '@playwright/test';
+import { detailFixture } from './detail-fixture.ts';
+import { unusedPort, waitFor, stop } from './runtime.ts';
+import { seedStayDetails } from '../scripts/seed-stay-details.ts';
+
+test('phase 4 detail browser acceptance', {timeout:180000}, async t => {
+  const f=await detailFixture();t.after(f.cleanup);await seedStayDetails(f.db,f.data.admin,true);
+  const apiPort=await unusedPort(),webPort=await unusedPort();
+  const apiUrl=`http://127.0.0.1:${apiPort}`,webUrl=`http://127.0.0.1:${webPort}`;
+  const env={...process.env,PGOPTIONS:f.options,NODE_ENV:'production',SITE_INDEXABLE:'true',SITE_URL:'https://plotstay-phase4.invalid',API_PORT:String(apiPort),API_HOST:'127.0.0.1',HOST:'127.0.0.1',PORT:String(webPort),WEB_ORIGIN:webUrl,API_INTERNAL_URL:apiUrl};
+  const launch=(entry:string)=>{const child=spawn(process.execPath,[entry],{env,stdio:['ignore','pipe','pipe']});let logs='';child.stdout!.on('data',d=>logs+=d);child.stderr!.on('data',d=>logs+=d);t.after(()=>stop(child));return {child,logs:()=>logs};};
+  const api=launch('apps/api/dist/server.mjs');await waitFor(apiUrl+'/api/health',api.child,api.logs);
+  const web=launch('apps/web/server.mjs');await waitFor(webUrl+'/en',web.child,web.logs);
+  const browser=await chromium.launch({headless:true});t.after(()=>browser.close());
+  const context=await browser.newContext();t.after(()=>context.close());const page=await context.newPage();
+  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
+  const route=(kind:string,locale='en')=>`/${locale}/worlds/lathe-worlds/${kind==='stay'?'stays':kind==='experience'?'experiences':'services'}/detail-${kind}`;
+  const dir='test-results/phase4';await mkdir(dir,{recursive:true});
+  await t.test('each type renders published special modules, people and fictional notes',async()=>{
+    for(const kind of ['stay','experience','service']){
+      await page.goto(webUrl+route(kind));
+      await expect(page.locator('h1')).toHaveText(`Detail ${kind}`);
+      await expect(page.locator('#host')).toContainText(`Test ${kind} host`);
+      await expect(page.locator('#notes')).toContainText('Visitor 17');
+      await expect(page.locator('#notes-heading')).toContainText('Fictional visitor notes');
+      const special=kind==='stay'?'highlights':kind==='experience'?'included':'service-items';
+      await expect(page.locator(`#${special}`)).toBeVisible();
+      for(const other of ['highlights','included','service-items'].filter(x=>x!==special)) await expect(page.locator(`#${other}`)).toHaveCount(0);
+      assert.equal(await page.locator('#related .content-card').count(),6);
+      await expect(page.locator('link[rel=canonical]')).toHaveAttribute('href',`https://plotstay-phase4.invalid${route(kind)}`);
+    }
+  });
+  await t.test('gallery opens any thumbnail, wraps with keys, traps focus and restores trigger',async()=>{
+    await page.goto(webUrl+route('stay'));
+    const second=page.locator('[data-gallery-item]').nth(1);await second.click();
+    const dialog=page.getByRole('dialog');await expect(dialog).toBeVisible();
+    await expect(page.locator('[data-gallery-position]')).toHaveText('2 / 3');
+    await expect(page.locator('[data-gallery-caption]')).toHaveText('Maintenance illustration');
+    await page.keyboard.press('ArrowRight');await expect(page.locator('[data-gallery-error]')).toBeVisible();
+    await expect(page.locator('[data-gallery-position]')).toHaveText('3 / 3');
+    await page.keyboard.press('ArrowRight');await expect(page.locator('[data-gallery-position]')).toHaveText('1 / 3');
+    await expect(page.locator('[data-gallery-full]')).toBeVisible();
+    await page.locator('[data-gallery-close]').focus();await page.keyboard.press('Shift+Tab');
+    assert.ok(await page.evaluate(()=>!!document.activeElement?.closest('dialog')));
+    await page.keyboard.press('Escape');await expect(dialog).not.toBeVisible();await expect(second).toBeFocused();
+    await page.locator('.gallery-main').click();await page.locator('[data-gallery-next]').click();
+    await expect(page.locator('[data-gallery-position]')).toHaveText('2 / 3');
+    await page.locator('[data-gallery-close]').click();await expect(page.locator('.gallery-main')).toBeFocused();
+    await page.goto(webUrl+'/en/worlds/lathe-worlds/services/augmetic-tune-up');
+    await page.locator('.gallery-main').click();await expect(page.locator('[data-gallery-position]')).toHaveText('1 / 1');
+    await expect(page.locator('[data-gallery-next]')).toHaveCount(0);await page.keyboard.press('Escape');
+    await page.goto(webUrl+'/en/worlds/lathe-worlds/stays/observation-room');
+    await expect(page.locator('.gallery-empty')).toBeVisible();await expect(page.locator('dialog')).toHaveCount(0);
+  });
+  await t.test('notes pagination, related navigation and language keep browse and trip context',async()=>{
+    const query='?from=results&view=results&type=stays&q=Detail&start=2026-10-09&end=2026-10-12&guests=2&rooms=1';
+    await page.goto(webUrl+route('stay')+query);
+    const ids=await page.locator('[data-note-id]').evaluateAll(es=>es.map(e=>e.getAttribute('data-note-id')));
+    await page.locator('[data-notes-next]').click();
+    await expect(page.locator('[data-note-id]')).toHaveCount(2);
+    const nextIds=await page.locator('[data-note-id]').evaluateAll(es=>es.map(e=>e.getAttribute('data-note-id')));
+    assert.equal(new Set([...ids,...nextIds]).size,8);
+    await expect(page.locator('meta[name=robots]')).toHaveAttribute('content','noindex, follow');
+    await expect(page.locator('link[rel=canonical]')).toHaveCount(0);
+    await page.locator('.header-actions summary').click();await page.getByRole('link',{name:'简体中文',exact:true}).click();
+    assert.equal(new URL(page.url()).searchParams.get('notesPage'),'2');
+    await expect(page.locator('.trip-summary')).toContainText('2026-10-09');
+    await page.locator('#related h3 a').first().click();
+    assert.equal(new URL(page.url()).searchParams.get('notesPage'),null);
+    const back=await page.locator('[data-back]').getAttribute('href');
+    assert.ok(back?.startsWith('/zh?'));for(const pair of ['type=stays','q=Detail','rooms=1','guests=2','start=2026-10-09'])assert.ok(back?.includes(pair));
+    await page.locator('[data-back]').click();
+    // The retained English keyword has no Chinese match; a valid empty result is expected.
+    await expect(page.locator('[name=q]')).toHaveValue('Detail');
+    await expect(page.locator('.results-grid h3 a')).toHaveCount(0);
+    for(const invalid of ['notesPage=0','notesPage=3','notesPage=1&notesPage=2'])assert.equal((await page.goto(webUrl+route('stay')+'?'+invalid))?.status(),404);
+  });
+  await t.test('existing demo, long content and every language/font fit desktop and mobile',async()=>{
+    const checks=[];
+    for(const locale of ['en','zh']) for(const font of (locale==='zh'?['terminal','arcade']:['arcade'])) {
+      await context.addCookies([{name:'plotstay-zh-font',value:font,url:webUrl}]);
+      for(const width of [1440,768,390,320])for(const kind of ['stay','experience','service']){
+        await page.setViewportSize({width,height:1000});await page.goto(webUrl+route(kind,locale));await page.evaluate(()=>document.fonts.ready);
+        const metrics=await page.evaluate(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth,font:document.documentElement.dataset.fontStyle,
+          columns:getComputedStyle(document.querySelector('.detail-columns')!).display}));
+        assert.ok(metrics.scroll<=width,JSON.stringify({kind,locale,width,metrics}));assert.equal(metrics.font,font);
+        checks.push({kind,locale,...metrics});
+        if(width===1440||width===390)await page.screenshot({path:`${dir}/${kind}-${locale}-${font}-${width}.png`,fullPage:true});
+      }
+    }
+    // Existing demo records exercise empty fields and missing or single images.
+    for(const path of ['/zh/worlds/lathe-worlds/stays/observation-room','/en/worlds/lathe-worlds/experiences/forge-walk','/zh/worlds/lathe-worlds/services/augmetic-tune-up','/en/worlds/test-harbour/stays/harbour-room']){
+      await page.goto(webUrl+path);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+      await expect(page.locator('#highlights,#included,#service-items')).toHaveCount(path.includes('/stays/') ? 1 : 0);
+    }
+    await expect(page.locator('#related')).toHaveCount(0);
+    await writeFile(`${dir}/responsive.json`,JSON.stringify(checks,null,2));
+  });
+  await t.test('no-script gallery links, notes and related content remain reachable',async()=>{
+    const nojs=await browser.newContext({javaScriptEnabled:false});const p=await nojs.newPage();
+    await p.goto(webUrl+route('stay'));
+    await expect(p.locator('#facilities')).toContainText('A reading lamp');
+    assert.equal(await p.locator('[data-gallery-item]').count(),3);
+    await p.locator('[data-notes-next]').click();await expect(p.locator('[data-note-id]')).toHaveCount(2);
+    await p.locator('#related h3 a').first().click();await expect(p.locator('h1')).toBeVisible();
+    await nojs.close();
+  });
+  await t.test('all ten stay groups remain visible, including legacy empty data',async()=>{
+    for(const slug of ['dockside-window','detail-stay']){
+      await page.goto(webUrl+`/en/worlds/lathe-worlds/stays/${slug}`);
+      for(let i=1;i<=10;i++)await expect(page.locator(`[data-stay-module="${String(i).padStart(2,'0')}"]`)).toBeVisible();
+      await expect(page.locator('#cancellation,#house-rules,#safety')).toHaveCount(3);
+    }
+  });
+  await t.test('complete stay content, expansions and nearby routes work in both languages and without scripts',async()=>{
+    await mkdir('test-results/stay-repair',{recursive:true});
+    for(const lang of ['en','zh']){
+      for(const width of [1440,768,390,320]){
+        await page.setViewportSize({width,height:1000});
+        await page.goto(webUrl+`/${lang}/worlds/lathe-worlds/stays/dockside-window?from=results&view=results&type=stays&rooms=1&guests=2&start=2026-10-09&end=2026-10-11`);
+        await page.evaluate(()=>document.fonts.ready);
+        await expect(page.locator('#stay-reputation')).toContainText('4.83');
+        await expect(page.locator('#sleeping')).toBeVisible();
+        await expect(page.locator('.stay-rating-dimension')).toHaveCount(6);
+        await expect(page.locator('.stay-rating-distribution meter')).toHaveCount(5);
+        await expect(page.locator('.stay-mentions li')).toHaveCount(10);
+        await expect(page.locator('.stay-review-grid [data-note-id]')).toHaveCount(6);
+        assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+        if(width===1440||width===390)await page.screenshot({path:`test-results/stay-repair/fixture-${lang}-${width}.png`,fullPage:true});
+        for(const selector of ['#stay-description-more','#stay-amenities-all','#stay-contact-host','#cancellation details','#house-rules details','#safety details','.stay-nearby details']){
+          for(const disclosure of await page.locator(selector).all()){
+            await disclosure.locator('summary').focus();await page.keyboard.press('Enter');await expect(disclosure).toHaveAttribute('open','');
+            assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+            await page.keyboard.press('Escape');await expect(disclosure).not.toHaveAttribute('open','');
+          }
+        }
+        await page.locator('#stay-amenities-all summary').click();
+        await expect(page.locator('[data-amenity]')).toHaveCount(24);
+        await expect(page.locator('[data-amenity][data-status=unreported]')).toBeVisible();
+        await expect(page.locator('[data-amenity][data-status=unavailable]')).toBeVisible();
+        await page.locator('#stay-amenities-all summary').click();
+        await page.locator('.stay-review details summary').first().click();await expect(page.locator('.stay-review .stay-expanded').first()).toBeVisible();
+        await page.locator('.stay-nearby summary').first().click();await page.locator('.stay-nearby a').click();
+        assert.equal(new URL(page.url()).searchParams.get('type'),'experiences');assert.equal(new URL(page.url()).searchParams.get('start'),'2026-10-09');
+        assert.equal(new URL(page.url()).searchParams.get('rooms'),null);await expect(page.locator('.results-summary')).toBeVisible();
+      }
+    }
+    const nojs=await browser.newContext({javaScriptEnabled:false});const p=await nojs.newPage();
+    await p.goto(webUrl+'/en/worlds/lathe-worlds/stays/dockside-window');
+    await p.locator('#stay-description-more summary').click();await expect(p.locator('#about')).toContainText('Registration details');
+    await p.locator('#stay-amenities-all summary').click();await expect(p.locator('[data-amenity]')).toHaveCount(24);
+    await p.locator('#house-rules summary').click();await expect(p.locator('#house-rules .stay-expanded')).toBeVisible();
+    await nojs.close();
+  });
+  await t.test('admin editing preserves nested stay data and visitor profiles in new drafts',async()=>{
+    await page.setViewportSize({width:1440,height:1000});await page.goto(webUrl+'/en/admin');
+    await page.locator('#login [name=email]').fill(f.credentials.email);await page.locator('#login [name=password]').fill(f.credentials.password);await page.locator('#login button').click();
+    await expect(page.locator('#workspace')).toBeVisible();
+    const {rows:[stay]}=await f.db.query("SELECT id FROM contents WHERE slug='dockside-window'");
+    for(const slug of ['dockside-window',`stay-demo-${stay.id}-1`]){
+      const {rows:[before]}=await f.db.query(`SELECT c.id,c.head_revision_id,c.published_publication_id,r.attributes,
+        (SELECT jsonb_object_agg(l.locale,t.body) FROM revision_locales l JOIN translations t ON t.id=l.translation_id WHERE l.revision_id=r.id) AS texts
+        FROM contents c JOIN content_revisions r ON r.id=c.head_revision_id WHERE c.slug=$1`,[slug]);
+      await page.locator('#filter-kind').selectOption(slug==='dockside-window'?'stay':'review');
+      // Demo review titles repeat across stays; select the matching content row by its click result.
+      if(slug==='dockside-window')await page.locator('#content-list tr').filter({hasText:'A window above the docks'}).getByRole('button',{name:'Edit',exact:true}).click();
+      else {
+        const target=await page.request.get(webUrl+`/api/admin/contents/${before.id}`);assert.equal(target.status(),200);
+        // This row is the first demonstration note for the selected parent in the sorted admin list.
+        for(const button of await page.locator('#content-list tr').filter({hasText:'Demonstration note 1'}).getByRole('button',{name:'Edit',exact:true}).all()){
+          const opened=page.waitForResponse(r=>r.request().method()==='GET' && /\/api\/admin\/contents\/[^/]+$/.test(r.url()));
+          await button.click();await opened;
+          await expect(page.locator('#editor-panel')).toBeVisible();
+          const current=await page.locator('[name=slug]').inputValue();
+          if(current===slug)break;
+        }
+      }
+      await expect(page.locator('[name=slug]')).toHaveValue(slug);
+      if(slug==='dockside-window')assert.equal(JSON.parse(await page.locator('[name="en:stay"]').inputValue()).amenities.length,24);
+      else assert.equal(JSON.parse(await page.locator('[name="en:review"]').inputValue()).name,'Visitor 17');
+      const saved=page.waitForResponse(r=>r.request().method()==='POST' && r.url().endsWith(`/api/admin/contents/${before.id}/revisions`),{timeout:7000}).catch(async error=>{throw new Error(`${slug}: ${await page.locator('#message').innerText()}; invalid fields: ${JSON.stringify(await page.locator('#editor :invalid').evaluateAll(es=>es.map(e=>({name:e.getAttribute('name'),message:(e as HTMLInputElement).validationMessage}))))}; ${error.message}`);});
+      await page.locator('#editor button[type=submit]').click();assert.equal((await saved).status(),200);await expect(page.locator('#editor button[type=submit]')).toBeEnabled();await expect(page.locator('#message')).toContainText('Draft saved');
+      const {rows:[after]}=await f.db.query(`SELECT c.head_revision_id,c.published_publication_id,r.attributes,
+        (SELECT jsonb_object_agg(l.locale,t.body) FROM revision_locales l JOIN translations t ON t.id=l.translation_id WHERE l.revision_id=r.id) AS texts
+        FROM contents c JOIN content_revisions r ON r.id=c.head_revision_id WHERE c.id=$1`,[before.id]);
+      assert.notEqual(after.head_revision_id,before.head_revision_id);assert.equal(after.published_publication_id,before.published_publication_id);
+      assert.deepEqual(after.attributes,before.attributes);assert.deepEqual(after.texts,before.texts);
+    }
+  });
+  assert.deepEqual(errors,[]);
+});

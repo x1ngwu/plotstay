@@ -77,7 +77,8 @@ test('phase 3 public data and service lifecycle', {timeout:120000}, async t=>{
    const content=input('legacy-import','stay');content.text.tags=[];content.translations['zh-CN']!.tags=[];
    const batch={worldId:f.data.latheId,source:'legacy-compat',items:[{externalId:'one',content}]};
    const first=await importContent(f.db,f.data.owner,batch,false);assert.equal(first.results[0]!.status,'created');
-   const legacy=structuredClone(content) as any;delete legacy.text.tags;delete legacy.translations['zh-CN'].tags;
+   const legacy=structuredClone(content) as any;
+   for (const text of [legacy.text, legacy.translations['zh-CN']]) for (const key of ['tags','highlights','included','serviceItems']) delete text[key];
    await f.db.query('UPDATE import_items SET payload_hash=$1 WHERE world_id=$2 AND source=$3',[digest(JSON.stringify(legacy)),f.data.latheId,'legacy-compat']);
    assert.equal((await importContent(f.db,f.data.owner,batch,false)).results[0]!.status,'unchanged');
    content.text.tags=['new-tag'];assert.equal((await importContent(f.db,f.data.owner,batch,false)).results[0]!.status,'conflict');

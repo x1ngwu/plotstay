@@ -1,0 +1,26 @@
+---
+import type { PublicContent, Locale } from '@plotstay/contracts';
+import { bilingual } from '../../lib/i18n';
+import DetailSection from './DetailSection.astro';
+const { content, locale } = Astro.props as { content: PublicContent; locale: Locale };
+const t = bilingual(locale.code);
+const stay = content.kind === 'stay', experience = content.kind === 'experience';
+const sections = [
+  ...(stay ? [
+    { id: 'highlights', title: t('住宿亮点', 'Stay highlights'), lines: content.text.highlights },
+    { id: 'facilities', title: t('设施', 'Amenities'), lines: content.text.facilities },
+  ] : experience ? [
+    { id: 'itinerary', title: t('活动行程', 'What you’ll do'), lines: content.text.itinerary },
+    { id: 'included', title: t('包含项目', 'What’s included'), lines: content.text.included },
+    { id: 'facilities', title: t('设施', 'Facilities'), lines: content.text.facilities },
+  ] : [
+    { id: 'service-items', title: t('服务项目', 'Service offerings'), lines: content.text.serviceItems },
+    { id: 'itinerary', title: t('服务流程', 'Service itinerary'), lines: content.text.itinerary },
+    { id: 'facilities', title: t('设施', 'Facilities'), lines: content.text.facilities },
+  ]),
+  { id: 'rules', title: stay ? t('入住须知', 'Things to know about your stay') : experience ? t('参与须知', 'Before you join') : t('服务须知', 'Before your service'), lines: content.text.rules },
+];
+---
+{sections.map(section => section.lines.length > 0 && <DetailSection id={section.id} title={section.title} languageTag={content.languageTag}>
+  {section.id === 'itinerary' ? <ol class="detail-itinerary">{section.lines.map(line => <li>{line}</li>)}</ol> : <ul class:list={['detail-facts', { 'detail-amenities': section.id === 'facilities' }]}>{section.lines.map(line => <li>{line}</li>)}</ul>}
+</DetailSection>)}

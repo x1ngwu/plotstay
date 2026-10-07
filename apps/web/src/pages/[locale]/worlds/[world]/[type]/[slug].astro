@@ -1,57 +1,111 @@
 ---
 import Trip from '../../../../../components/Trip.astro';
+import Card from '../../../../../components/Card.astro';
+import Gallery from '../../../../../components/detail/Gallery.astro';
+import DetailSection from '../../../../../components/detail/DetailSection.astro';
+import TypeDetails from '../../../../../components/detail/TypeDetails.astro';
+import PersonCard from '../../../../../components/detail/PersonCard.astro';
+import VisitorNotes from '../../../../../components/detail/VisitorNotes.astro';
+import StayOverview from '../../../../../components/detail/stay/Overview.astro';
+import StayDescription from '../../../../../components/detail/stay/Description.astro';
+import StayAmenities from '../../../../../components/detail/stay/Amenities.astro';
+import StayReviews from '../../../../../components/detail/stay/Reviews.astro';
+import StayLocation from '../../../../../components/detail/stay/Location.astro';
+import StayHost from '../../../../../components/detail/stay/Host.astro';
+import StayPolicies from '../../../../../components/detail/stay/Policies.astro';
+import StaySleeping from '../../../../../components/detail/stay/Sleeping.astro';
 import Base from '../../../../../layouts/Base.astro';
-import { ApiFailure, getContent, getContents, getWorlds } from '../../../../../lib/api';
-import { bilingual, messages, uiLocale } from '../../../../../lib/i18n';
-import { browsePath, detailReturn, parseBrowse, fallbackLocales, type PublicContent, type World } from '@plotstay/contracts';
+import '../../../../../styles/detail.css';
+import '../../../../../styles/stay.css';
+import { ApiFailure, getDetail, getWorlds } from '../../../../../lib/api';
+import { bilingual, messages } from '../../../../../lib/i18n';
+import { browsePath, detailPath, detailReturn, detailQuerySchema, parseBrowse, fallbackLocales, type ContentDetail, type World } from '@plotstay/contracts';
 import { contentDescription, detailSeo, noIndex } from '../../../../../lib/seo';
 const { world: worldSlug = '', type = '', slug = '' } = Astro.params;
 const { locales, locale: selectedLocale, localeFailure } = Astro.locals;
 const locale = selectedLocale ?? fallbackLocales[0]!;
-const ui = messages(locale.code);
-const t = bilingual(locale.code);
+const ui = messages(locale.code), t = bilingual(locale.code);
 let state = parseBrowse(new URLSearchParams());
-const interfaceTag = [...locales, ...fallbackLocales].find(item => item.code === uiLocale(locale.code))!.languageTag;
-let world: World | undefined, content: PublicContent | undefined, reviews: PublicContent[] = [];
+let world: World | undefined, detail: ContentDetail | undefined;
 let failed = false;
 try {
   if (localeFailure) throw new ApiFailure(503);
   if (!selectedLocale || !['stays', 'experiences', 'services'].includes(type)) throw new ApiFailure(404);
   world = (await getWorlds(locale.code)).worlds.find(item => item.slug === worldSlug);
   if (!world) throw new ApiFailure(404);
-  ({ content } = await getContent(locale.code, worldSlug, type === 'stays' ? 'stay' : type === 'services' ? 'service' : 'experience', slug));
-  try { state = detailReturn(Astro.url.searchParams,worldSlug); } catch { throw new ApiFailure(404); }
-  ({ contents: reviews } = await getContents(locale.code, { world: worldSlug, parentId: content.id }));
+  let notesPage: number;
+  try {
+    state = detailReturn(Astro.url.searchParams, worldSlug);
+    if (Astro.url.searchParams.getAll('notesPage').length > 1) throw new Error();
+    notesPage = detailQuerySchema.parse({ notesPage: Astro.url.searchParams.get('notesPage') ?? undefined }).notesPage;
+  } catch { throw new ApiFailure(404); }
+  detail = await getDetail(locale.code, worldSlug, type === 'stays' ? 'stay' : type === 'services' ? 'service' : 'experience', slug, notesPage);
 } catch (error) {
   failed = true;
   Astro.response.status = error instanceof ApiFailure && [400, 404].includes(error.status) ? 404 : 503;
 }
+const content = detail?.content;
+const notesHref = (page: number) => {
+  const url = new URL(detailPath(locale, content!, state), Astro.url);
+  if (page > 1) url.searchParams.set('notesPage', String(page));
+  return url.pathname + url.search + '#notes';
+};
 ---
-<Base title={content?.text.title ?? 'Plotstay'} description={content ? contentDescription(content.text) : undefined} locale={locale} locales={locales} theme={world?.themeId} world={world} seo={failed ? noIndex() : detailSeo(locale, locales, world!, content!)}>
-  {failed ? <h1>{Astro.response.status === 404 ? ui.notFound : ui.unavailable}</h1> : <>
-    <a data-back href={browsePath(locale, state)}>← {ui.home} · {world!.name}</a>
-    <Trip state={state} locale={locale} />
-    <article class="panel detail-panel" data-content-id={content!.id} data-publication-id={content!.publicationId}>
-      <p class="eyebrow">{ui.sample}</p>
-      {content!.isFallback && <p class="notice">{ui.fallback}</p>}
-      <div lang={content!.languageTag}>
-        <h1>{content!.text.title}</h1>
-        <p>{content!.placeName}</p>
-        <div class:list={['card-cover','detail-cover',`cover-${content!.kind}`]}><span class="cover-diagram" aria-hidden="true">{content!.kind === 'stay' ? '⌂' : content!.kind === 'service' ? '⌘' : '✳'}</span>{content!.attributes.images[0] && <img src={content!.attributes.images[0].url} alt={content!.text.imageAlts[content!.attributes.images[0].id] ?? ''} width="960" height="500" />}</div>
-        {content!.attributes.category && <p>{t('类别', 'Category')}: {content!.categoryName ?? content!.attributes.category}</p>}
-        {content!.text.tags?.length > 0 && <p>{content!.text.tags.join(' · ')}</p>}
-        <p class="prose">{content!.text.description}</p>
-        {(['facilities', 'itinerary', 'rules'] as const).map(key => content!.text[key].length > 0 && <section>
-          <h2 lang={interfaceTag}>{ui[key]}</h2><ul>{content!.text[key].map(line => <li>{line}</li>)}</ul>
-        </section>)}
-        {content!.text.hostName && <section><h2>{content!.text.hostName}</h2><p>{content!.text.hostBio}</p></section>}
+<Base title={content?.text.title ?? 'Plotstay'} description={content ? contentDescription(content.text) : undefined} locale={locale} locales={locales} theme={world?.themeId} world={world} seo={failed || detail!.reviews.page > 1 ? noIndex() : detailSeo(locale, locales, world!, content!)}>
+  {failed ? <h1>{Astro.response.status === 404 ? ui.notFound : ui.unavailable}</h1> : <div class:list={['detail-page', {'stay-detail': content!.kind === 'stay'}]}>
+    <a class="detail-back" data-back href={browsePath(locale, state)}>← {state.view === 'results' ? t('返回列表', 'Back to results') : ui.home} · {world!.name}</a>
+    <article class="detail-panel" data-content-id={content!.id} data-publication-id={content!.publicationId}>
+      <header class="detail-heading">
+        <p class="eyebrow">{content!.kind === 'stay' ? ui.stays : content!.kind === 'experience' ? ui.experiences : ui.services} / {world!.name}</p>
+        <h1 lang={content!.languageTag}>{content!.text.title}</h1>
+        <div class="detail-meta"><span>{content!.placeName ?? world!.name}</span>
+          {content!.attributes.category && <span>{content!.categoryName ?? content!.attributes.category}</span>}
+          {content!.attributes.durationMinutes && <span>{content!.attributes.durationMinutes} {ui.minutes}</span>}
+          {detail!.reviews.total > 0 && <a href="#notes">{ui.notes} · {detail!.reviews.total}</a>}
+        </div>
+        {content!.isFallback && <p class="notice">{ui.fallback}</p>}
+      </header>
+      <Gallery content={content!} locale={locale} />
+      {content!.kind === 'stay' && <nav class="stay-section-nav" aria-label={t('住宿详情栏目','Stay detail sections')}>
+        <a href="#stay-specs">{t('概览','Overview')}</a><a href="#facilities">{t('设施','Amenities')}</a><a href="#notes">{t('手记','Reviews')}</a><a href="#location">{t('位置','Location')}</a><a href="#host">{t('房东','Host')}</a><a href="#rules">{t('须知','Things to know')}</a>
+      </nav>}
+      <div class="detail-columns">
+        <div class="detail-body">
+          {content!.kind === 'stay' ? <>
+            <StayOverview detail={detail!} locale={locale}/>
+            <StayDescription content={content!} locale={locale}/>
+            <StaySleeping content={content!} locale={locale}/>
+            <StayAmenities content={content!} locale={locale}/>
+          </> : <>
+          <DetailSection id="about" title={content!.kind === 'experience' ? t('关于这项活动', 'About this experience') : t('关于这项服务', 'About this service')} languageTag={content!.languageTag}>
+            {content!.text.summary && <p class="detail-intro">{content!.text.summary}</p>}
+            {content!.text.tags.length > 0 && <ul class="detail-tags">{content!.text.tags.map(tag => <li>{tag}</li>)}</ul>}
+            <p class="prose">{content!.text.description}</p>
+          </DetailSection>
+          <TypeDetails content={content!} locale={locale} />
+          <PersonCard content={content!} locale={locale} />
+          <VisitorNotes reviews={detail!.reviews} locale={locale} pageHref={notesHref} />
+          </>}
+        </div>
+        <aside class="detail-sidebar panel" aria-label={t('价格与行程', 'Price and trip preferences')}>
+          <div class="window-bar"><span>{t('旅行摘要', 'Trip summary')}</span><span aria-hidden="true">PLOTSTAY</span></div>
+          <div class="detail-sidebar-body">
+            {content!.attributes.price && <p class="detail-price"><strong>{new Intl.NumberFormat(locale.languageTag).format(content!.attributes.price.amount)}</strong> {world!.currencyName} <span>/ {ui[content!.attributes.price.unit]}</span></p>}
+            <p class="detail-fiction">{ui.about}</p>
+            <Trip state={state} locale={locale} />
+            <a class="detail-return-link" href={browsePath(locale, state)}>{state.view === 'results' ? t('返回列表', 'Back to results') : t('继续浏览', 'Continue exploring')} →</a>
+          </div>
+        </aside>
       </div>
-      {content!.attributes.price && <p>{new Intl.NumberFormat(locale.languageTag).format(content!.attributes.price.amount)} {world!.currencyName} / {ui[content!.attributes.price.unit]}</p>}
-      {content!.attributes.durationMinutes && <p>{content!.attributes.durationMinutes} {ui.minutes}</p>}
+      {content!.kind === 'stay' && <div class="stay-full-width">
+        <StayReviews detail={detail!} locale={locale} pageHref={notesHref}/>
+        <StayLocation content={content!} locale={locale} state={state} world={world!}/>
+        <StayHost content={content!} locale={locale}/>
+        <StayPolicies content={content!} locale={locale}/>
+      </div>}
     </article>
-    {reviews.length > 0 && <section><h2>{ui.notes}</h2>{reviews.map(review => <article class="panel" lang={review.languageTag}>
-      <h3>{review.text.title}</h3><p>{review.personaName}</p><p>{review.text.description}</p>
-      {review.isFallback && <p lang={interfaceTag} class="notice">{ui.fallback}</p>}
-    </article>)}</section>}
-  </>}
+    {detail!.related.length > 0 && <DetailSection id="related" title={t('继续探索这个世界', 'Explore more in this world')}>
+      <ul class="detail-related">{detail!.related.map(item => <Card content={item} world={world!} locale={locale} category={item.categoryName ?? undefined} href={detailPath(locale, item, state)} />)}</ul>
+    </DetailSection>}
+  </div>}
 </Base>

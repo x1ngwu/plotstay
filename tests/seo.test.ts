@@ -42,6 +42,8 @@ test('SEO-01–05: live API, built SSR, XML and publication lifecycle', { timeou
       return { lang: doc.documentElement.lang, canonicals: [...doc.querySelectorAll('link[rel=canonical]')].map(el => el.getAttribute('href')),
         alternates: [...doc.querySelectorAll('link[rel=alternate][hreflang]')].map(el => ({ tag: el.getAttribute('hreflang'), url: el.getAttribute('href') })),
         robots: doc.querySelector('meta[name=robots]')?.getAttribute('content'),
+        contentLang: doc.querySelector('#about .detail-section-body')?.getAttribute('lang'),
+        contentFallback: doc.querySelector('.detail-heading .notice')?.textContent ?? '',
         links: [...doc.querySelectorAll('a')].map(el => el.getAttribute('href')), title: doc.title,
         description: doc.querySelector('meta[name=description]')?.getAttribute('content') };
     }, html);
@@ -199,7 +201,7 @@ test('SEO-01–05: live API, built SSR, XML and publication lifecycle', { timeou
       'zh-CN': { title: '德文样本', description: '测试' }, de: { title: 'Deutsches Zimmer', description: 'Geprüfter Text' },
     })); await publish(translated);
     const german = await inspect('/de/worlds/lathe-worlds/stays/german-content'); noindex(german);
-    assert.match(german.html, /lang="de"/); assert.match(german.html, /Deutsches Zimmer/); assert.ok(!german.html.includes('original language'));
+    assert.equal(german.contentLang, 'de'); assert.match(german.html, /Deutsches Zimmer/); assert.equal(german.contentFallback, '');
     assert.ok(!(await sitemap()).some(url => /^\/de(?:\/|$)/.test(new URL(url).pathname) || url.includes('unreviewed-language')));
     const english = await inspect('/en/worlds/lathe-worlds/stays/german-content'); assert.equal(english.alternates.length, 3);
     await f.db.query("UPDATE locales SET enabled=false WHERE code='de'");
@@ -213,7 +215,7 @@ test('SEO-01–05: live API, built SSR, XML and publication lifecycle', { timeou
     const path = '/en/worlds/lathe-worlds/stays/live-languages';
     const original = (await getPublished(f.db, 'en', { id: content.id }))!;
     const en = await inspect(path); assert.deepEqual(en.alternates.map(a => a.tag), ['en', 'x-default']);
-    const zh = await inspect(path.replace('/en/', '/zh/')); noindex(zh); assert.match(zh.html, /此内容暂以原文展示/); assert.match(zh.html, /<div lang="en"/);
+    const zh = await inspect(path.replace('/en/', '/zh/')); noindex(zh); assert.match(zh.contentFallback, /此内容暂以原文展示/); assert.equal(zh.contentLang, 'en');
     noindex(await inspect('/zh')); assert.ok(!(await sitemap()).includes(origin + '/zh'));
     const current = await editContent(f.db, f.data.owner, content.id, editContentSchema.parse({ baseRevisionId: content.revisionId,
       sourceLocale: 'en', text: original.text, attributes: original.attributes, translations: { 'zh-CN': { title: '发布后的译文', description: '实时公开' } } }));

@@ -1,0 +1,80 @@
+/* Detail geometry only. Shared homepage and Lime tokens remain unchanged. */
+.detail-page { max-width: 1120px; margin-inline: auto; overflow-wrap: anywhere; }
+.detail-back { display: inline-block; font-size: .875rem; margin-bottom: 1rem; }
+.detail-heading { margin-bottom: 1.5rem; }
+.detail-heading h1 { margin: .5rem 0 .75rem; font-size: clamp(1.75rem,3.2vw,2.75rem); line-height: 1.25; }
+.detail-heading .eyebrow { margin: 0; }
+.detail-meta { display: flex; flex-wrap: wrap; gap: .35rem 1.25rem; font-size: .875rem; }
+.detail-meta > * + * { border-left: 1px dotted var(--line); padding-left: 1.25rem; }
+.detail-gallery { margin: 0 0 2rem; }
+.gallery-main { position: relative; display: grid; width: 100%; aspect-ratio: 2.15; min-height: 200px; border: 1px solid var(--line); }
+.gallery-main img { width: 100%; height: 100%; object-fit: cover; }
+.gallery-empty { aspect-ratio: 3.6; }
+.gallery-count { position: absolute; bottom: 1rem; right: 1rem; padding: .4rem .75rem; background: var(--desktop); color: var(--text); border: 1px solid var(--accent); font-size: .875rem; }
+.gallery-thumbs { display: flex; gap: .625rem; list-style: none; padding: .75rem 2px 2px; margin: 0; overflow-x: auto; }
+.gallery-thumbs li { flex: 0 0 112px; }
+.gallery-thumbs a { display: grid; position: relative; height: 72px; border: 1px solid var(--line); place-items: center; background: var(--desktop); }
+.gallery-thumbs img { position: absolute; width: 100%; height: 100%; object-fit: cover; }
+.gallery-thumbs a:hover { border-color: var(--accent); }
+.gallery-single-thumb { display: none; }
+.detail-columns { display: grid; grid-template-columns: minmax(0,1fr) minmax(270px,340px); gap: 3rem; align-items: start; }
+.detail-body { min-width: 0; }
+.detail-page .detail-section { margin: 0 0 1.5rem; scroll-margin-top: 1rem; }
+.detail-page .section-heading { padding: .6rem .85rem; margin: 0; }
+.detail-page .section-heading h2 { font-size: 1.125rem; margin: 0; line-height: 1.5; }
+.detail-section-body { padding: 1.25rem; }
+.detail-section-body > :first-child { margin-top: 0; }
+.detail-section-body > :last-child { margin-bottom: 0; }
+.detail-intro { font-size: 1.125rem; line-height: 1.6; }
+.detail-tags { display: flex; gap: .5rem; flex-wrap: wrap; padding: 0; list-style: none; }
+.detail-tags li { border: 1px dotted var(--line); padding: .15rem .5rem; font-size: .8rem; }
+.detail-facts { margin: 0; padding-left: 1.25rem; }
+.detail-facts li { padding-left: .25rem; margin-block: .65rem; }
+.detail-amenities { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: .5rem 2rem; }
+.detail-itinerary { list-style: none; counter-reset: step; padding: 0; margin: 0; }
+.detail-itinerary li { counter-increment: step; position: relative; padding: .15rem 0 1.5rem 3rem; border-left: 1px dotted var(--line); margin-left: 1rem; }
+.detail-itinerary li:last-child { padding-bottom: .15rem; border-color: transparent; }
+.detail-itinerary li::before { content: counter(step,decimal-leading-zero); position: absolute; left: -1rem; top: 0; width: 2rem; height: 2rem; display: grid; place-items: center; border: 1px solid var(--line); background: var(--desktop); font-size: .8rem; }
+.detail-person { display: flex; gap: 1.25rem; align-items: start; }
+.detail-person h3 { font-size: 1.2rem; margin: .25rem 0 .65rem; }
+.person-symbol { flex: 0 0 64px; height: 72px; display: grid; place-items: center; border: 1px solid var(--line); background: var(--dot-grid); }
+.person-symbol svg { width: 40px; height: 40px; }
+.detail-sidebar.panel { padding: 0; margin: 0; position: sticky; top: 1.5rem; min-width: 0; }
+.detail-sidebar-body { padding: 1.25rem; }
+.detail-price { margin: 0 0 .75rem; }
+.detail-price strong { font-size: 2rem; line-height: 1.25; }
+.detail-price span { white-space: nowrap; }
+.detail-fiction { color: var(--muted); font-size: .8rem; }
+.detail-sidebar .trip-summary { padding: .85rem 0; margin: 1rem 0; border-width: 1px 0; }
+.detail-sidebar .trip-summary strong { flex-basis: 100%; }
+.detail-return-link { display: block; padding-top: .75rem; font-size: .9rem; }
+.visitor-note { padding-block: 1.25rem; border-top: 1px dotted var(--line); }
+.visitor-note:first-child { padding-top: 0; border: 0; }
+.visitor-note:last-child { padding-bottom: 0; }
+.visitor-note h3 { margin: .4rem 0 .75rem; }
+.note-author { font-size: .8rem; color: var(--muted); }
+.detail-related { list-style: none; display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 1.75rem 1.25rem; margin: 0; padding: 0; }
+.detail-related .card-cover { aspect-ratio: 20 / 19; }
+.detail-page #related { margin-top: 2rem; }
+.gallery-dialog { width: min(1100px,calc(100vw - 2rem)); max-height: calc(100dvh - 2rem); padding: 1rem; color: var(--text); overflow: auto; }
+.gallery-dialog::backdrop { background: rgb(0 0 0 / .88); }
+body:has(.gallery-dialog[open]) { overflow: hidden; }
+.gallery-toolbar, .gallery-controls { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.gallery-dialog button { background: var(--desktop); color: var(--text); border: 1px solid var(--accent); padding: .5rem .8rem; min-height: 44px; }
+.gallery-stage { display: grid; place-items: center; min-height: 160px; margin-top: 1rem; }
+.gallery-stage img { max-width: 100%; width: auto; height: auto; max-height: calc(100dvh - 230px); object-fit: contain; }
+.gallery-caption { font-size: .875rem; overflow-wrap: anywhere; }
+.detail-page a:focus-visible, .gallery-dialog button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+@media(max-width:900px) { .detail-columns { gap: 1.5rem; grid-template-columns: minmax(0,1fr) 270px; } .detail-section-body { padding: 1rem; } }
+@media(max-width:767px) {
+  .detail-columns { display: flex; flex-direction: column; gap: 1.5rem; }
+  .detail-sidebar.panel { position: static; order: -1; width: 100%; }
+  .detail-body { width: 100%; }
+  .gallery-main { aspect-ratio: 1.5; min-height: 0; }
+  .gallery-empty { min-height: 180px; aspect-ratio: 2; }
+  .detail-related { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 1.5rem .75rem; }
+  .detail-meta { gap: .5rem .75rem; }
+  .detail-meta > * + * { padding-left: .75rem; }
+  .detail-gallery { margin-bottom: 1.5rem; }
+}
+@media(max-width:400px) { .detail-amenities { grid-template-columns: 1fr; gap: 0; } .detail-person { gap: .75rem; } .person-symbol { flex-basis: 48px; height: 56px; } .gallery-count { bottom: .5rem; right: .5rem; } }

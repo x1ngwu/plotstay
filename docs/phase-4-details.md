@@ -1,0 +1,46 @@
+# 阶段 4：住宿、活动与服务详情
+
+从 `main / 0572ce1` 开始。2026-10-08 更新：首轮基础组件不足以构成完整详情验收，撤回此前“三类完整详情已完成”的结论。用户要求住宿严格补齐指定 Airbnb 房源的栏目，缺失文本允许占位，不能因空字段隐藏栏目。本轮修复与证据见[住宿完整性修复](phase-4-stay-remediation.md)。活动、服务已有基础增强，但尚未按同类参考页逐项对齐，不能借住宿验收宣称它们完整。
+
+## 已确认范围
+
+- 首页保持获认可的 Lime 风格与几何样式；英文 C / 中文默认 B、中文 C 切换继续由 Base 控制。
+- 标题、地点与图库在顶部；桌面住宿主内容在左，价格 / 行程摘要在右。手记、地点、完整房东与须知全宽排列；手机单列，栏目不删减。
+- 图库采用首图 / 缩略图和原生大图 dialog，支持左右键、Tab 循环、Escape、遮罩关闭与焦点返回；无图保留类型图形。
+- 住宿占位正文及虚构手记已获用户授权。原有正文和发布历史保留，通过新版本追加；此授权不等于新增文案获正式审定。
+- 模拟预订、总价、凭条和正式上线仍属于阶段 5、6。联系房东打开演示说明，不发送消息。
+
+## 实施清单与边界
+
+| 层次 | 当前实现 |
+| --- | --- |
+| 公共读取 | `/api/worlds/:world/:kind/:slug/detail` 在同一 REPEATABLE READ 只读事务内读取主条目、每页 6 条公开手记、跨页评分 / 关键词汇总和最多 6 条关联内容；继承世界 / 父条目 / 发布可见性 |
+| 共用 | `Gallery / DetailSection / PersonCard / VisitorNotes`；复用 `Card / Trip / Base`，不复制首页或全站样式 |
+| 住宿 | 独立 `detail/stay/` 组件：规格、喜爱与评分、顶部房东、图文亮点、介绍 / 空间 / 登记、睡眠安排、完整设施、评价与分项、地区、完整房东、三组须知。空数据也保留栏目和待补充提示 |
+| 活动 | 顺序行程、包含项目、既有设施、参与须知；向导、分页手记和关联内容。现有空模块仍隐藏，参考对齐待单独审查 |
+| 服务 | 服务项目、流程、既有设施与须知；提供者、分页手记和关联内容。现有空模块仍隐藏，参考对齐待单独审查 |
+| 样式 | `styles/detail.css` 为基础详情，`styles/stay.css` 为住宿。Lime 标题栏、窗框、字体和首页模板保持原样 |
+| 展开交互 | 介绍、设施、手记、周边入口、联系说明和须知采用原生 details，可键盘操作、Escape 收起，禁用 JS 也可展开 |
+| 数据 | `highlights / included / serviceItems` 保留；可选 `text.stay / text.review / attributes.stay / attributes.reviewRatings` 承载住宿与评价资料，不改旧 SQL 迁移 |
+| 管理 | 中英表单可编辑扩展 JSON，草稿 / 审核 / 翻译 / 恢复 / 导入沿用版本机制；空新增数组兼容历史导入哈希 |
+| 浏览状态 | 返回、语言和关联链接保留列表筛选与行程；手记页码独立。周边活动入口保留可用日期 / 人数，清除住宿专用退房日期与房间数 |
+| SEO | 手记第二页起 noindex / follow，不进入 sitemap；非法或越界页 404。预览全站保持 noindex，无公开 canonical / hreflang |
+
+## 数据补充与验证入口
+
+`npm run db:seed:stay-details` 默认只输出计划；加 `-- --apply` 才追加。脚本只处理九个既有示例房源白名单，跳过不可见条目、缺中英发布和存在未发布编辑的条目。每条追加完整住宿版本和六篇双语虚构手记，经过原审核发布流程；重复执行保留已有资料，不新增重复手记。不会随启动自动运行。
+
+开发库从 22 条内容追加至 76 条：原 22 条 + 54 条虚构手记；九处住宿各新增一个版本，原 22 个版本全部保留。首页 settings / revisions / publications 没有变动，预订仍为 0。旧正文、图片、价格、译文和旧发布记录逐项对照通过。主验收房源有 24 项演示设施、6 条手记；有旧设施的房源合并展示原清单。
+
+检查入口：`npm test`、`npm run test:e2e`。测试使用隔离 schema，包括旧数据兼容、发布 / 恢复、隐藏评价、跨页统计、管理字段保留、大图、展开、语言 / 返回、无脚本和不同宽度。实际开发库 / 4321 检查单独保存，不能只以 fixture 截图代替交付。
+
+## 预览与交接
+
+- 主验收：`http://localhost:4321/zh/worlds/lathe-worlds/stays/dockside-window`；英文换成 `/en`。
+- 旧设施 / 手记、无图：`/zh/worlds/lathe-worlds/stays/observation-room`。
+- 第二世界：`/zh/worlds/test-harbour/stays/harbour-room`。
+- 活动和服务：`/zh/worlds/lathe-worlds/experiences/forge-walk`、`/zh/worlds/lathe-worlds/services/augmetic-tune-up`。
+
+启动：`SITE_INDEXABLE=false npm run preview`；Web 4321 / API 4310，仍为会话预览，不是正式部署。2026-10-08 用户认可住宿修复结果并授权提交推送，阶段 4 共用基础及本次修复随本次提交交付，实际编号以 Git 记录为准。用户的 `example_pages.zip` 保留本地。
+
+最终测试数、参考访问过程、逐项截图和剩余事项以[修复验收记录](phase-4-stay-remediation.md)为准。首轮记录保留在 `test-results/phase4/`，本次记录在 `test-results/stay-repair/`，均不纳入 Git。

@@ -1,4 +1,4 @@
-import type { BrowseResponse, Discovery, Locale, PublicContent, World } from '@plotstay/contracts';
+import type { BrowseResponse, ContentDetail, Discovery, Locale, PublicContent, World } from '@plotstay/contracts';
 
 export class ApiFailure extends Error {
   constructor(public status: number) { super(`API returned ${status}`); }
@@ -21,3 +21,5 @@ export const getContent = (locale: string, world: string, kind: string, slug: st
   `/api/worlds/${encodeURIComponent(world)}/${encodeURIComponent(kind)}/${encodeURIComponent(slug)}`, { locale });
 
 export const getBrowse = (locale: string, params: URLSearchParams) => api<BrowseResponse>('/api/browse', { ...Object.fromEntries(params), locale });
+export const getDetail = (locale: string, world: string, kind: string, slug: string, notesPage: number) => api<ContentDetail>(
+  `/api/worlds/${encodeURIComponent(world)}/${encodeURIComponent(kind)}/${encodeURIComponent(slug)}/detail`, { locale, notesPage: String(notesPage) });
