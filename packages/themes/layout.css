@@ -52,6 +52,11 @@ input, select, textarea { min-width: 0; max-width: 100%; }
 .section-heading { display: flex; align-items: center; justify-content: space-between; gap: .75rem; margin: 0 0 .75rem; }
 .section-heading h2 { margin: 0; }
 .section-heading a { flex-shrink: 0; font-size: .8rem; }
+.content-section > .section-heading h2 { display: flex; align-items: center; min-width: 0; }
+.content-section > .section-heading h2::before { flex-shrink: 0; }
+.section-heading .section-title-link { display: inline-flex; align-items: center; gap: .5rem; min-width: 0; flex-shrink: 1; font-size: inherit; text-decoration: none; }
+.section-title-link > span { min-width: 0; }
+.section-title-arrow { flex: none; }
 .content-section { margin: 2rem 0 0; min-width: 0; }
 /* Categories introduce experiences; place rails are a tighter group within homes. */
 .content-section:not([data-section]) + .content-section,
@@ -108,8 +113,7 @@ footer { font-size: .8rem; display: flex; justify-content: space-between; gap: 2
 .category-list a { display: flex; flex-direction: column; align-items: stretch; gap: .5rem; min-width: 0; text-decoration: none; padding: 0; font-size: .8125rem; line-height: 1.125rem; scroll-snap-align: start; }
 .category-list a > span:first-child { display: grid; place-items: center; flex: none; width: 100%; height: auto; aspect-ratio: 20 / 19; font: 3rem/1 monospace; }
 .category-list a > span:last-child { padding-inline: .125rem; overflow-wrap: anywhere; }
-.rail-actions { display: flex; align-items: center; gap: .5rem; }
-.rail-actions a { margin-left: .25rem; }
+.rail-actions { display: flex; align-items: center; flex-shrink: 0; gap: .5rem; }
 .rail-arrow { display: inline-grid; place-items: center; padding: 0; border: 1px solid var(--line); background: transparent; color: var(--text); border-radius: 50%; width: 28px; height: 28px; font: .75rem/1 monospace; }
 .results-title { font-size: clamp(2rem,3vw,3rem); }
 .results-summary { margin-block: 1.8rem; }

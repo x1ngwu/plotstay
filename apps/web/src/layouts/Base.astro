@@ -54,7 +54,7 @@ if (!seo.canonical) Astro.response.headers.set('X-Robots-Tag', 'noindex, follow'
       </div>
     </header>
     <main id="main">{!hasDictionary(locale.code) && <p class="notice">{ui.uiFallback}</p>}<slot /></main>
-    <footer><div><a class="brand" href={homePath(locale)}><span class="brand-wordmark">PlotStay</span> ↗</a><p>{ui.about}</p></div><nav><a href={homePath(locale, world?.slug) + (world && world.slug !== 'lathe-worlds' ? '&' : '?') + 'view=results'}>{t('浏览全部', 'Browse everything')}</a><a href={`/${locale.pathPrefix}/help`}>{t('帮助中心', 'Help centre')}</a><a href={`/${locale.pathPrefix}/host`}>{t('创作说明', 'For creators')}</a></nav></footer>
+    <footer><div><a class="brand" href={homePath(locale)}><span class="brand-wordmark">PlotStay</span></a><p>{ui.about}</p></div><nav><a href={homePath(locale, world?.slug) + (world && world.slug !== 'lathe-worlds' ? '&' : '?') + 'view=results'}>{t('浏览全部', 'Browse everything')}</a><a href={`/${locale.pathPrefix}/help`}>{t('帮助中心', 'Help centre')}</a><a href={`/${locale.pathPrefix}/host`}>{t('创作说明', 'For creators')}</a></nav></footer>
     <script>
       document.addEventListener('keydown', event => {
         if (event.key !== 'Escape') return;

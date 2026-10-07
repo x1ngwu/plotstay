@@ -35,7 +35,7 @@ const pageTitle = world ? (results ? `${t('全部旅程','Explore')} · ${world.
 const groups = data ? Array.from(new Map(data.listing.contents.map(c => [c.placeId, c.placeName])).entries()) : [];
 ---
 <Base title={pageTitle} description={world?.description} world={world} locale={locale} locales={locales} theme={world?.themeId} fontPreview={fontPreview} preloadDisplayFonts={!failed && !results} seo={failed || fontPreview ? noIndex() : homeSeo(Astro.url, locale, locales, world!)}>
-  {failed ? <section class="panel"><h1>{Astro.response.status === 404 ? ui.notFound : ui.unavailable}</h1><p>{t('检查地址与行程条件，或回到世界首页继续浏览。','Check the address and trip preferences, or return to discovery.')}</p><a href={browsePath(locale,parseBrowse(new URLSearchParams()))}>{t('返回首页','Back to discovery')} ↗</a></section> : <>
+  {failed ? <section class="panel"><h1>{Astro.response.status === 404 ? ui.notFound : ui.unavailable}</h1><p>{t('检查地址与行程条件，或回到世界首页继续浏览。','Check the address and trip preferences, or return to discovery.')}</p><a href={browsePath(locale,parseBrowse(new URLSearchParams()))}>{t('返回首页','Back to discovery')}</a></section> : <>
     {results ? <>
       <p class="eyebrow">{world!.name} / {t('探索全部','EXPLORE EVERYTHING')}</p><h1 class="results-title">{t('找到下一段故事。','Find your next story.')}</h1>
       <Search locale={locale} state={state} places={data!.places} categories={data!.categories} />
@@ -54,14 +54,22 @@ const groups = data ? Array.from(new Map(data.listing.contents.map(c => [c.place
         {(home?.isFallback || world!.locale !== locale.code) && <p class="notice">{ui.fallback}</p>}
         <Search locale={locale} state={state} places={data!.places} categories={data!.categories} />
       </div></section>
-      {home?.config.promotion && home.text.promotion && <section class="promo" lang={home.languageTag}><div><p class="eyebrow">{home.text.promotion.audience}</p><h2>{home.text.promotion.title}</h2><p>{home.text.promotion.body}</p>{home.config.promotion.endsAt && <p><time datetime={home.config.promotion.endsAt}>{home.config.promotion.endsAt.replace('T',' ').replace('Z',' UTC')}</time></p>}</div>{home.config.promotion.image && <img class="promo-image" src={home.config.promotion.image.url} alt="" loading="lazy" width="160" height="120" />}<a class="button" href={target(home.config.promotion.target)}>{home.text.promotion.button} ↗</a></section>}
+      {home?.config.promotion && home.text.promotion && <section class="promo" lang={home.languageTag}><div><p class="eyebrow">{home.text.promotion.audience}</p><h2>{home.text.promotion.title}</h2><p>{home.text.promotion.body}</p>{home.config.promotion.endsAt && <p><time datetime={home.config.promotion.endsAt}>{home.config.promotion.endsAt.replace('T',' ').replace('Z',' UTC')}</time></p>}</div>{home.config.promotion.image && <img class="promo-image" src={home.config.promotion.image.url} alt="" loading="lazy" width="160" height="120" />}<a class="button" href={target(home.config.promotion.target)}>{home.text.promotion.button}</a></section>}
       {data!.categories.some(c=>c.kind === 'experience' && c.count>0) && <section class="content-section"><div class="section-heading"><h2>{t('探索附近的活动','Explore experiences nearby')}</h2></div><nav class="category-list" aria-label={t('活动类别','Experience categories')}>{data!.categories.filter(c=>c.kind === 'experience' && c.count>0).map(c=><a href={browse({type:'experiences',category:c.slug,rooms:undefined,end:undefined})}><span aria-hidden="true">{icons[c.icon]}</span><span lang={home?.languageTag}>{c.name}</span></a>)}</nav></section>}
       {data!.sections.filter(s=>s.contents.length>0).map(section=><section class="content-section" data-section={section.id}>
-        <div class="section-heading"><h2 lang={home?.languageTag}>{section.id.startsWith('place-') ? t(`住在${section.title}`,`Stay in ${section.title}`) : (section.title || (section.type === 'stays' ? t('{world}的热门住宿','Popular homes in {world}') : t('{world}的热门活动','Popular experiences in {world}'))).replace('{world}',world!.name)}</h2><div class="rail-actions"><button class="rail-arrow" data-direction="-1" aria-label={t('向左浏览','Scroll left')} hidden>←</button><button class="rail-arrow" data-direction="1" aria-label={t('向右浏览','Scroll right')} hidden>→</button><a href={browse({type:section.type,place:section.place,category:section.category,rooms:section.type === 'stays' ? state.rooms : undefined,end:section.type === 'stays' ? state.end : undefined})}>{t('查看全部','View all')} ↗</a></div></div>
+        <div class="section-heading">
+          <h2 lang={home?.languageTag}>
+            <a class="section-title-link" href={browse({type:section.type,place:section.place,category:section.category,rooms:section.type === 'stays' ? state.rooms : undefined,end:section.type === 'stays' ? state.end : undefined})}>
+              <span>{section.id.startsWith('place-') ? t(`住在${section.title}`,`Stay in ${section.title}`) : (section.title || (section.type === 'stays' ? t('{world}的热门住宿','Popular homes in {world}') : t('{world}的热门活动','Popular experiences in {world}'))).replace('{world}',world!.name)}</span>
+              <svg class="section-title-arrow" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="M4 12h15m-6-6 6 6-6 6" /></svg>
+            </a>
+          </h2>
+          <div class="rail-actions"><button class="rail-arrow" data-direction="-1" aria-label={t('向左浏览','Scroll left')} hidden>←</button><button class="rail-arrow" data-direction="1" aria-label={t('向右浏览','Scroll right')} hidden>→</button></div>
+        </div>
         <ul class="card-track" tabindex="0" aria-label={section.title || section.id}>{section.contents.map(content=><Card content={content} world={world!} locale={locale} href={detailPath(locale,content,state)} category={data!.categories.find(c=>c.slug===content.attributes.category)?.name} />)}</ul>
       </section>)}
-      <p class="browse-all"><a class="button" data-browse-all href={browse({type:'all',place:undefined,category:undefined,q:''})}>{t('浏览这个世界的全部住宿、活动与服务','Explore every home, experience and service')} ↗</a></p>
-      {home && <div class="benefits" lang={home.languageTag}>{home.text.benefits.map((text,i)=><section class="benefit"><span class="benefit-icon" aria-hidden="true">{icons[home.config.benefits[i]!.icon]}</span><h3>{text.title}</h3><p>{text.body}</p><a href={target(home.config.benefits[i]!.target)}>{text.button} ↗</a></section>)}</div>}
+      <p class="browse-all"><a class="button" data-browse-all href={browse({type:'all',place:undefined,category:undefined,q:''})}>{t('浏览这个世界的全部住宿、活动与服务','Explore every home, experience and service')}</a></p>
+      {home && <div class="benefits" lang={home.languageTag}>{home.text.benefits.map((text,i)=><section class="benefit"><span class="benefit-icon" aria-hidden="true">{icons[home.config.benefits[i]!.icon]}</span><h3>{text.title}</h3><p>{text.body}</p><a href={target(home.config.benefits[i]!.target)}>{text.button}</a></section>)}</div>}
     </>}
   </>}
 </Base>
