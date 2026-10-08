@@ -5,10 +5,12 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { chromium, expect } from '@playwright/test';
 import { detailFixture } from './detail-fixture.ts';
 import { unusedPort, waitFor, stop } from './runtime.ts';
+import { seedExperienceReviews } from '../scripts/seed-experience-reviews.ts';
+import { seedExperienceDetails } from '../scripts/seed-experience-details.ts';
 import { seedStayDetails } from '../scripts/seed-stay-details.ts';
 
 test('phase 4 detail browser acceptance', {timeout:180000}, async t => {
-  const f=await detailFixture();t.after(f.cleanup);await seedStayDetails(f.db,f.data.admin,true);
+  const f=await detailFixture();t.after(f.cleanup);await seedStayDetails(f.db,f.data.admin,true);await seedExperienceDetails(f.db,f.data.admin,true);await seedExperienceReviews(f.db,f.data.admin,true);
   const apiPort=await unusedPort(),webPort=await unusedPort();
   const apiUrl=`http://127.0.0.1:${apiPort}`,webUrl=`http://127.0.0.1:${webPort}`;
   const env={...process.env,PGOPTIONS:f.options,NODE_ENV:'production',SITE_INDEXABLE:'true',SITE_URL:'https://plotstay-phase4.invalid',API_PORT:String(apiPort),API_HOST:'127.0.0.1',HOST:'127.0.0.1',PORT:String(webPort),WEB_ORIGIN:webUrl,API_INTERNAL_URL:apiUrl};
@@ -33,6 +35,41 @@ test('phase 4 detail browser acceptance', {timeout:180000}, async t => {
       assert.equal(await page.locator('#related .content-card').count(),6);
       await expect(page.locator('link[rel=canonical]')).toHaveAttribute('href',`https://plotstay-phase4.invalid${route(kind)}`);
     }
+  });
+  await t.test('experience sample renders eight complete modules, illustrated steps and useful demo interactions',async()=>{
+    for(const locale of ['en','zh'])for(const width of [1440,768,390,320]){
+      await page.setViewportSize({width,height:1000});
+      await page.goto(webUrl+`/${locale}/worlds/lathe-worlds/experiences/forge-walk?from=results&view=results&type=experiences&start=2026-10-14&guests=2`);
+      await expect(page.locator('[data-experience-module]')).toHaveCount(8);
+      for(const module of await page.locator('[data-experience-module]').all())await expect(module).toBeVisible();
+      await expect(page.locator('.experience-steps li')).toHaveCount(5);
+      await expect(page.locator('.experience-steps img')).toHaveCount(5);
+      await expect(page.locator('.experience-session-list li')).toHaveCount(2);
+      await expect(page.locator('.experience-policies > section')).toHaveCount(6);
+      await expect(page.locator('#notes')).toHaveCount(1);
+      await expect(page.locator('#notes [data-note-id]')).toHaveCount(6);
+      await expect(page.locator('#notes .stay-rating-large strong')).toHaveText('4.83');
+      assert.ok(await page.locator('#related').evaluate(el=>!!(el.compareDocumentPosition(document.querySelector('#notes')!)&Node.DOCUMENT_POSITION_FOLLOWING)));
+      await expect(page.locator('#notes .stay-rating-dimension')).toHaveCount(3);
+      await page.locator('#notes .stay-review summary').first().click();await expect(page.locator('#notes .stay-review details').first()).toHaveAttribute('open','');
+      await expect(page.locator('.trip-summary')).toContainText('2026-10-14');
+      assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+      await page.locator('.experience-booking summary').click();
+      await expect(page.locator('.experience-booking details')).toHaveAttribute('open','');
+      await page.keyboard.press('Escape');await expect(page.locator('.experience-booking details')).not.toHaveAttribute('open','');
+      await page.locator('#host summary').click();await expect(page.locator('#host details')).toHaveAttribute('open','');
+      await page.locator('.experience-gallery [data-gallery-open="2"]').click();await expect(page.getByRole('dialog')).toBeVisible();
+      await expect(page.locator('[data-gallery-position]')).toHaveText('3 / 4');await page.keyboard.press('Escape');
+      if(width===1440||width===390)await page.screenshot({path:`${dir}/experience-repair-${locale}-${width}.png`,fullPage:true});
+    }
+    await page.goto(webUrl+'/en/worlds/lathe-worlds/experiences/signal-listening');
+    await expect(page.locator('[data-experience-module]')).toHaveCount(8);
+    await expect(page.locator('.experience-policies > section')).toHaveCount(6);
+    const nojs=await browser.newContext({javaScriptEnabled:false});
+    try{const p=await nojs.newPage();await p.goto(webUrl+'/en/worlds/lathe-worlds/experiences/forge-walk');
+      await p.locator('.experience-booking summary').click();await expect(p.locator('.experience-booking .stay-expanded')).toBeVisible();
+      await p.locator('#location summary').click();await expect(p.locator('#location .stay-expanded')).toContainText('covered walkway');
+    }finally{await nojs.close();}
   });
   await t.test('gallery opens any thumbnail, wraps with keys, traps focus and restores trigger',async()=>{
     await page.goto(webUrl+route('stay'));
@@ -161,13 +198,14 @@ test('phase 4 detail browser acceptance', {timeout:180000}, async t => {
     await page.locator('#login [name=email]').fill(f.credentials.email);await page.locator('#login [name=password]').fill(f.credentials.password);await page.locator('#login button').click();
     await expect(page.locator('#workspace')).toBeVisible();
     const {rows:[stay]}=await f.db.query("SELECT id FROM contents WHERE slug='dockside-window'");
-    for(const slug of ['dockside-window',`stay-demo-${stay.id}-1`]){
+    for(const slug of ['forge-walk','dockside-window',`stay-demo-${stay.id}-1`]){
       const {rows:[before]}=await f.db.query(`SELECT c.id,c.head_revision_id,c.published_publication_id,r.attributes,
         (SELECT jsonb_object_agg(l.locale,t.body) FROM revision_locales l JOIN translations t ON t.id=l.translation_id WHERE l.revision_id=r.id) AS texts
         FROM contents c JOIN content_revisions r ON r.id=c.head_revision_id WHERE c.slug=$1`,[slug]);
-      await page.locator('#filter-kind').selectOption(slug==='dockside-window'?'stay':'review');
+      await page.locator('#filter-kind').selectOption(slug==='forge-walk'?'experience':slug==='dockside-window'?'stay':'review');
       // Demo review titles repeat across stays; select the matching content row by its click result.
-      if(slug==='dockside-window')await page.locator('#content-list tr').filter({hasText:'A window above the docks'}).getByRole('button',{name:'Edit',exact:true}).click();
+      if(slug==='forge-walk')await page.locator('#content-list tr').filter({hasText:'Forge Walk'}).getByRole('button',{name:'Edit',exact:true}).click();
+      else if(slug==='dockside-window')await page.locator('#content-list tr').filter({hasText:'A window above the docks'}).getByRole('button',{name:'Edit',exact:true}).click();
       else {
         const target=await page.request.get(webUrl+`/api/admin/contents/${before.id}`);assert.equal(target.status(),200);
         // This row is the first demonstration note for the selected parent in the sorted admin list.
@@ -180,7 +218,8 @@ test('phase 4 detail browser acceptance', {timeout:180000}, async t => {
         }
       }
       await expect(page.locator('[name=slug]')).toHaveValue(slug);
-      if(slug==='dockside-window')assert.equal(JSON.parse(await page.locator('[name="en:stay"]').inputValue()).amenities.length,24);
+      if(slug==='forge-walk')assert.equal(JSON.parse(await page.locator('[name="en:experience"]').inputValue()).steps.length,5);
+      else if(slug==='dockside-window')assert.equal(JSON.parse(await page.locator('[name="en:stay"]').inputValue()).amenities.length,24);
       else assert.equal(JSON.parse(await page.locator('[name="en:review"]').inputValue()).name,'Visitor 17');
       const saved=page.waitForResponse(r=>r.request().method()==='POST' && r.url().endsWith(`/api/admin/contents/${before.id}/revisions`),{timeout:7000}).catch(async error=>{throw new Error(`${slug}: ${await page.locator('#message').innerText()}; invalid fields: ${JSON.stringify(await page.locator('#editor :invalid').evaluateAll(es=>es.map(e=>({name:e.getAttribute('name'),message:(e as HTMLInputElement).validationMessage}))))}; ${error.message}`);});
       await page.locator('#editor button[type=submit]').click();assert.equal((await saved).status(),200);await expect(page.locator('#editor button[type=submit]')).toBeEnabled();await expect(page.locator('#message')).toContainText('Draft saved');

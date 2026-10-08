@@ -6,9 +6,11 @@ import Expand from './Expand.astro';
 import Icon from './Icon.astro';
 const { detail, locale, pageHref } = Astro.props as { detail: ContentDetail; locale: Locale; pageHref: (page: number) => string };
 const { reviews, reviewSummary: stats } = detail, t = bilingual(locale.code), ui = messages(locale.code);
+const experience = detail.content.kind === 'experience';
+const ratingKeys = experience ? (['accuracy','communication','value'] as const) : reviewRatingKeys;
 const dimensions={cleanliness:{label:t('清洁度','Cleanliness'),icon:'light'},accuracy:{label:t('描述准确度','Accuracy'),icon:'book'},checkIn:{label:t('入住体验','Check-in'),icon:'key'},communication:{label:t('沟通','Communication'),icon:'person'},location:{label:t('位置','Location'),icon:'transit'},value:{label:t('性价比','Value'),icon:'star'}};
 ---
-<div data-stay-module="07"><DetailSection id="notes" title={`${ui.notes} · ${reviews.total}`}>
+<div data-stay-module={experience ? undefined : "07"} data-experience-reviews={experience ? "" : undefined}><DetailSection id="notes" title={`${ui.notes} · ${reviews.total}`}>
   <div class="stay-review-heading">
     <div class="stay-rating-large"><Icon/><strong>{stats.rating?.toFixed(2) ?? '—'}</strong><Icon/></div>
     <h3 lang={detail.content.languageTag}>{detail.content.text.stay?.favoriteTitle || t('旅客口碑','Guest impressions')}</h3>
@@ -16,7 +18,7 @@ const dimensions={cleanliness:{label:t('清洁度','Cleanliness'),icon:'light'},
   </div>
   <div class="stay-rating-breakdown">
     <div class="stay-rating-distribution"><h3>{t('总体评分','Overall rating')}</h3>{[5,4,3,2,1].map(rating=>{const count=stats.distribution.find(d=>d.rating===rating)?.count ?? 0;return <div><span>{rating}</span><meter min="0" max={Math.max(stats.ratedCount,1)} value={count} aria-label={t(`${rating} 星：${count} 条`,`${rating} stars: ${count} reviews`)}/><span>{count}</span></div>;})}</div>
-    {reviewRatingKeys.map(key=><div class="stay-rating-dimension"><h3>{dimensions[key].label}</h3><strong>{stats.dimensions[key]?.rating.toFixed(1) ?? '—'}</strong><Icon name={dimensions[key].icon}/><small>{t(`${stats.dimensions[key]?.count ?? 0} 条评分`,`${stats.dimensions[key]?.count ?? 0} ratings`)}</small></div>)}
+    {ratingKeys.map(key=><div class="stay-rating-dimension"><h3>{dimensions[key].label}</h3><strong>{stats.dimensions[key]?.rating.toFixed(1) ?? '—'}</strong><Icon name={dimensions[key].icon}/><small>{t(`${stats.dimensions[key]?.count ?? 0} 条评分`,`${stats.dimensions[key]?.count ?? 0} ratings`)}</small></div>)}
   </div>
   <div class="stay-mentions"><h3>{t('旅客提到','Guests mention')}</h3>
     {stats.mentions.length ? <ul>{stats.mentions.map(topic => <li><span>{topic.label}</span><strong>{topic.count}</strong></li>)}</ul> : <p class="stay-placeholder">{t('关键词与提及次数将在手记发布后显示。','Topics and mention counts will appear when visitor notes are published.')}</p>}
@@ -27,13 +29,13 @@ const dimensions={cleanliness:{label:t('清洁度','Cleanliness'),icon:'light'},
     const paragraphs = review.text.description.split('\n\n'), preview = paragraphs[0]!.slice(0,210), remainder = review.text.description.slice(preview.length);
     return <article class="stay-review" lang={review.languageTag} data-note-id={review.id}>
       <header><span class="stay-avatar stay-review-avatar" aria-hidden="true">{Array.from(name).slice(0,2).join('')}</span><div><h3>{name}</h3><p>{profile?.origin || t('来自：待补充','From: to be added')}</p></div></header>
-      <p class="stay-review-meta"><span class="stay-stars" aria-label={review.attributes.rating ? t(`${review.attributes.rating} 星，满分 5 星`,`${review.attributes.rating} out of 5 stars`) : t('暂无评分','Not rated')}>{review.attributes.rating ? '★'.repeat(review.attributes.rating) + '☆'.repeat(5-review.attributes.rating) : '—'}</span><time datetime={review.publishedAt}>{new Intl.DateTimeFormat(locale.languageTag,{year:'numeric',month:'short',day:'numeric',timeZone:'UTC'}).format(new Date(review.publishedAt))}</time><span>{profile?.stayDuration || t('住宿时长待补充','Stay duration to be added')}</span></p>
+      <p class="stay-review-meta"><span class="stay-stars" aria-label={review.attributes.rating ? t(`${review.attributes.rating} 星，满分 5 星`,`${review.attributes.rating} out of 5 stars`) : t('暂无评分','Not rated')}>{review.attributes.rating ? '★'.repeat(review.attributes.rating) + '☆'.repeat(5-review.attributes.rating) : '—'}</span><time datetime={review.publishedAt}>{new Intl.DateTimeFormat(locale.languageTag,{year:'numeric',month:'short',day:'numeric',timeZone:'UTC'}).format(new Date(review.publishedAt))}</time><span>{profile?.stayDuration || (experience ? t('参与场次待补充','Session details to be added') : t('住宿时长待补充','Stay duration to be added'))}</span></p>
       <p class="stay-review-title">{review.text.title}</p><p class="prose">{preview}{remainder && '…'}</p>
       <Expand locale={locale} label={t('查看完整手记','Show more')}><p class="prose">{review.text.description}</p></Expand>
       {review.isFallback && <p class="notice">{ui.fallback}</p>}
     </article>;
   })}</div>
-  {!reviews.total && <article class="stay-review stay-review-empty"><header><span class="stay-avatar"><Icon name="person"/></span><div><h3>{t('第一位旅客的手记','The first visitor’s note')}</h3><p>{t('人物、所在地、评分、日期与住宿时长待补充。','Visitor, origin, rating, date and stay duration to be added.')}</p></div></header><p>{t('暂无公开手记。','No published visitor notes yet.')}</p></article>}
+  {!reviews.total && <article class="stay-review stay-review-empty"><header><span class="stay-avatar"><Icon name="person"/></span><div><h3>{t('第一位旅客的手记','The first visitor’s note')}</h3><p>{(experience ? t('人物、所在地、评分、日期与参与场次待补充。','Visitor, origin, rating, date and session details to be added.') : t('人物、所在地、评分、日期与住宿时长待补充。','Visitor, origin, rating, date and stay duration to be added.'))}</p></div></header><p>{t('暂无公开手记。','No published visitor notes yet.')}</p></article>}
   <div class="stay-review-footer"><p>{t(`共 ${reviews.total} 条手记，每页最多显示 ${reviews.pageSize} 条。`,`${reviews.total} notes in total, showing up to ${reviews.pageSize} per page.`)}</p>
     {reviews.pages > 1 && <nav class="pagination" aria-label={t('手记分页','Visitor notes pages')}>
       {reviews.page > 1 && <a data-notes-prev href={pageHref(reviews.page-1)}>← {t('上一页','Previous')}</a>}

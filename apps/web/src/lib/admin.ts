@@ -55,6 +55,7 @@ const textFields = [
   ['facilities', '设施（每行一项）', 'Facilities (one per line)', true], ['rules', '须知（每行一项）', 'Rules (one per line)', true],
   ['itinerary', '行程（每行一项）', 'Itinerary (one per line)', true], ['hostName', '房东／向导／提供者名称', 'Host / guide / provider name', false],
   ['hostBio', '人物介绍', 'Host / guide biography', false], ['imageAlts', '图片说明（图片 ID 对应文字，JSON）', 'Image descriptions (image ID to text, JSON)', false],
+  ['experience', '活动完整资料（JSON，可留空）', 'Full experience details (JSON, optional)', false],
   ['stay', '住宿完整资料（JSON，可留空）', 'Full stay details (JSON, optional)', false],
   ['review', '手记旅客资料（JSON，可留空）', 'Visitor note profile (JSON, optional)', false],
 ] as const;
@@ -68,8 +69,8 @@ function renderTextFields(translations: Record<string, ContentText>) {
       const input = document.createElement(key === 'title' || key === 'hostName' ? 'input' : 'textarea');
       input.name = `${language.code}:${key}`;
       const value = translations[language.code]?.[key];
-      input.value = key === 'imageAlts' ? JSON.stringify(value ?? {}) : key === 'stay' || key === 'review' ? (value ? JSON.stringify(value,null,2) : '') : array ? (value as string[] ?? []).join('\n') : String(value ?? '');
-      if (input instanceof HTMLTextAreaElement) input.rows = key === 'stay' ? 8 : key === 'description' ? 5 : key === 'review' ? 3 : 2;
+      input.value = key === 'imageAlts' ? JSON.stringify(value ?? {}) : key === 'experience' || key === 'stay' || key === 'review' ? (value ? JSON.stringify(value,null,2) : '') : array ? (value as string[] ?? []).join('\n') : String(value ?? '');
+      if (input instanceof HTMLTextAreaElement) input.rows = key === 'stay' || key === 'experience' ? 8 : key === 'description' ? 5 : key === 'review' ? 3 : 2;
       label.append(input); section.append(label);
     }
     fragment.append(section);
@@ -84,7 +85,7 @@ function readTexts() {
     for (const [key, , , array] of textFields) {
       const value = field(`${language.code}:${key}`).value.trim();
       if (key !== 'imageAlts' && value) any = true;
-      body[key] = key === 'imageAlts' ? JSON.parse(value || '{}') : key === 'stay' || key === 'review' ? (value ? JSON.parse(value) : undefined) : array ? value.split('\n').map(v => v.trim()).filter(Boolean) : value;
+      body[key] = key === 'imageAlts' ? JSON.parse(value || '{}') : key === 'experience' || key === 'stay' || key === 'review' ? (value ? JSON.parse(value) : undefined) : array ? value.split('\n').map(v => v.trim()).filter(Boolean) : value;
     }
     if (any) result[language.code] = textSchema.parse(body);
   }
@@ -107,6 +108,7 @@ function formValue() {
   if (kind === 'experience' || (kind === 'service' && field('duration').value)) attributes.durationMinutes = Number(field('duration').value);
   if (kind === 'review' && field('rating').value) attributes.rating = Number(field('rating').value);
   if (field('category').value) attributes.category = field('category').value;
+  if (field('experienceAttributes').value.trim()) attributes.experience = JSON.parse(field('experienceAttributes').value);
   if (field('stayAttributes').value.trim()) attributes.stay = JSON.parse(field('stayAttributes').value);
   if (field('reviewRatings').value.trim()) attributes.reviewRatings = JSON.parse(field('reviewRatings').value);
   const shared = { sourceLocale, text, translations: texts, attributes };
@@ -156,6 +158,7 @@ function fillRevision(revision: any) {
   field('amount').value = revision.attributes.price?.amount?.toString() ?? '';
   field('duration').value = revision.attributes.durationMinutes?.toString() ?? '';
   field('rating').value = revision.attributes.rating?.toString() ?? '';
+  field('experienceAttributes').value = revision.attributes.experience ? JSON.stringify(revision.attributes.experience,null,2) : '';
   field('stayAttributes').value = revision.attributes.stay ? JSON.stringify(revision.attributes.stay,null,2) : '';
   field('reviewRatings').value = revision.attributes.reviewRatings ? JSON.stringify(revision.attributes.reviewRatings,null,2) : '';
   field('images').value = revision.attributes.images.map((image: any) => `${image.id} | ${image.url}`).join('\n');

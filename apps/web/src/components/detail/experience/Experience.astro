@@ -1,0 +1,77 @@
+---
+import type { ContentDetail, Locale, World, BrowseState } from '@plotstay/contracts';
+import { bilingual, messages } from '../../../lib/i18n';
+import Gallery from '../Gallery.astro';
+import DetailSection from '../DetailSection.astro';
+import Icon from '../stay/Icon.astro';
+import Expand from '../stay/Expand.astro';
+import Trip from '../../Trip.astro';
+import Sessions from './Sessions.astro';
+const {detail,locale,world,state}=Astro.props as {detail:ContentDetail;locale:Locale;world:World;state:BrowseState};
+const c=detail.content,e=c.text.experience,t=bilingual(locale.code),ui=messages(locale.code);
+const missing=t('资料待补充。','Details will be added.');
+const host=c.text.hostName||t('当地向导','Your local guide');
+const steps=e?.steps.length?e.steps:c.text.itinerary.map(title=>({title,description:missing,imageId:'',icon:'walk'}));
+const facts=[
+ {icon:'person',title:t('由','Hosted by')+' '+host,description:e?.hostRole||c.text.hostBio||missing,href:'#host'},
+ {icon:'transit',title:c.placeName||world.name,description:world.name,href:'#location'},
+ {icon:'clock',title:c.attributes.durationMinutes?`${t('约','Around')} ${c.attributes.durationMinutes} ${ui.minutes}`:missing,description:e?.language||missing},
+ {icon:'star',title:e?.expertiseTitle||t('向导的专业经历','Your host’s expertise'),description:e?.expertiseDescription||missing},
+ {icon:'book',title:e?.originalTitle||t('关于这项体验','About this experience'),description:e?.originalDescription||missing},
+];
+const policies=[
+ {icon:'person',title:t('参与者要求','Guest requirements'),body:e?.guestRequirements},
+ {icon:'walk',title:t('活动强度','Activity level'),body:e?.activityLevel},
+ {icon:'bag',title:t('需要携带','What to bring'),body:e?.bring},
+ {icon:'lift',title:t('无障碍设施','Accessibility'),body:e?.accessibility},
+ {icon:'clock',title:t('取消政策','Cancellation policy'),body:e?.cancellation},
+ {icon:'lock',title:t('参加前须知','Pre-screening'),body:e?.screening},
+];
+---
+<div class="experience-layout detail-columns">
+ <div class="experience-gallery"><Gallery content={c} locale={locale}/></div>
+ <header class="experience-introduction" data-experience-module="01" lang={c.languageTag}>
+  <p class="eyebrow">{t('当地体验','LOCAL EXPERIENCE')} / {world.name}</p>
+  <h1>{c.text.title}</h1>
+  <p class="experience-lead">{e?.introduction||c.text.summary||c.text.description}</p>
+  <p class="experience-place">{c.placeName||world.name} · {c.categoryName||c.attributes.category||ui.experiences}</p>
+  <ul class="experience-badges"><li><Icon name="person"/>{e?.privateGroups||t('团体安排待补充','Group details pending')}</li><li><Icon name="clock"/>{e?.cancellationBadge||t('取消政策待补充','Cancellation details pending')}</li></ul>
+  {c.isFallback&&<p class="notice">{ui.fallback}</p>}
+ </header>
+ <section class="experience-facts" aria-label={t('活动细节','Listing highlights')} data-experience-module="02">
+  <ul>{facts.map(f=><li><span class="experience-fact-icon"><Icon name={f.icon}/></span><div><h2>{f.href?<a href={f.href}>{f.title}</a>:f.title}</h2><p lang={c.languageTag}>{f.description}</p></div></li>)}</ul>
+ </section>
+ <div class="experience-main detail-body">
+  <div data-experience-module="04"><DetailSection id="about" title={t('你会做什么','What you’ll do')} languageTag={c.languageTag}>
+   <p class="prose experience-story">{e?.whatToDo||c.text.description}</p>
+   {e?.whatToDo&&c.text.description&&<Expand locale={locale} label={t('更多活动介绍','More about the experience')}><p class="prose">{c.text.description}</p></Expand>}
+  </DetailSection></div>
+  <div data-experience-module="05"><DetailSection id="itinerary" title={t('一起度过的时光','The experience, step by step')} languageTag={c.languageTag}>
+   <ol class="experience-steps">{steps.length?steps.map((s,index)=>{const img=c.attributes.images.find(i=>i.id===s.imageId);return <li>
+    <div class="experience-step-image">{img?<img src={img.url} alt={c.text.imageAlts[img.id]||s.title} width="160" height="160" loading="lazy"/>:<Icon name={s.icon}/>}<span aria-hidden="true">{String(index+1).padStart(2,'0')}</span></div>
+    <div><h3>{s.title}</h3><p>{s.description}</p></div>
+   </li>}):<li><Icon name="walk"/><p>{missing}</p></li>}</ol>
+  </DetailSection></div>
+  {c.text.included.length>0&&<DetailSection id="included" title={t('包含项目','What’s included')} languageTag={c.languageTag}><ul class="detail-facts">{c.text.included.map(i=><li>{i}</li>)}</ul></DetailSection>}
+  {c.text.facilities.length>0&&<DetailSection id="facilities" title={t('设施','Facilities')} languageTag={c.languageTag}><ul class="detail-facts">{c.text.facilities.map(i=><li>{i}</li>)}</ul></DetailSection>}
+ </div>
+ <aside class="experience-sessions" data-experience-module="03"><Sessions content={c} locale={locale} world={world}/><Trip state={state} locale={locale}/></aside>
+ <div class="experience-location" data-experience-module="06"><DetailSection id="location" title={t('见面地点','Where we’ll meet')} languageTag={c.languageTag}>
+  <h3>{e?.meetingTitle||c.placeName||world.name}</h3><p>{e?.meetingNote||missing}</p><p class="experience-muted">{e?.meetingAddress||c.placeName||world.name}</p>
+  <figure class="stay-map"><div class="stay-map-canvas" role="img" aria-label={t('虚构集合区域示意图：接驳站、集合点与铸造区观察廊。','Fictional meeting area: shuttle stop, meeting point and foundry gallery.')}>
+   <svg class="stay-map-lines" viewBox="0 0 1000 360" preserveAspectRatio="none" aria-hidden="true"><path class="map-block" d="M40 28h175v90H40zM300 28h180v90H300zM620 28h330v90H620zM40 245h260v85H40zM395 245h270v85H395zM765 245h185v85H765z"/><path class="map-route" d="M-10 176H1010M250-10v175l90 145v60M720-10v155l-70 65v160"/><path class="map-trail" d="M70 200h865M273 0v160l90 150v60M740 0v162l-66 59v155"/></svg>
+   <span class="map-label map-transit"><Icon name="transit"/>{t('接驳站','Shuttle stop')}</span><span class="map-label map-dining"><Icon name="window"/>{t('观察廊','Viewing gallery')}</span><span class="map-home"><Icon name="person"/><strong>{t('在这里碰面','Meet here')}</strong></span><span class="map-compass" aria-hidden="true">N ↑</span>
+  </div><figcaption>{t('虚构区域示意图 · 不对应现实坐标','Fictional area sketch · no real-world coordinates')}</figcaption></figure>
+  <Expand locale={locale} label={t('查看抵达路线','Getting here')}><p>{e?.directions||missing}</p></Expand>
+ </DetailSection></div>
+ <div class="experience-host" data-experience-module="07"><DetailSection id="host" title={t('关于向导','About me')}>
+  <div class="experience-host-grid"><div class="experience-host-card"><span class="stay-avatar experience-portrait"><Icon name="person"/></span><h3 lang={c.languageTag}>{host}</h3><p lang={c.languageTag}>{e?.hostRole||missing}</p><span class="experience-muted">{t('带你认识这个世界','Your local perspective')}</span></div>
+  <div><p class="prose" lang={c.languageTag}>{e?.hostIntroduction||c.text.hostBio||missing}</p>
+  <Expand locale={locale} label={t('联系','Message')+' '+host}><p lang={c.languageTag}>{e?.contactNote||t('联系功能尚未开放，本页不会发送消息。','Messaging is not open. This page does not send messages.')}</p></Expand>
+  <p class="experience-muted">{t('这是一次虚构旅行。无需站外付款，也无需提供真实证件。','A fictional journey: no off-site payment or real identity documents are needed.')}</p></div></div>
+ </DetailSection></div>
+</div>
+<div data-experience-module="08"><DetailSection id="rules" title={t('须知','Things to know')}>
+ <div class="experience-policies">{policies.map(p=><section><Icon name={p.icon}/><h3>{p.title}</h3><p lang={c.languageTag}>{p.body||missing}</p></section>)}</div>
+ {c.text.rules.length>0&&<Expand locale={locale} label={t('其他参与须知','Additional participation notes')}><ul lang={c.languageTag}>{c.text.rules.map(r=><li>{r}</li>)}</ul></Expand>}
+</DetailSection></div>

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { experienceTextSchema, experienceAttributesSchema } from './experience.ts';
 import { stayTextSchema, stayAttributesSchema, reviewTextSchema, reviewRatingsSchema } from './stay.ts';
 
 export const localeSchema = z.string().regex(/^[a-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/).max(35);
@@ -22,6 +23,7 @@ export const textSchema = z.object({
   highlights: lines,
   included: lines,
   serviceItems: lines,
+  experience: experienceTextSchema.optional(),
   stay: stayTextSchema.optional(),
   review: reviewTextSchema.optional()
 }).strict();
@@ -42,6 +44,7 @@ export const attributesSchema = z.object({
   category: slugSchema.optional(),
   durationMinutes: z.number().int().positive().max(43200).optional(),
   rating: z.number().int().min(1).max(5).optional(),
+  experience: experienceAttributesSchema.optional(),
   stay: stayAttributesSchema.optional(),
   reviewRatings: reviewRatingsSchema.optional()
 }).strict().refine(a => new Set(a.images.map(i => i.id)).size === a.images.length, 'Image IDs must be unique.');

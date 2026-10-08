@@ -1,0 +1,98 @@
+/* Experience-only geometry. Reuses Lime, the stay icon set, map and accessible expanders. */
+.experience-detail { max-width:1200px; }
+.experience-detail h1 { font-size:clamp(1.8rem,2.6vw,2.4rem); line-height:1.3; margin:.7rem 0 1.25rem; }
+.experience-detail h3 { font-size:1.05rem; line-height:1.5; margin:0 0 .45rem; }
+.experience-detail p { line-height:1.7; }
+.experience-detail .stay-icon { width:26px; height:26px; flex:0 0 26px; }
+.experience-detail .experience-layout { display:grid; grid-template-columns:minmax(0,1.65fr) minmax(300px,1fr); grid-template-rows:auto auto 1fr auto auto; gap:0 3rem; align-items:start; }
+.experience-gallery { grid-column:1; grid-row:1 / 3; min-width:0; }
+.experience-introduction { grid-column:2; grid-row:1; text-align:center; padding:1rem 0 1.75rem; border-bottom:1px solid var(--line); }
+.experience-introduction .eyebrow { font-size:.7rem; }
+.experience-lead { font-size:.96rem; color:var(--muted); margin-bottom:1.5rem; }
+.experience-place { font-size:.8rem; }
+.experience-badges { display:flex; flex-wrap:wrap; justify-content:center; gap:.5rem; list-style:none; padding:0; margin:1.4rem 0 0; }
+.experience-badges li { display:flex; align-items:center; gap:.35rem; border:1px dotted var(--line); padding:.35rem .5rem; font-size:.72rem; }
+.experience-badges .stay-icon { width:15px; height:15px; flex-basis:15px; }
+.experience-facts { grid-column:2; grid-row:2; padding:1.75rem 0; }
+.experience-facts ul { list-style:none; padding:0; margin:0; display:grid; gap:1.5rem; }
+.experience-facts li { display:flex; gap:1rem; align-items:center; }
+.experience-fact-icon { width:44px; height:44px; flex:0 0 44px; display:grid; place-items:center; background:var(--dot-grid); border:1px solid var(--line); box-shadow:2px 2px 0 var(--line); }
+.experience-facts h2 { font-size:.9rem; line-height:1.5; margin:0; }
+.experience-facts h2 a { color:inherit; text-decoration:none; }
+.experience-facts h2 a:hover { text-decoration:underline; }
+.experience-facts p { color:var(--muted); font-size:.8rem; margin:.15rem 0 0; }
+.experience-main { grid-column:1; grid-row:3; }
+.experience-sessions { grid-column:2; grid-row:3 / 6; position:sticky; top:1rem; padding-top:.25rem; min-width:0; }
+.experience-location { grid-column:1; grid-row:4; }
+.experience-host { grid-column:1; grid-row:5; }
+.experience-gallery .detail-gallery:has(.gallery-thumbs) { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.5rem; }
+.experience-gallery .gallery-main { aspect-ratio:1; min-height:0; height:auto; }
+.experience-gallery .gallery-thumbs { display:contents; }
+.experience-gallery .gallery-thumbs li { display:block; min-width:0; }
+.experience-gallery .gallery-thumbs li:first-child,.experience-gallery .gallery-thumbs li:nth-child(n+5) { display:none; }
+.experience-gallery .gallery-thumbs a { height:auto; aspect-ratio:1; }
+.experience-gallery .gallery-thumbs img,.experience-gallery .gallery-main img { object-fit:cover; }
+.experience-gallery .gallery-main .gallery-count { font-size:.7rem; bottom:.5rem; right:.5rem; }
+.experience-gallery .detail-gallery:has(.gallery-single-thumb) { display:block; }
+.experience-gallery .gallery-single-thumb { display:none; }
+.experience-gallery .gallery-empty { aspect-ratio:1; }
+.experience-story { font-size:1rem; }
+.experience-steps { list-style:none; margin:0; padding:0; display:grid; gap:1.65rem; }
+.experience-steps li { display:grid; grid-template-columns:108px minmax(0,1fr); gap:1.4rem; align-items:center; }
+.experience-step-image { position:relative; aspect-ratio:1; display:grid; place-items:center; background:var(--dot-grid); border:1px solid var(--line); }
+.experience-step-image img { width:100%; height:100%; object-fit:cover; }
+.experience-step-image span { position:absolute; bottom:-1px; left:-1px; background:var(--desktop); border:1px solid var(--line); color:var(--accent); font-size:.7rem; padding:.1rem .4rem; }
+.experience-steps p { font-size:.9rem; color:var(--muted); margin:0; }
+.experience-booking.panel { padding:0; margin:0; }
+.experience-booking-body { padding:1.25rem; }
+.experience-price { margin:0 0 1.25rem; font-size:.85rem; }
+.experience-price strong { font-size:2rem; color:var(--accent); }
+.experience-opening { display:flex; align-items:center; gap:.7rem; padding:.8rem 0; border-block:1px dotted var(--line); font-size:.75rem; }
+.experience-opening time { display:block; margin-top:.3rem; }
+.experience-booking .stay-expand summary { width:100%; justify-content:center; border-color:var(--accent); background:var(--accent); color:var(--desktop); }
+.experience-booking .stay-expanded { font-size:.85rem; }
+.experience-session-list { list-style:none; padding:0; margin:1.5rem 0 0; }
+.experience-session-list li { display:flex; justify-content:space-between; gap:.75rem; padding:1rem 0; border-top:1px dotted var(--line); font-size:.85rem; }
+.experience-session-list p { margin:.3rem 0 0; }
+.experience-session-list li > span { font-size:.68rem; flex-shrink:0; color:var(--muted); }
+.experience-muted { color:var(--muted); font-size:.75rem; }
+.experience-detail .stay-map-canvas { height:280px; }
+.experience-host-grid { display:grid; grid-template-columns:180px minmax(0,1fr); gap:1.75rem; }
+.experience-host-card { text-align:center; padding:1.4rem 1rem; border:1px solid var(--accent); box-shadow:3px 3px 0 var(--line); background:var(--dot-grid); }
+.experience-portrait { margin:0 auto 1rem; width:76px; height:84px; }
+.experience-portrait .stay-icon { width:44px; height:44px; }
+.experience-host-card p { font-size:.8rem; }
+.experience-host-grid .prose { margin-top:0; font-size:.9rem; }
+.experience-policies { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:2rem 3rem; }
+.experience-policies h3 { margin-top:.75rem; }
+.experience-policies p { font-size:.9rem; margin-bottom:0; color:var(--muted); }
+@media(max-width:1050px) {
+ .experience-detail .experience-layout { gap:0 1.5rem; grid-template-columns:minmax(0,1.4fr) minmax(270px,1fr); }
+ .experience-host-grid { grid-template-columns:1fr; }
+ .experience-host-card { max-width:300px; }
+ .experience-steps li { grid-template-columns:86px minmax(0,1fr); gap:1rem; }
+}
+@media(max-width:767px) {
+ .experience-detail .experience-layout { display:flex; flex-direction:column; gap:0; }
+ .experience-layout > * { width:100%; }
+ .experience-gallery .detail-gallery { margin-bottom:1.25rem; }
+ .experience-introduction { padding:0 0 1.5rem; }
+ .experience-detail h1 { font-size:1.8rem; }
+ .experience-facts { padding:1.75rem 0 2rem; }
+ .experience-sessions { position:static; padding:0; margin:0 0 1.5rem; }
+ .experience-host-grid { grid-template-columns:1fr; }
+ .experience-host-card { max-width:100%; }
+ .experience-policies { grid-template-columns:1fr; gap:1.5rem; }
+ .experience-policies section { border-bottom:1px dotted var(--line); padding-bottom:1.5rem; }
+ .experience-policies section:last-child { border:0; padding-bottom:0; }
+ .experience-steps li { grid-template-columns:80px minmax(0,1fr); gap:1rem; align-items:start; }
+ .experience-steps h3 { font-size:.95rem; }
+ .experience-steps p { font-size:.85rem; }
+}
+@media(max-width:360px) { .experience-steps li { grid-template-columns:64px minmax(0,1fr); gap:.75rem; } .experience-session-list li { flex-wrap:wrap; } }
+
+.experience-detail [data-experience-reviews] { margin-top:2rem; }
+.experience-detail .stay-rating-breakdown { grid-template-columns:1.35fr repeat(3,minmax(0,1fr)); }
+@media(max-width:767px) {
+ .experience-detail .stay-rating-breakdown { grid-template-columns:repeat(3,minmax(0,1fr)); }
+}

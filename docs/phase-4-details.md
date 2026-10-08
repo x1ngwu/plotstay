@@ -1,6 +1,6 @@
 # 阶段 4：住宿、活动与服务详情
 
-从 `main / 0572ce1` 开始。2026-10-08 更新：首轮基础组件不足以构成完整详情验收，撤回此前“三类完整详情已完成”的结论。用户要求住宿严格补齐指定 Airbnb 房源的栏目，缺失文本允许占位，不能因空字段隐藏栏目。本轮修复与证据见[住宿完整性修复](phase-4-stay-remediation.md)。活动、服务已有基础增强，但尚未按同类参考页逐项对齐，不能借住宿验收宣称它们完整。
+从 `main / 0572ce1` 开始。2026-10-08 更新：首轮基础组件不足以构成完整详情验收，撤回此前“三类完整详情已完成”的结论。用户要求住宿严格补齐指定 Airbnb 房源的栏目，缺失文本允许占位，不能因空字段隐藏栏目。本轮修复与证据见[住宿完整性修复](phase-4-stay-remediation.md)。活动现已按指定体验页完成八组栏目及评分评论修复，用户已授权提交当前版本，见[活动修复记录](phase-4-experience-remediation.md)。服务仍只有基础增强，尚未按同类参考页逐项对齐，不能借住宿验收宣称它完整。
 
 ## 已确认范围
 
@@ -17,9 +17,9 @@
 | 公共读取 | `/api/worlds/:world/:kind/:slug/detail` 在同一 REPEATABLE READ 只读事务内读取主条目、每页 6 条公开手记、跨页评分 / 关键词汇总和最多 6 条关联内容；继承世界 / 父条目 / 发布可见性 |
 | 共用 | `Gallery / DetailSection / PersonCard / VisitorNotes`；复用 `Card / Trip / Base`，不复制首页或全站样式 |
 | 住宿 | 独立 `detail/stay/` 组件：规格、喜爱与评分、顶部房东、图文亮点、介绍 / 空间 / 登记、睡眠安排、完整设施、评价与分项、地区、完整房东、三组须知。空数据也保留栏目和待补充提示 |
-| 活动 | 顺序行程、包含项目、既有设施、参与须知；向导、分页手记和关联内容。现有空模块仍隐藏，参考对齐待单独审查 |
+| 活动 | 独立 experience 组件：四图拼贴、简介／五项亮点、价格与场次、活动说明、五步图文流程、集合地图、向导、六项须知；旧资料保留全部栏目。已更新开发域名，用户已授权提交当前版本 |
 | 服务 | 服务项目、流程、既有设施与须知；提供者、分页手记和关联内容。现有空模块仍隐藏，参考对齐待单独审查 |
-| 样式 | `styles/detail.css` 为基础详情，`styles/stay.css` 为住宿。Lime 标题栏、窗框、字体和首页模板保持原样 |
+| 样式 | `styles/detail.css` 为基础详情，`styles/stay.css` 为住宿，`styles/experience.css` 为活动。Lime 标题栏、窗框、字体和首页模板保持原样 |
 | 展开交互 | 介绍、设施、手记、周边入口、联系说明和须知采用原生 details，可键盘操作、Escape 收起，禁用 JS 也可展开 |
 | 数据 | `highlights / included / serviceItems` 保留；可选 `text.stay / text.review / attributes.stay / attributes.reviewRatings` 承载住宿与评价资料，不改旧 SQL 迁移 |
 | 管理 | 中英表单可编辑扩展 JSON，草稿 / 审核 / 翻译 / 恢复 / 导入沿用版本机制；空新增数组兼容历史导入哈希 |
@@ -44,3 +44,5 @@
 启动：`SITE_INDEXABLE=false npm run preview`；Web 4321 / API 4310，仍为会话预览，不是正式部署。2026-10-08 用户认可住宿修复结果并授权提交推送，阶段 4 共用基础及本次修复随本次提交交付，实际编号以 Git 记录为准。用户的 `example_pages.zip` 保留本地。
 
 最终测试数、参考访问过程、逐项截图和剩余事项以[修复验收记录](phase-4-stay-remediation.md)为准。首轮记录保留在 `test-results/phase4/`，本次记录在 `test-results/stay-repair/`，均不纳入 Git。
+
+2026-10-08 后续：活动详情完成指定参考的结构修复并更新开发域名，样例为 forge-walk。新增可选 `text.experience / attributes.experience` 及后台编辑；实际数据追加、测试与审核边界见[活动修复记录](phase-4-experience-remediation.md)。用户已授权提交当前活动页及追加评论区；本次不推进服务修复或阶段 5。
