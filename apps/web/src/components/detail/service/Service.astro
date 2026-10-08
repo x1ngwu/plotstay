@@ -1,4 +1,5 @@
 ---
+import BookingEntry from '../../booking/Entry.astro';
 import type { ContentDetail, Locale, World, BrowseState } from '@plotstay/contracts';
 import { bilingual, messages } from '../../../lib/i18n';
 import DetailSection from '../DetailSection.astro';
@@ -43,9 +44,10 @@ const policies=[{icon:'person',title:t('参与要求','Guest requirements'),body
     <p class="service-price"><strong>{amount}</strong> {world.currencyName} <span>/ {unit} {t('起','and up')}</span></p>
     <a class="service-cancellation" href="#rules"><Icon name="clock"/><span lang={c.languageTag}>{s?.cancellationBadge||t('查看取消政策','See cancellation policy')}</span></a>
     <Expand locale={locale} label={t('查看日期','Show dates')} id="service-dates">
-     <p class="service-muted">{t('样例时段 · UTC · 尚未开放预约','Sample times · UTC · reservations are not open')}</p>
-     <ul class="service-dates">{c.attributes.service?.sessions.length?c.attributes.service.sessions.map(session=><li><strong><time datetime={session.startsAt}>{date.format(new Date(session.startsAt))}</time></strong><span>{time.format(new Date(session.startsAt))} – {time.format(new Date(session.endsAt))}</span><small>{t('尚未开放','Coming soon')}</small></li>):<li>{t('新的服务日期即将公布。','New service dates will be announced.')}</li>}</ul>
+     <p class="service-muted">{t('模拟场次 · UTC · 可预约虚构服务','Simulation sessions · UTC · fictional reservations available')}</p>
+     <ul class="service-dates">{c.attributes.service?.sessions.length?c.attributes.service.sessions.map(session=><li><strong><time datetime={session.startsAt}>{date.format(new Date(session.startsAt))}</time></strong><span>{time.format(new Date(session.startsAt))} – {time.format(new Date(session.endsAt))}</span><small>{Date.parse(session.startsAt)>Date.now()?t('模拟场次','Simulation'):t('已过期','Expired')}</small></li>):<li>{t('进入预约查看每日模拟场次。','Open reservations to view daily simulation sessions.')}</li>}</ul>
     </Expand>
+    <BookingEntry content={c} locale={locale} state={state}/>
     <p class="service-muted">{t('虚构世界服务 · 不涉及真实付款','A fictional-world service · no real payment')}</p>
    </div>
   </section>

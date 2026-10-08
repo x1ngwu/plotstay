@@ -55,7 +55,7 @@ const policies=[
   {c.text.included.length>0&&<DetailSection id="included" title={t('包含项目','What’s included')} languageTag={c.languageTag}><ul class="detail-facts">{c.text.included.map(i=><li>{i}</li>)}</ul></DetailSection>}
   {c.text.facilities.length>0&&<DetailSection id="facilities" title={t('设施','Facilities')} languageTag={c.languageTag}><ul class="detail-facts">{c.text.facilities.map(i=><li>{i}</li>)}</ul></DetailSection>}
  </div>
- <aside class="experience-sessions" data-experience-module="03"><Sessions content={c} locale={locale} world={world}/><Trip state={state} locale={locale}/></aside>
+ <aside class="experience-sessions" data-experience-module="03"><Sessions content={c} locale={locale} world={world} state={state}/><Trip state={state} locale={locale}/></aside>
  <div class="experience-location" data-experience-module="06"><DetailSection id="location" title={t('见面地点','Where we’ll meet')} languageTag={c.languageTag}>
   <h3>{e?.meetingTitle||c.placeName||world.name}</h3><p>{e?.meetingNote||missing}</p><p class="experience-muted">{e?.meetingAddress||c.placeName||world.name}</p>
   <figure class="stay-map"><div class="stay-map-canvas" role="img" aria-label={t('虚构集合区域示意图：接驳站、集合点与铸造区观察廊。','Fictional meeting area: shuttle stop, meeting point and foundry gallery.')}>

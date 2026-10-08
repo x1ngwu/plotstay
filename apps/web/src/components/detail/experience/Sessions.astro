@@ -1,9 +1,10 @@
 ---
-import type { PublicContent,Locale,World } from '@plotstay/contracts';
+import BookingEntry from '../../booking/Entry.astro';
+import type { PublicContent,Locale,World,BrowseState } from '@plotstay/contracts';
 import { bilingual } from '../../../lib/i18n';
 import Icon from '../stay/Icon.astro';
 import Expand from '../stay/Expand.astro';
-const {content:c,locale,world}=Astro.props as {content:PublicContent;locale:Locale;world:World};
+const {content:c,locale,world,state}=Astro.props as {content:PublicContent;locale:Locale;world:World;state:BrowseState};
 const t=bilingual(locale.code),e=c.attributes.experience;
 const date=new Intl.DateTimeFormat(locale.languageTag,{month:'long',day:'numeric',weekday:'long',timeZone:'UTC'});
 const time=new Intl.DateTimeFormat(locale.languageTag,{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'UTC'});
@@ -12,9 +13,10 @@ const time=new Intl.DateTimeFormat(locale.languageTag,{hour:'2-digit',minute:'2-
  <div class="window-bar"><span id="sessions-heading">{t('场次与价格','Dates & prices')}</span><span aria-hidden="true">PLOTSTAY</span></div>
  <div class="experience-booking-body">
   <p class="experience-price">{t('每位','From')} <strong>{c.attributes.price?new Intl.NumberFormat(locale.languageTag).format(c.attributes.price.amount):'—'}</strong> {world.currencyName} <span>{t('起','/ guest')}</span></p>
-  {e?.opensAt&&<div class="experience-opening"><Icon name="clock"/><div><span>{t('预计开放预约','Scheduled release')}</span><time datetime={e.opensAt}>{date.format(new Date(e.opensAt))} · {time.format(new Date(e.opensAt))} UTC</time></div></div>}
-  <Expand locale={locale} label={t('开放时提醒我','Notify me')}><p>{t('提醒功能尚未开放。这里展示样例场次，不会订阅通知或创建预约；欢迎稍后回来看看。','Notifications are not open yet. These are sample sessions; no alert or reservation is created. Check back for updates.')}</p></Expand>
-  <ul class="experience-session-list">{e?.sessions.length?e.sessions.map(s=><li><div><strong><time datetime={s.startsAt}>{date.format(new Date(s.startsAt))}</time></strong><p>{time.format(new Date(s.startsAt))} – {time.format(new Date(s.endsAt))}</p></div><span>{t('尚未开放','Coming soon')}</span></li>):<li><p>{t('新的活动场次即将公布。','New sessions will be announced.')}</p></li>}</ul>
+  {e?.opensAt&&<div class="experience-opening"><Icon name="clock"/><div><span>{t('故事中的开放时间','In-story release time')}</span><time datetime={e.opensAt}>{date.format(new Date(e.opensAt))} · {time.format(new Date(e.opensAt))} UTC</time></div></div>}
+  <Expand locale={locale} label={t('关于模拟场次','About simulation sessions')}><p>{t('这些是虚构场次。现在可进入模拟预约，核对行程与价格后领取活动票；不会订阅通知。','These are fictional sessions. Reserve a visit below, review your trip and collect a ticket. No notifications are subscribed.')}</p></Expand>
+  <ul class="experience-session-list">{e?.sessions.length?e.sessions.map(s=><li><div><strong><time datetime={s.startsAt}>{date.format(new Date(s.startsAt))}</time></strong><p>{time.format(new Date(s.startsAt))} – {time.format(new Date(s.endsAt))}</p></div><span>{Date.parse(s.startsAt)>Date.now()?t('模拟场次','Simulation'):t('已过期','Expired')}</span></li>):<li><p>{t('进入预约查看每日模拟场次。','Open reservations to view daily simulation sessions.')}</p></li>}</ul>
   <p class="experience-muted">{t('虚构体验 · 样例场次 · 时间以 UTC 为准','Fictional experience · sample sessions · all times UTC')}</p>
+  <BookingEntry content={c} locale={locale} state={state}/>
  </div>
 </section>

@@ -8,7 +8,8 @@ import { idSchema, kindSchema, localeSchema, loginSchema, slugSchema, createCont
 import type { Database } from '@plotstay/database';
 import { adminDetail, adminList, adminWorlds, assert, digest, DomainError, getActor,
   browseWorld, publishedDetail, publicHome, saveHomeDraft, publishHome, getPublished, listPublished, listWorlds, listLocales, publicDiscovery, login, createContent, editContent, submitRevision, reviewRevision,
-  restorePublication, unpublishContent, releaseSiteBlock, saveTranslation, importContent, requireWorld, retryTranslation } from '@plotstay/domain';
+  restorePublication, unpublishContent, releaseSiteBlock, saveTranslation, importContent, requireWorld, retryTranslation,
+  createGuest, getGuest, quoteBooking, createBooking, getReceipt, findBooking, latestBooking } from '@plotstay/domain';
 
 const localeQuery = z.object({ locale: localeSchema.default('en') }).strict();
 const listQuery = localeQuery.extend({ world: slugSchema.optional(), kind: kindSchema.optional(),
@@ -16,6 +17,7 @@ const listQuery = localeQuery.extend({ world: slugSchema.optional(), kind: kindS
   limit: z.coerce.number().int().min(1).max(100).default(50), offset: z.coerce.number().int().min(0).max(100000).default(0) });
 const idParams = z.object({ id: idSchema });
 const SESSION = 'plotstay_session';
+const GUEST = 'plotstay_guest';
 
 export async function createApp(db: Database, options: { logger?: boolean; webOrigin?: string; cookieSecure?: boolean } = {}) {
   const app = Fastify({ logger: options.logger ?? false, bodyLimit: 2 * 1024 * 1024 });
@@ -101,6 +103,33 @@ export async function createApp(db: Database, options: { logger?: boolean; webOr
     return { signedOut: true };
   });
   app.get('/api/auth/me', async request => ({ actor: await actor(request.cookies[SESSION]) }));
+  // Guest credentials never share the administrator session or appear in JSON/URLs.
+  app.post('/api/guest', { config: { rateLimit: { max: 30, timeWindow: '1 minute' } } }, async (request, reply) => {
+    z.object({}).strict().parse(request.body);
+    if (!await getGuest(db, request.cookies[GUEST])) {
+      const guest = await createGuest(db);
+      reply.setCookie(GUEST, guest.token, { ...cookieOptions, maxAge: 180 * 24 * 60 * 60 });
+    }
+    return { ready: true };
+  });
+  async function guest(token?: string) {
+    const id = await getGuest(db, token);
+    assert(id, 401, 'SESSION_REQUIRED', 'The original visitor cookie is required.');
+    return id;
+  }
+  app.get('/api/guest', async request => { await guest(request.cookies[GUEST]); return { ready: true }; });
+  app.post('/api/bookings/quote', { config: { rateLimit: { max: 120, timeWindow: '1 minute' } } },
+    async request => quoteBooking(db, request.body));
+  app.post('/api/bookings', { config: { rateLimit: { max: 60, timeWindow: '1 minute' } } }, async (request, reply) => {
+    const result = await createBooking(db, { guestId: await guest(request.cookies[GUEST]) }, request.body);
+    return reply.code(result.created ? 201 : 200).send(result);
+  });
+  app.get('/api/bookings/attempts/:id', async request => ({ receipt: await findBooking(db,
+    await guest(request.cookies[GUEST]), idParams.parse(request.params).id) }));
+  app.get('/api/bookings/latest', async request => ({ id: await latestBooking(db,
+    await guest(request.cookies[GUEST]), z.object({ contentId: idSchema }).strict().parse(request.query).contentId) ?? null }));
+  app.get('/api/bookings/:id', async request => ({ receipt: await getReceipt(db,
+    { guestId: await guest(request.cookies[GUEST]) }, idParams.parse(request.params).id) }));
   app.get('/api/admin/worlds', async request => ({ worlds: await adminWorlds(db, await actor(request.cookies[SESSION])) }));
   app.get('/api/admin/worlds/:worldId/contents', async request => {
     const user = await actor(request.cookies[SESSION]);

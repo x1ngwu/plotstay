@@ -1,0 +1,26 @@
+---
+import Base from '../../../layouts/Base.astro';
+import Summary from '../../../components/booking/Summary.astro';
+import { fallbackLocales, idSchema } from '@plotstay/contracts';
+import { bilingual } from '../../../lib/i18n';
+import '../../../styles/booking.css';
+const {locales,locale:selected}=Astro.locals,locale=selected??fallbackLocales[0]!,t=bilingual(locale.code);
+const valid=selected&&idSchema.safeParse(Astro.params.id).success;
+if(!valid)Astro.response.status=404;
+---
+<Base title={t('旅行凭条','Your travel document')} locale={locale} locales={locales}>
+ <div class="booking-page receipt-page" data-receipt-page data-id={valid?Astro.params.id:''} data-locale={locale.code} data-prefix={locale.pathPrefix}>
+  <header class="booking-heading"><p class="eyebrow">PLOTSTAY / {t('旅行档案','TRAVEL ARCHIVE')}</p><h1>{t('你的故事，已留下一站','A new stop in your story')}</h1></header>
+  <p class="booking-notice" data-booking-message role="status" aria-live="polite">{t('正在核对游客凭证并读取凭条…','Checking your visitor credential and loading your document…')}</p>
+  <div data-receipt-content hidden>
+   <Summary locale={locale}/>
+   <div class="booking-actions"><button class="booking-primary" data-download>{t('保存凭条图片','Save document image')}</button><button data-copy-detail>{t('复制内容详情链接','Copy listing link')}</button><button data-copy-receipt>{t('复制本人凭条链接','Copy my document link')}</button></div>
+   <div data-copy-fallback hidden><label>{t('无法自动复制，请手动复制：','Copy unavailable. Copy this link manually:')}<input readonly data-copy-value/></label></div>
+   <p class="booking-fine">{t('凭条链接仅在持有原游客 Cookie 的浏览器中可用。清除 Cookie、到期或换设备后无法凭编号认领；建议保存图片。图片下载由浏览器处理，也可使用系统分享或另存为。','Document links work only in the browser holding your original visitor cookie. Clearing it, expiry or changing devices prevents recovery by number. Save the image; use your browser’s save or share action if needed.')}</p>
+   <nav class="booking-actions"><a data-book-again>{t('主动再次预订','Book another trip')}</a><a data-listing-link>{t('返回内容详情','Back to listing')}</a></nav>
+  </div>
+  <div class="booking-actions"><button data-load-retry hidden>{t('重新读取','Reload document')}</button><a data-explore href={`/${locale.pathPrefix}`}>{t('继续浏览','Continue exploring')} →</a></div>
+  <noscript><p>{t('请启用 JavaScript，以游客 Cookie 读取自己的凭条。','Enable JavaScript to retrieve your document with your visitor cookie.')}</p></noscript>
+ </div>
+ <script>import {initReceipt} from '../../../lib/booking-client';void initReceipt();</script>
+</Base>

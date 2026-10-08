@@ -68,8 +68,6 @@ export const createContentSchema = z.object({
 export const editContentSchema = z.object({ baseRevisionId: idSchema, baseDraftToken: idSchema.optional(), ...draftFields }).strict();
 export type CreateContentInput = z.infer<typeof createContentSchema>;
 export type EditContentInput = z.infer<typeof editContentSchema>;
-export const bookingSchema = z.object({ contentId: idSchema, locale: localeSchema,
-  idempotencyKey: z.uuid(), personaId: idSchema.optional() }).strict();
 export const loginSchema = z.object({ email: z.email().max(254), password: z.string().min(1).max(256) }).strict();
 export const importSchema = z.object({
   worldId: idSchema, source: z.string().trim().min(1).max(100),
@@ -114,11 +112,5 @@ export interface Discovery {
   locales: Locale[];
   worlds: Pick<World, 'slug' | 'availableLocales' | 'listingLocales' | 'homeLocales'>[];
   contents: Pick<PublicContent, 'worldSlug' | 'kind' | 'slug' | 'availableLocales'>[];
-}
-export interface BookingReceipt {
-  id: string; createdAt: string; locale: string;
-  snapshot: { contentId: string; publicationId: string; kind: 'stay' | 'experience' | 'service';
-    title: string; worldName: string; worldSlug: string; currencyName: string;
-    amount: number; unit: 'night' | 'person' | 'session'; personaName: string | null };
 }
 export interface ApiError { error: { code: string; message: string; details?: unknown } }

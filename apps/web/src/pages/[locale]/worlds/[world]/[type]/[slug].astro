@@ -1,4 +1,5 @@
 ---
+import BookingEntry from '../../../../../components/booking/Entry.astro';
 import Service from '../../../../../components/detail/service/Service.astro';
 import '../../../../../styles/service.css';
 import Experience from '../../../../../components/detail/experience/Experience.astro';
@@ -84,6 +85,7 @@ const notesHref = (page: number) => {
             {content!.attributes.price && <p class="detail-price"><strong>{new Intl.NumberFormat(locale.languageTag).format(content!.attributes.price.amount)}</strong> {world!.currencyName} <span>/ {ui[content!.attributes.price.unit]}</span></p>}
             <p class="detail-fiction">{ui.about}</p>
             <Trip state={state} locale={locale} />
+            <BookingEntry content={content!} locale={locale} state={state}/>
             <a class="detail-return-link" href={browsePath(locale, state)}>{state.view === 'results' ? t('返回列表', 'Back to results') : t('继续浏览', 'Continue exploring')} →</a>
           </div>
         </aside>

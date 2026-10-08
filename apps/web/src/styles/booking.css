@@ -1,0 +1,57 @@
+.booking-page { max-width:1080px; margin:0 auto; overflow-wrap:anywhere; }
+.booking-heading { margin:1.5rem 0; max-width:800px; }
+.booking-heading h1 { font-size:clamp(1.8rem,3.4vw,2.8rem); margin:.5rem 0 1rem; }
+.booking-heading p { font-size:.9rem; }
+.booking-steps { display:flex; gap:1.5rem; flex-wrap:wrap; list-style:none; padding:0 0 1rem; border-bottom:1px dashed var(--line); font-size:.85rem; }
+.booking-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:1.5rem; align-items:start; margin:1.5rem 0; }
+.booking-editor.panel,.booking-ticket.panel { padding:0; margin:0; }
+.booking-editor-body,.booking-ticket-body { padding:1.4rem; }
+.booking-editor h2,.booking-ticket h2 { font-size:1.5rem; margin:.25rem 0 .8rem; }
+.booking-cover { width:100%; height:180px; object-fit:cover; border:1px solid var(--line); margin:.8rem 0; }
+.booking-fields { display:grid; grid-template-columns:1fr 1fr; gap:.8rem; }
+.booking-editor fieldset { border:0; padding:0; margin:0; min-width:0; }
+.booking-editor label { display:grid; gap:.4rem; margin:.6rem 0; font-size:.85rem; }
+.booking-editor input,.booking-editor select { width:100%; min-height:44px; padding:.55rem; }
+.booking-primary { display:inline-flex; align-items:center; justify-content:center; min-height:44px; padding:.7rem 1rem; text-decoration:none; background:var(--accent); color:var(--desktop)!important; border:1px solid var(--accent); font:inherit; }
+.booking-primary:hover { background:var(--accent-light); }
+.booking-entry { width:100%; margin-top:.8rem; }
+.booking-secondary { min-height:44px; padding:.65rem 1rem; }
+.booking-page button:disabled { opacity:.5; cursor:wait; }
+.booking-fine { font-size:.78rem; color:var(--muted); line-height:1.6; }
+.booking-notice { border-left:3px solid var(--accent); padding:.8rem 1rem; margin:1rem 0; font-size:.9rem; }
+.booking-notice:empty { display:none; }
+.booking-facts { margin:1.25rem 0; }
+.booking-facts div { display:grid; grid-template-columns:6.5rem minmax(0,1fr); gap:.75rem; padding:.5rem 0; border-bottom:1px dotted var(--line); font-size:.86rem; }
+.booking-facts dt { color:var(--muted); }
+.booking-facts dd { margin:0; white-space:pre-line; }
+.booking-price { border-block:1px dashed var(--accent); padding:.65rem 0; margin:1.25rem 0; font-size:.9rem; }
+.booking-price h3 { margin:.5rem 0; }
+.booking-total { display:flex; justify-content:space-between; gap:1rem; font-size:1.1rem; }
+.booking-concierge { display:flex; gap:.85rem; align-items:center; padding:1rem; border:1px solid var(--accent); background:var(--dot-grid); margin:1.25rem 0; }
+.booking-concierge svg { width:32px; height:32px; flex:none; }
+.booking-concierge p { font-size:.7rem; margin:.25rem 0; }
+.booking-concierge>span { margin-left:auto; font-size:2rem; }
+.booking-fiction { font-size:.8rem; padding-top:.5rem; }
+.booking-confirm.panel { padding:1.2rem; margin-top:1rem; }
+.booking-consent { display:flex; align-items:start; gap:.65rem; font-size:.85rem; margin-bottom:1rem; }
+.booking-consent input { width:20px; height:20px; flex:none; }
+.booking-confirm button { width:100%; margin:.25rem 0; }
+.booking-actions { display:flex; flex-wrap:wrap; gap:.8rem; align-items:center; margin:1.25rem 0; }
+.booking-actions button,.booking-actions a { min-height:44px; padding:.65rem 1rem; }
+.receipt-page { max-width:760px; }
+.receipt-page .booking-ticket-body { padding:2rem; }
+.booking-empty { padding:2rem; }
+[data-copy-value] { width:100%; padding:.7rem; }
+@media(max-width:700px) {
+ .booking-grid { grid-template-columns:minmax(0,1fr); }
+ .booking-steps { gap:.6rem 1rem; font-size:.75rem; }
+ .booking-editor-body,.booking-ticket-body,.receipt-page .booking-ticket-body { padding:1rem; }
+ .booking-fields { gap:.5rem; }
+ .booking-facts div { grid-template-columns:5rem minmax(0,1fr); gap:.5rem; }
+ .booking-concierge { padding:.75rem; gap:.5rem; }
+ .booking-concierge>span { display:none; }
+ .booking-actions button { flex:1 1 100%; }
+ .booking-total { flex-wrap:wrap; }
+}
+
+[data-ticket-meta] { white-space:pre-line; }
