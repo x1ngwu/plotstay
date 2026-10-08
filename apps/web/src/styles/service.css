@@ -1,0 +1,99 @@
+/* Service-specific geometry; shared Lime, review, map and gallery styles stay authoritative. */
+.service-detail { max-width:1200px; }
+.service-detail .service-layout { display:grid; grid-template-columns:minmax(0,.92fr) minmax(0,1.45fr); gap:3rem; align-items:start; }
+.service-detail .stay-icon { width:26px; height:26px; flex:0 0 26px; }
+.service-detail p { line-height:1.65; }
+.service-detail h3 { font-size:1rem; line-height:1.5; margin:0 0 .4rem; }
+.service-sidebar { min-width:0; position:sticky; top:1.25rem; }
+.service-introduction { text-align:center; }
+.service-cover { display:grid; place-items:center; aspect-ratio:2; width:100%; border:1px solid var(--line); }
+.service-cover img { width:100%; height:100%; object-fit:cover; }
+.service-cover .stay-icon { width:64px; height:64px; }
+.service-avatar { position:relative; width:70px; height:76px; margin:-2rem auto 1.25rem; background:var(--desktop); border:2px solid var(--accent); }
+.service-avatar .stay-icon { width:40px; height:40px; }
+.service-introduction .eyebrow { font-size:.7rem; margin:.8rem 0; }
+.service-introduction h1 { font-size:clamp(1.7rem,2.5vw,2.35rem); line-height:1.3; margin:.5rem 0 1.25rem; }
+.service-intro-copy { color:var(--muted); font-size:.95rem; }
+.service-meta { display:flex; flex-wrap:wrap; justify-content:center; gap:.5rem; margin:1.5rem 0 .4rem; font-size:.8rem; }
+.service-meta a { color:var(--text); }
+.service-meta span { display:block; }
+.service-meta a span { display:inline; }
+.service-venue-link { font-size:.8rem; color:var(--muted); }
+.service-booking.panel { padding:0; margin:2rem 0 0; }
+.service-booking-body { padding:1.15rem; }
+.service-price { font-size:.8rem; margin:0 0 1rem; }
+.service-price strong { font-size:2rem; color:var(--accent); }
+.service-cancellation { display:flex; gap:.75rem; align-items:center; text-decoration:none; font-size:.8rem; color:var(--text); }
+.service-booking .stay-expand summary { width:100%; justify-content:center; background:var(--accent); color:var(--desktop); border-color:var(--accent); }
+.service-muted { font-size:.75rem; color:var(--muted); }
+.service-dates { list-style:none; padding:0; margin:0; }
+.service-dates li { display:grid; gap:.35rem; border-top:1px dotted var(--line); padding:1rem 0; font-size:.85rem; }
+.service-dates small { color:var(--muted); }
+.service-main { min-width:0; }
+.service-detail .detail-section { margin-bottom:2rem; }
+.service-offering { display:grid; grid-template-columns:130px minmax(0,1fr); gap:1.25rem; align-items:start; }
+.service-offering-image { display:grid; place-items:center; aspect-ratio:1; border:1px solid var(--line); background:var(--dot-grid); }
+.service-offering-image img { width:100%; height:100%; object-fit:cover; }
+.service-offering h2 { font-size:1.05rem; line-height:1.5; margin:0 0 .5rem; }
+.service-offering p { font-size:.85rem; color:var(--muted); margin:.5rem 0; }
+.service-offering .service-offering-price { color:var(--text); font-size:.8rem; }
+.service-customization { font-size:.8rem; color:var(--muted); border-top:1px dotted var(--line); padding-top:1.1rem; margin:1.25rem 0 0; }
+.service-detail .stay-rating-breakdown { grid-template-columns:1.25fr repeat(3,minmax(0,1fr)); gap:.75rem; }
+.service-detail .stay-rating-dimension { padding-left:.75rem; }
+.service-detail .stay-rating-breakdown h3 { font-size:.75rem; }
+.service-detail .stay-review-grid { column-gap:2rem; }
+.service-detail .stay-review header { align-items:start; }
+.service-detail .stay-review header h3 { font-size:.9rem; }
+.service-detail .stay-review .prose { font-size:.85rem; }
+.service-detail .stay-review-meta { font-size:.7rem; }
+.service-detail .stay-review-heading { padding:1rem 0; }
+.service-qualifications { display:grid; grid-template-columns:190px minmax(0,1fr); gap:1.75rem; }
+.service-provider-card { border:1px solid var(--accent); background:var(--dot-grid); box-shadow:3px 3px 0 var(--line); padding:1.5rem 1rem; text-align:center; align-self:start; }
+.service-provider-avatar { width:76px; height:84px; margin:0 auto 1rem; }
+.service-provider-avatar .stay-icon { width:44px; height:44px; }
+.service-provider-card p { font-size:.8rem; color:var(--muted); }
+.service-qualifications ul { list-style:none; margin:0; padding:0; display:grid; gap:1.4rem; }
+.service-qualifications li { display:flex; gap:1rem; }
+.service-qualifications li .stay-icon { margin-top:.15rem; }
+.service-qualifications h3 { font-size:.9rem; }
+.service-qualifications li p { font-size:.8rem; color:var(--muted); margin:0; }
+.service-provider-bio { font-size:.85rem; }
+.service-detail #service-contact summary { width:100%; justify-content:center; }
+.service-detail #service-gallery .detail-gallery { margin:0; }
+.service-detail #service-gallery .detail-gallery:has(.gallery-thumbs:not(.gallery-single-thumb)) { display:grid; grid-template-columns:2fr 1fr; gap:.5rem; }
+.service-detail #service-gallery .gallery-main { aspect-ratio:1.4; min-height:0; }
+.service-detail #service-gallery .detail-gallery:has(.gallery-thumbs:not(.gallery-single-thumb)) .gallery-main { grid-row:span 2; height:100%; aspect-ratio:auto; }
+.service-detail #service-gallery .gallery-thumbs:not(.gallery-single-thumb) { display:contents; }
+.service-detail #service-gallery .gallery-thumbs li { min-width:0; }
+.service-detail #service-gallery .gallery-thumbs li:first-child,.service-detail #service-gallery .gallery-thumbs li:nth-child(n+4) { display:none; }
+.service-detail #service-gallery .gallery-thumbs a { aspect-ratio:1; height:auto; }
+.service-detail .stay-map-canvas { height:320px; }
+.service-address { color:var(--muted); font-size:.9rem; }
+.service-policies { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1.75rem 2rem; }
+.service-policies h3 { margin-top:.7rem; }
+.service-policies p { font-size:.85rem; color:var(--muted); }
+@media(min-width:768px) and (max-height:850px) { .service-sidebar { position:static; } }
+@media(max-width:1050px) {
+ .service-detail .service-layout { grid-template-columns:minmax(0,.9fr) minmax(0,1.3fr); gap:1.5rem; }
+ .service-offering { grid-template-columns:85px minmax(0,1fr); gap:1rem; }
+ .service-qualifications { grid-template-columns:1fr; }
+ .service-provider-card { max-width:320px; width:100%; }
+ .service-detail .stay-rating-breakdown { grid-template-columns:repeat(3,minmax(0,1fr)); }
+ .service-detail .stay-rating-distribution { grid-column:1/-1; max-width:220px; }
+ .service-detail .stay-review-grid { grid-template-columns:1fr; }
+}
+@media(max-width:767px) {
+ .service-detail .service-layout { display:flex; flex-direction:column; gap:2rem; }
+ .service-sidebar,.service-main { width:100%; }
+ .service-sidebar { position:static; }
+ .service-introduction h1 { font-size:1.8rem; }
+ .service-booking.panel { margin-top:1.5rem; }
+ .service-detail .stay-map-canvas { height:280px; }
+ .service-provider-card { max-width:100%; }
+}
+@media(max-width:400px) {
+ .service-offering { grid-template-columns:1fr; }
+ .service-offering-image { width:110px; }
+ .service-policies { grid-template-columns:1fr; }
+ .service-detail .gallery-count { font-size:.7rem; padding:.3rem; }
+}

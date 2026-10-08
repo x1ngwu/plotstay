@@ -1,0 +1,93 @@
+---
+import type { ContentDetail, Locale, World, BrowseState } from '@plotstay/contracts';
+import { bilingual, messages } from '../../../lib/i18n';
+import DetailSection from '../DetailSection.astro';
+import Gallery from '../Gallery.astro';
+import Reviews from '../stay/Reviews.astro';
+import Icon from '../stay/Icon.astro';
+import Expand from '../stay/Expand.astro';
+import Trip from '../../Trip.astro';
+const {detail,locale,world,state,pageHref}=Astro.props as {detail:ContentDetail;locale:Locale;world:World;state:BrowseState;pageHref:(page:number)=>string};
+const c=detail.content,s=c.text.service,t=bilingual(locale.code),ui=messages(locale.code);
+const missing=t('资料待补充。','Details will be added.');
+const host=c.text.hostName||t('当地服务提供者','Your local provider');
+const cover=c.attributes.images[0],offeringImage=c.attributes.images.find(i=>i.id===s?.offeringImageId)||cover;
+const price=c.attributes.price,amount=price?new Intl.NumberFormat(locale.languageTag).format(price.amount):'—';
+const unit=price?ui[price.unit]:ui.session;
+const qualifications=s?.qualifications.length?s.qualifications:[
+ {icon:'clock',title:t('服务经验','Experience'),description:missing},
+ {icon:'star',title:t('代表成就','Achievements'),description:missing},
+ {icon:'book',title:t('专业研修','Qualifications'),description:missing},
+];
+const date=new Intl.DateTimeFormat(locale.languageTag,{month:'long',day:'numeric',weekday:'long',timeZone:'UTC'});
+const time=new Intl.DateTimeFormat(locale.languageTag,{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'UTC'});
+const policies=[{icon:'person',title:t('参与要求','Guest requirements'),body:s?.guestRequirements},{icon:'lift',title:t('无障碍设施','Accessibility'),body:s?.accessibility},{icon:'clock',title:t('取消政策','Cancellation policy'),body:s?.cancellation}];
+---
+<div class="service-layout detail-columns">
+ <aside class="service-sidebar" aria-label={t('服务简介与价格','Service introduction and price')}>
+  <header class="service-introduction" data-service-module="01">
+   <a class="service-cover card-cover cover-service" href="#service-gallery" aria-label={t('查看服务图库','View the service gallery')}>
+    {cover?<img src={cover.url} alt={c.text.imageAlts[cover.id]||''} lang={c.languageTag} width="600" height="320" fetchpriority="high"/>:<Icon name="key"/>}
+   </a>
+   <a href="#host" class="stay-avatar service-avatar" aria-label={t('查看服务提供者','About the provider')}><Icon name="person"/></a>
+   <p class="eyebrow">{ui.services} / {world.name}</p>
+   <h1 lang={c.languageTag}>{c.text.title}</h1>
+   <p class="service-intro-copy" lang={c.languageTag}>{s?.introduction||c.text.summary||c.text.description}</p>
+   <p class="service-meta"><a href="#notes"><span aria-hidden="true">★</span> {detail.reviewSummary.rating?.toFixed(2)||'—'} · {t(`${detail.reviews.total} 条评价`,`${detail.reviews.total} reviews`)}</a><span lang={c.languageTag}>{s?.providerRole||c.categoryName||ui.services} · {c.placeName||world.name}</span></p>
+   <a class="service-venue-link" href="#location" lang={c.languageTag}>{t('服务地点：','Provided at ')}{s?.venueName||c.placeName||world.name}</a>
+   {c.isFallback&&<p class="notice">{ui.fallback}</p>}
+  </header>
+  <section class="service-booking panel" data-service-module="02" aria-labelledby="service-price-heading">
+   <div class="window-bar"><span id="service-price-heading">{t('价格与日期','Price & dates')}</span><span aria-hidden="true">PLOTSTAY</span></div>
+   <div class="service-booking-body">
+    <p class="service-price"><strong>{amount}</strong> {world.currencyName} <span>/ {unit} {t('起','and up')}</span></p>
+    <a class="service-cancellation" href="#rules"><Icon name="clock"/><span lang={c.languageTag}>{s?.cancellationBadge||t('查看取消政策','See cancellation policy')}</span></a>
+    <Expand locale={locale} label={t('查看日期','Show dates')} id="service-dates">
+     <p class="service-muted">{t('样例时段 · UTC · 尚未开放预约','Sample times · UTC · reservations are not open')}</p>
+     <ul class="service-dates">{c.attributes.service?.sessions.length?c.attributes.service.sessions.map(session=><li><strong><time datetime={session.startsAt}>{date.format(new Date(session.startsAt))}</time></strong><span>{time.format(new Date(session.startsAt))} – {time.format(new Date(session.endsAt))}</span><small>{t('尚未开放','Coming soon')}</small></li>):<li>{t('新的服务日期即将公布。','New service dates will be announced.')}</li>}</ul>
+    </Expand>
+    <p class="service-muted">{t('虚构世界服务 · 不涉及真实付款','A fictional-world service · no real payment')}</p>
+   </div>
+  </section>
+  <Trip state={state} locale={locale}/>
+ </aside>
+ <div class="service-main detail-body">
+  <div data-service-module="03"><DetailSection id="service-items" title={t('服务内容','Service offerings')}>
+   <article class="service-offering" lang={c.languageTag}>
+    <a href="#service-gallery" class="service-offering-image" aria-label={t('查看服务图片','View service photos')}>{offeringImage?<img src={offeringImage.url} alt={c.text.imageAlts[offeringImage.id]||''} width="160" height="160" loading="lazy"/>:<Icon name="key"/>}</a>
+    <div><h2>{s?.offeringTitle||c.text.serviceItems[0]||c.text.title}</h2><p>{s?.offeringDescription||c.text.description}</p><p class="service-offering-price"><strong>{amount} {world.currencyName}</strong> / {unit}{c.attributes.durationMinutes&&<> · {c.attributes.durationMinutes} {ui.minutes}</>}</p></div>
+   </article>
+   <p class="service-customization" lang={c.languageTag}>{s?.customization||t('可与服务提供者讨论你的具体需求。','You can discuss your needs with the provider.')} <a href="#service-contact">{t('联系提供者','Message provider')} →</a></p>
+   <Expand locale={locale} label={t('查看完整服务说明','Full service details')}>
+    <p class="prose" lang={c.languageTag}>{c.text.description}</p>
+    {c.text.serviceItems.length>0&&<ul lang={c.languageTag}>{c.text.serviceItems.map(item=><li>{item}</li>)}</ul>}
+    {c.text.itinerary.length>0&&<><h3>{t('服务流程','Service process')}</h3><ol lang={c.languageTag}>{c.text.itinerary.map(item=><li>{item}</li>)}</ol></>}
+    {c.text.facilities.length>0&&<><h3>{t('设施','Facilities')}</h3><ul lang={c.languageTag}>{c.text.facilities.map(item=><li>{item}</li>)}</ul></>}
+   </Expand>
+  </DetailSection></div>
+  <div data-service-module="04"><Reviews detail={detail} locale={locale} pageHref={pageHref}/></div>
+  <div data-service-module="05"><DetailSection id="host" title={t('服务资质','My qualifications')}>
+   <div class="service-qualifications">
+    <div class="service-provider-card"><span class="stay-avatar service-provider-avatar"><Icon name="person"/></span><h3 lang={c.languageTag}>{host}</h3><p lang={c.languageTag}>{s?.providerRole||missing}</p></div>
+    <ul>{qualifications.map(q=><li><Icon name={q.icon}/><div><h3 lang={c.languageTag}>{q.title}</h3><p lang={c.languageTag}>{q.description}</p></div></li>)}</ul>
+   </div>
+   {c.text.hostBio&&<p class="prose service-provider-bio" lang={c.languageTag}>{c.text.hostBio}</p>}
+   {c.attributes.service?.demo&&<p class="service-muted">{t('人物经历与资质为虚构设定。','Experience and qualifications are fictional character details.')}</p>}
+   <Expand locale={locale} id="service-contact" label={t('联系','Message')+' '+host}><p lang={c.languageTag}>{s?.contactNote||t('联系功能尚未开放，本页不会发送消息。','Messaging is not open yet. This page does not send messages.')}</p></Expand>
+   <p class="service-muted">{t('这是一次虚构旅行，无需站外付款或提供真实证件。','A fictional journey: no off-site payment or real identity documents are needed.')}</p>
+  </DetailSection></div>
+  <div data-service-module="06"><DetailSection id="service-gallery" title={t('服务图库','My gallery')}><Gallery content={c} locale={locale}/></DetailSection></div>
+  <div data-service-module="07"><DetailSection id="location" title={t('服务地点','Where you’ll go')}>
+   <h3 lang={c.languageTag}>{s?.venueName||c.placeName||world.name}</h3><p class="service-address" lang={c.languageTag}>{s?.venueAddress||c.placeName||world.name}</p>
+   <figure class="stay-map"><div class="stay-map-canvas" role="img" aria-label={t('虚构街区地图：接驳站、检修工坊和旅客休息区。','Fictional quarter map: shuttle stop, workshop and guest lounge.')}>
+    <svg class="stay-map-lines" viewBox="0 0 1000 360" preserveAspectRatio="none" aria-hidden="true"><path class="map-block" d="M40 28h175v90H40zM300 28h180v90H300zM620 28h330v90H620zM40 245h260v85H40zM395 245h270v85H395zM765 245h185v85H765z"/><path class="map-route" d="M-10 176H1010M250-10v175l90 145v60M720-10v155l-70 65v160"/><path class="map-trail" d="M70 200h865M273 0v160l90 150v60M740 0v162l-66 59v155"/></svg>
+    <span class="map-label map-transit"><Icon name="transit"/>{t('接驳站','Shuttle stop')}</span><span class="map-label map-dining"><Icon name="cup"/>{t('旅客休息区','Guest lounge')}</span><span class="map-home"><Icon name="key"/><strong>{t('检修工坊','Workshop')}</strong></span><span class="map-compass" aria-hidden="true">N ↑</span>
+   </div><figcaption>{t('虚构区域示意图 · 不对应现实坐标','Fictional area sketch · no real-world coordinates')}</figcaption></figure>
+   <p lang={c.languageTag}>{s?.locationNote||missing}</p><Expand locale={locale} label={t('查看抵达路线','Getting here')}><p lang={c.languageTag}>{s?.directions||missing}</p></Expand>
+  </DetailSection></div>
+  <div data-service-module="08"><DetailSection id="rules" title={t('须知','Things to know')}>
+   <div class="service-policies">{policies.map(p=><section><Icon name={p.icon}/><h3>{p.title}</h3><p lang={c.languageTag}>{p.body||missing}</p></section>)}</div>
+   {c.text.rules.length>0&&<Expand locale={locale} label={t('其他须知','Additional notes')}><ul lang={c.languageTag}>{c.text.rules.map(rule=><li>{rule}</li>)}</ul></Expand>}
+  </DetailSection></div>
+ </div>
+</div>

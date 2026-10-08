@@ -5,12 +5,13 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { chromium, expect } from '@playwright/test';
 import { detailFixture } from './detail-fixture.ts';
 import { unusedPort, waitFor, stop } from './runtime.ts';
+import { seedServiceDetails } from '../scripts/seed-service-details.ts';
 import { seedExperienceReviews } from '../scripts/seed-experience-reviews.ts';
 import { seedExperienceDetails } from '../scripts/seed-experience-details.ts';
 import { seedStayDetails } from '../scripts/seed-stay-details.ts';
 
 test('phase 4 detail browser acceptance', {timeout:180000}, async t => {
-  const f=await detailFixture();t.after(f.cleanup);await seedStayDetails(f.db,f.data.admin,true);await seedExperienceDetails(f.db,f.data.admin,true);await seedExperienceReviews(f.db,f.data.admin,true);
+  const f=await detailFixture();t.after(f.cleanup);await seedStayDetails(f.db,f.data.admin,true);await seedExperienceDetails(f.db,f.data.admin,true);await seedExperienceReviews(f.db,f.data.admin,true);await seedServiceDetails(f.db,f.data.admin,true);
   const apiPort=await unusedPort(),webPort=await unusedPort();
   const apiUrl=`http://127.0.0.1:${apiPort}`,webUrl=`http://127.0.0.1:${webPort}`;
   const env={...process.env,PGOPTIONS:f.options,NODE_ENV:'production',SITE_INDEXABLE:'true',SITE_URL:'https://plotstay-phase4.invalid',API_PORT:String(apiPort),API_HOST:'127.0.0.1',HOST:'127.0.0.1',PORT:String(webPort),WEB_ORIGIN:webUrl,API_INTERNAL_URL:apiUrl};
@@ -71,6 +72,36 @@ test('phase 4 detail browser acceptance', {timeout:180000}, async t => {
       await p.locator('#location summary').click();await expect(p.locator('#location .stay-expanded')).toContainText('covered walkway');
     }finally{await nojs.close();}
   });
+  await t.test('service has eight complete modules, sample dates, rated reviews and reference layout',async()=>{
+    for(const locale of ['en','zh'])for(const width of [1440,768,390,320]){
+      await page.setViewportSize({width,height:1000});
+      await page.goto(webUrl+`/${locale}/worlds/lathe-worlds/services/augmetic-tune-up?from=results&view=results&type=services&start=2026-10-15&quantity=2&time=morning`);
+      await expect(page.locator('[data-service-module]')).toHaveCount(8);
+      for(const module of await page.locator('[data-service-module]').all())await expect(module).toBeVisible();
+      await expect(page.locator('#notes')).toHaveCount(1);await expect(page.locator('#notes [data-note-id]')).toHaveCount(6);
+      await expect(page.locator('#notes .stay-rating-large strong')).toHaveText('4.83');
+      await expect(page.locator('.service-price strong')).toHaveText('30');await expect(page.locator('.service-offering-price')).toContainText('30');
+      await expect(page.locator('.service-qualifications li')).toHaveCount(3);await expect(page.locator('.service-policies section')).toHaveCount(3);
+      await expect(page.locator('.trip-summary')).toContainText('2026-10-15');
+      for(const selector of ['#service-dates','#service-contact','#location details','#notes .stay-review details']){
+        const item=page.locator(selector).first();await item.locator('summary').click();await expect(item).toHaveAttribute('open','');
+        if(selector==='#service-dates')await expect(page.locator('.service-dates li')).toHaveCount(2);
+        await page.keyboard.press('Escape');await expect(item).not.toHaveAttribute('open','');
+      }
+      await page.locator('#service-gallery [data-gallery-open="2"]').click();await expect(page.getByRole('dialog')).toBeVisible();
+      await expect(page.locator('[data-gallery-position]')).toHaveText('3 / 3');await page.keyboard.press('ArrowRight');await expect(page.locator('[data-gallery-position]')).toHaveText('1 / 3');await page.keyboard.press('Escape');
+      assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+      const order=await page.locator('.service-main [data-service-module]').evaluateAll(es=>es.map(e=>e.getAttribute('data-service-module')));assert.deepEqual(order,['03','04','05','06','07','08']);
+      if(width===1440||width===390)await page.screenshot({path:`${dir}/service-repair-${locale}-${width}.png`,fullPage:true});
+    }
+    await page.goto(webUrl+'/en/worlds/lathe-worlds/services/luggage-blessing');await expect(page.locator('[data-service-module]')).toHaveCount(8);
+    await expect(page.locator('#notes')).toContainText('No published visitor notes yet.');
+    const nojs=await browser.newContext({javaScriptEnabled:false});try{const p=await nojs.newPage();await p.goto(webUrl+'/en/worlds/lathe-worlds/services/augmetic-tune-up');
+      await p.locator('#service-dates summary').click();await expect(p.locator('.service-dates li')).toHaveCount(2);await expect(p.locator('.service-dates')).toBeVisible();
+      await p.locator('#service-contact summary').click();await expect(p.locator('#service-contact .stay-expanded')).toContainText('does not send messages');
+    }finally{await nojs.close();}
+    assert.equal((await f.db.query('SELECT count(*)::int AS n FROM bookings')).rows[0].n,0);
+  });
   await t.test('gallery opens any thumbnail, wraps with keys, traps focus and restores trigger',async()=>{
     await page.goto(webUrl+route('stay'));
     const second=page.locator('[data-gallery-item]').nth(1);await second.click();
@@ -87,7 +118,7 @@ test('phase 4 detail browser acceptance', {timeout:180000}, async t => {
     await page.locator('.gallery-main').click();await page.locator('[data-gallery-next]').click();
     await expect(page.locator('[data-gallery-position]')).toHaveText('2 / 3');
     await page.locator('[data-gallery-close]').click();await expect(page.locator('.gallery-main')).toBeFocused();
-    await page.goto(webUrl+'/en/worlds/lathe-worlds/services/augmetic-tune-up');
+    await page.goto(webUrl+'/en/worlds/lathe-worlds/services/luggage-blessing');
     await page.locator('.gallery-main').click();await expect(page.locator('[data-gallery-position]')).toHaveText('1 / 1');
     await expect(page.locator('[data-gallery-next]')).toHaveCount(0);await page.keyboard.press('Escape');
     await page.goto(webUrl+'/en/worlds/lathe-worlds/stays/observation-room');
@@ -132,7 +163,7 @@ test('phase 4 detail browser acceptance', {timeout:180000}, async t => {
     // Existing demo records exercise empty fields and missing or single images.
     for(const path of ['/zh/worlds/lathe-worlds/stays/observation-room','/en/worlds/lathe-worlds/experiences/forge-walk','/zh/worlds/lathe-worlds/services/augmetic-tune-up','/en/worlds/test-harbour/stays/harbour-room']){
       await page.goto(webUrl+path);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
-      await expect(page.locator('#highlights,#included,#service-items')).toHaveCount(path.includes('/stays/') ? 1 : 0);
+      await expect(page.locator('#highlights,#included,#service-items')).toHaveCount(path.includes('/stays/') || path.includes('/services/') ? 1 : 0);
     }
     await expect(page.locator('#related')).toHaveCount(0);
     await writeFile(`${dir}/responsive.json`,JSON.stringify(checks,null,2));
@@ -198,13 +229,14 @@ test('phase 4 detail browser acceptance', {timeout:180000}, async t => {
     await page.locator('#login [name=email]').fill(f.credentials.email);await page.locator('#login [name=password]').fill(f.credentials.password);await page.locator('#login button').click();
     await expect(page.locator('#workspace')).toBeVisible();
     const {rows:[stay]}=await f.db.query("SELECT id FROM contents WHERE slug='dockside-window'");
-    for(const slug of ['forge-walk','dockside-window',`stay-demo-${stay.id}-1`]){
+    for(const slug of ['augmetic-tune-up','forge-walk','dockside-window',`stay-demo-${stay.id}-1`]){
       const {rows:[before]}=await f.db.query(`SELECT c.id,c.head_revision_id,c.published_publication_id,r.attributes,
         (SELECT jsonb_object_agg(l.locale,t.body) FROM revision_locales l JOIN translations t ON t.id=l.translation_id WHERE l.revision_id=r.id) AS texts
         FROM contents c JOIN content_revisions r ON r.id=c.head_revision_id WHERE c.slug=$1`,[slug]);
-      await page.locator('#filter-kind').selectOption(slug==='forge-walk'?'experience':slug==='dockside-window'?'stay':'review');
+      await page.locator('#filter-kind').selectOption(slug==='augmetic-tune-up'?'service':slug==='forge-walk'?'experience':slug==='dockside-window'?'stay':'review');
       // Demo review titles repeat across stays; select the matching content row by its click result.
-      if(slug==='forge-walk')await page.locator('#content-list tr').filter({hasText:'Forge Walk'}).getByRole('button',{name:'Edit',exact:true}).click();
+      if(slug==='augmetic-tune-up')await page.locator('#content-list tr').filter({hasText:'A little augmetic tune-up'}).getByRole('button',{name:'Edit',exact:true}).click();
+      else if(slug==='forge-walk')await page.locator('#content-list tr').filter({hasText:'Forge Walk'}).getByRole('button',{name:'Edit',exact:true}).click();
       else if(slug==='dockside-window')await page.locator('#content-list tr').filter({hasText:'A window above the docks'}).getByRole('button',{name:'Edit',exact:true}).click();
       else {
         const target=await page.request.get(webUrl+`/api/admin/contents/${before.id}`);assert.equal(target.status(),200);
@@ -218,7 +250,8 @@ test('phase 4 detail browser acceptance', {timeout:180000}, async t => {
         }
       }
       await expect(page.locator('[name=slug]')).toHaveValue(slug);
-      if(slug==='forge-walk')assert.equal(JSON.parse(await page.locator('[name="en:experience"]').inputValue()).steps.length,5);
+      if(slug==='augmetic-tune-up'){assert.equal(JSON.parse(await page.locator('[name="en:service"]').inputValue()).qualifications.length,3);assert.equal(JSON.parse(await page.locator('[name=serviceAttributes]').inputValue()).sessions.length,2);}
+      else if(slug==='forge-walk')assert.equal(JSON.parse(await page.locator('[name="en:experience"]').inputValue()).steps.length,5);
       else if(slug==='dockside-window')assert.equal(JSON.parse(await page.locator('[name="en:stay"]').inputValue()).amenities.length,24);
       else assert.equal(JSON.parse(await page.locator('[name="en:review"]').inputValue()).name,'Visitor 17');
       const saved=page.waitForResponse(r=>r.request().method()==='POST' && r.url().endsWith(`/api/admin/contents/${before.id}/revisions`),{timeout:7000}).catch(async error=>{throw new Error(`${slug}: ${await page.locator('#message').innerText()}; invalid fields: ${JSON.stringify(await page.locator('#editor :invalid').evaluateAll(es=>es.map(e=>({name:e.getAttribute('name'),message:(e as HTMLInputElement).validationMessage}))))}; ${error.message}`);});

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { serviceTextSchema, serviceAttributesSchema } from './service.ts';
 import { experienceTextSchema, experienceAttributesSchema } from './experience.ts';
 import { stayTextSchema, stayAttributesSchema, reviewTextSchema, reviewRatingsSchema } from './stay.ts';
 
@@ -23,6 +24,7 @@ export const textSchema = z.object({
   highlights: lines,
   included: lines,
   serviceItems: lines,
+  service: serviceTextSchema.optional(),
   experience: experienceTextSchema.optional(),
   stay: stayTextSchema.optional(),
   review: reviewTextSchema.optional()
@@ -44,6 +46,7 @@ export const attributesSchema = z.object({
   category: slugSchema.optional(),
   durationMinutes: z.number().int().positive().max(43200).optional(),
   rating: z.number().int().min(1).max(5).optional(),
+  service: serviceAttributesSchema.optional(),
   experience: experienceAttributesSchema.optional(),
   stay: stayAttributesSchema.optional(),
   reviewRatings: reviewRatingsSchema.optional()

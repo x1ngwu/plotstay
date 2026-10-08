@@ -1,13 +1,12 @@
 ---
+import Service from '../../../../../components/detail/service/Service.astro';
+import '../../../../../styles/service.css';
 import Experience from '../../../../../components/detail/experience/Experience.astro';
 import '../../../../../styles/experience.css';
 import Trip from '../../../../../components/Trip.astro';
 import Card from '../../../../../components/Card.astro';
 import Gallery from '../../../../../components/detail/Gallery.astro';
 import DetailSection from '../../../../../components/detail/DetailSection.astro';
-import TypeDetails from '../../../../../components/detail/TypeDetails.astro';
-import PersonCard from '../../../../../components/detail/PersonCard.astro';
-import VisitorNotes from '../../../../../components/detail/VisitorNotes.astro';
 import StayOverview from '../../../../../components/detail/stay/Overview.astro';
 import StayDescription from '../../../../../components/detail/stay/Description.astro';
 import StayAmenities from '../../../../../components/detail/stay/Amenities.astro';
@@ -54,10 +53,10 @@ const notesHref = (page: number) => {
 };
 ---
 <Base title={content?.text.title ?? 'Plotstay'} description={content ? contentDescription(content.text) : undefined} locale={locale} locales={locales} theme={world?.themeId} world={world} seo={failed || detail!.reviews.page > 1 ? noIndex() : detailSeo(locale, locales, world!, content!)}>
-  {failed ? <h1>{Astro.response.status === 404 ? ui.notFound : ui.unavailable}</h1> : <div class:list={['detail-page', {'stay-detail': content!.kind === 'stay', 'experience-detail': content!.kind === 'experience'}]}>
+  {failed ? <h1>{Astro.response.status === 404 ? ui.notFound : ui.unavailable}</h1> : <div class:list={['detail-page', {'stay-detail': content!.kind === 'stay', 'experience-detail': content!.kind === 'experience', 'service-detail': content!.kind === 'service'}]}>
     <a class="detail-back" data-back href={browsePath(locale, state)}>← {state.view === 'results' ? t('返回列表', 'Back to results') : ui.home} · {world!.name}</a>
     <article class="detail-panel" data-content-id={content!.id} data-publication-id={content!.publicationId}>
-      {content!.kind === 'experience' ? <Experience detail={detail!} locale={locale} world={world!} state={state}/> : <>
+      {content!.kind === 'experience' ? <Experience detail={detail!} locale={locale} world={world!} state={state}/> : content!.kind === 'service' ? <Service detail={detail!} locale={locale} world={world!} state={state} pageHref={notesHref}/> : <>
       <header class="detail-heading">
         <p class="eyebrow">{content!.kind === 'stay' ? ui.stays : ui.services} / {world!.name}</p>
         <h1 lang={content!.languageTag}>{content!.text.title}</h1>
@@ -74,21 +73,10 @@ const notesHref = (page: number) => {
       </nav>}
       <div class="detail-columns">
         <div class="detail-body">
-          {content!.kind === 'stay' ? <>
-            <StayOverview detail={detail!} locale={locale}/>
-            <StayDescription content={content!} locale={locale}/>
-            <StaySleeping content={content!} locale={locale}/>
-            <StayAmenities content={content!} locale={locale}/>
-          </> : <>
-          <DetailSection id="about" title={t('关于这项服务', 'About this service')} languageTag={content!.languageTag}>
-            {content!.text.summary && <p class="detail-intro">{content!.text.summary}</p>}
-            {content!.text.tags.length > 0 && <ul class="detail-tags">{content!.text.tags.map(tag => <li>{tag}</li>)}</ul>}
-            <p class="prose">{content!.text.description}</p>
-          </DetailSection>
-          <TypeDetails content={content!} locale={locale} />
-          <PersonCard content={content!} locale={locale} />
-          <VisitorNotes reviews={detail!.reviews} locale={locale} pageHref={notesHref} />
-          </>}
+          <StayOverview detail={detail!} locale={locale}/>
+          <StayDescription content={content!} locale={locale}/>
+          <StaySleeping content={content!} locale={locale}/>
+          <StayAmenities content={content!} locale={locale}/>
         </div>
         <aside class="detail-sidebar panel" aria-label={t('价格与行程', 'Price and trip preferences')}>
           <div class="window-bar"><span>{t('旅行摘要', 'Trip summary')}</span><span aria-hidden="true">PLOTSTAY</span></div>

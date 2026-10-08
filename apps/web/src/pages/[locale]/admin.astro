@@ -52,6 +52,7 @@ if (failed) Astro.response.status = localeFailure ? 503 : 404;
           </fieldset>
           <label>{label('分类', 'Category')}<select name="category"></select></label>
           <label>{label('图片，每行填写：图片标识 | HTTPS 地址', 'Images, one per line: image ID | HTTPS URL')}<textarea name="images" rows="3"></textarea></label>
+          <label>{label('服务样例日期（JSON，可留空）', 'Service sample dates (JSON, optional)')}<textarea name="serviceAttributes" rows="4"></textarea></label>
           <label>{label('活动场次与开放时间（JSON，可留空）', 'Experience sessions and opening time (JSON, optional)')}<textarea name="experienceAttributes" rows="4"></textarea></label>
           <label>{label('住宿规格与房东统计（JSON，可留空）', 'Stay specifications and host statistics (JSON, optional)')}<textarea name="stayAttributes" rows="4"></textarea></label>
           <label>{label('手记分项评分（JSON，可留空）', 'Visitor rating dimensions (JSON, optional)')}<textarea name="reviewRatings" rows="3"></textarea></label>
