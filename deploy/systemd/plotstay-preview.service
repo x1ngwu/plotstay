@@ -1,0 +1,33 @@
+[Unit]
+Description=Plotstay domain preview (Web and API)
+Wants=network-online.target docker.service
+After=network-online.target docker.service
+ConditionPathExists=/data/apps/plotstay/apps/web/dist/server/entry.mjs
+ConditionPathExists=/data/apps/plotstay/apps/api/dist/server.mjs
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/data/apps/plotstay
+Environment=NODE_ENV=production
+Environment=HOST=127.0.0.1
+Environment=PORT=4321
+Environment=API_HOST=127.0.0.1
+Environment=API_PORT=4310
+Environment=API_INTERNAL_URL=http://127.0.0.1:4310
+Environment=WEB_ORIGIN=https://plotstay.xingwu.dev
+Environment=COOKIE_SECURE=true
+Environment=SITE_URL=https://plotstay.xingwu.dev
+Environment=SITE_INDEXABLE=false
+ExecStart=/usr/bin/node scripts/preview.mjs
+Restart=on-failure
+RestartSec=5s
+TimeoutStopSec=15s
+KillMode=control-group
+NoNewPrivileges=true
+PrivateTmp=true
+UMask=0027
+
+[Install]
+WantedBy=multi-user.target

@@ -8,6 +8,8 @@ export default defineConfig({
   // Middleware combines legacy prefixes and slash cleanup into a single 308.
   trailingSlash: 'ignore',
   adapter: node({ mode: 'standalone' }),
+  // Trust HTTPS forwarding only for the configured public preview domain.
+  security: { allowedDomains: [{ hostname: 'plotstay.xingwu.dev', protocol: 'https' }] },
   session: false,
   server: { host: process.env.HOST ?? '127.0.0.1', port: Number(process.env.PORT ?? 4321) },
   // dev is supervised by scripts/dev.mjs; do not silently select another port.

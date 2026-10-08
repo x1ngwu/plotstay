@@ -25,10 +25,12 @@
 
 ## 工作区与实现边界
 
+2026-10-08 开发域名已启用：`https://plotstay.xingwu.dev`，由 Nginx 和 `plotstay-preview.service` 提供 HTTPS 及开机自启。全站 Basic Auth、noindex，公开 robots.txt 禁止爬取。用户授权后续代码修改通过验证后默认更新开发域名；执行流程见[项目操作手册](operations.md)。
+
 - 路径 `/data/apps/plotstay`，分支 `main`。阶段 1 为 `531d90c`，阶段 2 为 `f03cbef`；阶段 2.5 立项为 `ae00148`、实现为 `d705f6c`。SEO review 的空摘要修复为 `4ecf563`。本次从干净工作区 `cc98987` 开工，阶段 3 实现、视觉校准及本交接随本次提交交付；实际提交状态以 `git status` / `git log` 为准。用户提供的参考 ZIP 及本地验收产物不纳入 Git。
 - `.env` 已由 setup 生成，重复 setup 保留它；凭据不写入文档或 Git。`.env.example` 只含占位值。
 - 测试创建随机 `test_<uuid>` PostgreSQL schema，运行完整迁移和 seed，结束后清理。验收用的改名、下架等操作不改动开发 schema。
-- 本机 PostgreSQL 继续使用 `127.0.0.1:55432` 与原有数据卷。阶段 3 已在原库应用 `005_discovery.sql`，未修改 `001`–`004`。最终构建版预览使用 `127.0.0.1:4321/4310`，显式关闭索引；仍是会话进程，没有配置开机自启。完整验收与原库摘要见下方「阶段 3 实际交付与验收」。
+- 本机 PostgreSQL 继续使用 `127.0.0.1:55432` 与原有数据卷。阶段 3 已在原库应用 `005_discovery.sql`，未修改 `001`–`004`。最终构建版预览使用 `127.0.0.1:4321/4310`，显式关闭索引；现由 `plotstay-preview.service` 托管并开机自启。完整验收与原库摘要见下方「阶段 3 实际交付与验收」。
 
 ### 工程与依赖
 

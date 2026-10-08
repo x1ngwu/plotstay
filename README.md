@@ -18,6 +18,12 @@ npm run dev
 
 远程查看时使用构建版预览，避免通过 SSH 隧道加载开发工具脚本：先停止 `npm run dev`，再执行 `npm run build && npm run preview`。Web/API 仍使用相同端口；`preview` 同时启动两端，Ctrl+C 一起停止。代码修改后需重新构建和启动，数据库内容发布仍即时生效。
 
+固定域名调试入口：`https://plotstay.xingwu.dev/zh`（英文 `/en`，管理 `/zh/admin`），无需 localhost 映射。服务器通过 Nginx 和现有 Cloudflare 源站证书提供 HTTPS；`plotstay-preview.service` 托管 Web/API，并在重启后自动启动。部署配置保存在 `deploy/nginx/plotstay.xingwu.dev.conf` 和 `deploy/systemd/plotstay-preview.service`。域名服务单独设置 HTTPS `WEB_ORIGIN`、安全 Cookie 和 `SITE_INDEXABLE=false`，本地 `.env` 仍可用于 localhost 开发。
+
+更新域名预览：`npm run build && sudo systemctl restart plotstay-preview`。查看状态：`systemctl status plotstay-preview`；查看日志：`journalctl -u plotstay-preview -n 100 --no-pager`。同一服务器上的域名服务占用 4321/4310，运行本地开发命令前需要先停服务，或为开发另选端口。
+
+**默认发布约定：每次代码修改完成并通过相关验证后，默认更新上述开发域名并验证线上结果，无需再次确认。** 全站启用 Basic Auth（用户名 `admin`，密码按用户指定的服务器配置），保持 `noindex`；公开的 `/robots.txt` 统一禁止爬取。完整流程见[项目操作手册](docs/operations.md)。
+
 `start:web` 通过 `apps/web/server.mjs` 加载已构建的 Astro handler，启用 Brotli / gzip；浏览时不会编译。字体按字符分包，构建资源使用内容哈希及长期缓存，HTML 继续 `no-store`。优化后的字体规则和同条件测速见[加载优化记录](docs/font-previews.md#加载优化2026-10-07)。
 
 管理入口：`http://localhost:4321/zh/admin`（英文为 `/en/admin`）。使用 `.env` 中的 `ADMIN_EMAIL` / `ADMIN_PASSWORD` 登录，可编辑、导入、审核发布、下架及恢复历史发布。浏览器通过 Web 的同域 `/api` 转发访问独立后端，不需另开 SSH 转发端口。

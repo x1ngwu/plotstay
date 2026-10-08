@@ -1,0 +1,68 @@
+# Plotstay 项目操作手册
+
+## 开发域名与默认发布规则
+
+`https://plotstay.xingwu.dev` 是开发调试环境，中文入口 `/zh`，英文入口 `/en`，后台 `/zh/admin`。域名根路径自动跳转语言首页。
+
+用户于 2026-10-08 授权：以后每次代码修改完成并通过相关验证，都默认更新线上开发域名，无需再次确认发布。除非用户明确要求暂不部署，否则任务完成包含构建、服务更新和线上验证。只修改文档时不需要重启；这项授权不代表自动推进尚未授权的产品阶段。
+
+## 访问和爬虫设置
+
+- 整个开发域名默认需要 Nginx Basic Auth，用户名 `admin`，密码使用用户指定值。密码哈希仅保存在服务器 `/etc/nginx/auth/plotstay.htpasswd`，不写入仓库；应用后台仍使用原 `.env` 账户。
+- 所有应用页面、API、静态资源及未找到页面都受认证保护；未登录或密码错误返回 `401`。
+- HTTP 自动跳转 HTTPS；全域响应（包括跳转与错误）都带 `X-Robots-Tag: noindex, nofollow, noarchive`。
+- 唯一公开例外为 `/robots.txt`，始终返回 `User-agent: *` 和 `Disallow: /`，让爬虫无需认证也能读取禁止爬取规则。
+- 应用维持 `SITE_INDEXABLE=false`，页面不开放索引，sitemap 为空。Nginx 同时统一覆盖上游索引头，避免新增页面遗漏。
+- 开发域名响应使用 `Cache-Control: private, no-store`，避免认证后的页面或静态资源被共享缓存。新增 Nginx location 时必须保留认证和上述响应头。
+
+## 日常发布
+
+工作目录为 `/data/apps/plotstay`。按修改范围完成相关检查，然后执行：
+
+```bash
+npm run build
+sudo systemctl restart plotstay-preview
+curl --retry 10 --retry-connrefused --retry-delay 1 --fail http://127.0.0.1:4321/api/health
+systemctl is-active plotstay-preview
+```
+
+构建失败时先修复，不重启到失败产物。`npm run build` 包含 TypeScript / Astro 检查；域名运行构建版，修改源码不会自动热更新。若涉及数据库结构，发布时执行所需增量迁移，保留原数据库及数据卷，不默认重新 seed。
+
+线上验收至少包括：未认证页面返回 `401`、`/robots.txt` 返回禁止爬取指令、认证后 `/zh` 与 `/en` 正常、相关改动页面或功能正常，以及响应中包含 `noindex`。可用以下命令检查；`curl --user admin` 会交互询问密码：
+
+```bash
+curl -I https://plotstay.xingwu.dev/zh
+curl https://plotstay.xingwu.dev/robots.txt
+curl --user admin -I https://plotstay.xingwu.dev/zh
+curl --user admin https://plotstay.xingwu.dev/api/health
+```
+
+## 代理和服务配置
+
+配置源文件：`deploy/nginx/plotstay.xingwu.dev.conf`、`deploy/systemd/plotstay-preview.service`。
+
+Nginx 配置变更后安装并检查，再平滑重载：
+
+```bash
+sudo install -m 644 deploy/nginx/plotstay.xingwu.dev.conf /etc/nginx/sites-available/plotstay.xingwu.dev.conf
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+已有 `/etc/nginx/sites-enabled/plotstay.xingwu.dev.conf` 链接。TLS 使用 `/etc/ssl/cloudflare/xingwu.dev/` 的现有源站证书，经 Cloudflare 对外提供 HTTPS。密码文件属主为 `root:www-data`、权限 `640`；更换 Basic Auth 密码可执行 `sudo htpasswd /etc/nginx/auth/plotstay.htpasswd admin`，交互输入新值。
+
+systemd 配置变更后：
+
+```bash
+sudo install -m 644 deploy/systemd/plotstay-preview.service /etc/systemd/system/plotstay-preview.service
+sudo systemctl daemon-reload
+sudo systemctl restart plotstay-preview
+```
+
+`plotstay-preview` 已开机自启，同时托管 Web/API，故障自动重启。服务覆盖 HTTPS `WEB_ORIGIN`、安全 Cookie 和关闭索引设置，`.env` 保留本地开发参数及应用凭据。内部 Web/API 仅监听 `127.0.0.1:4321/4310`；本机开发请另选端口，或明确停止域名服务后再运行。
+
+```bash
+systemctl status plotstay-preview
+journalctl -u plotstay-preview -n 100 --no-pager
+sudo tail -n 50 /var/log/nginx/plotstay.xingwu.dev.error.log
+```
