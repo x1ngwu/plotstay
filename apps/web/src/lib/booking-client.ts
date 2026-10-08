@@ -153,7 +153,7 @@ export async function initBooking() {
     const init = async () => {
       try { await request('/api/guest'); }
       catch (e) {
-        if (recovery.pending || !(e instanceof BookingFailure) || e.status !== 401) throw e;
+        if (recovery.pending || !(e instanceof BookingFailure) || e.code !== 'SESSION_REQUIRED') throw e;
         await request('/api/guest', {}); await request('/api/guest');
       }
     };
@@ -190,7 +190,7 @@ export async function initReceipt() {
       get<HTMLAnchorElement>('[data-book-again]').href = `/${prefix}/booking/${s.contentId}?${params}`;
       get<HTMLAnchorElement>('[data-explore]').href = `/${prefix}?world=${encodeURIComponent(s.worldSlug)}`;
     } catch (e) {
-      message.textContent = e instanceof BookingFailure && [401, 404].includes(e.status)
+      message.textContent = e instanceof BookingFailure && (e.code === 'SESSION_REQUIRED' || e.status === 404)
         ? t('无法访问这张凭条。请使用保有原游客 Cookie 的浏览器；编号或链接不能用来访问其他人的记录。', 'This document is unavailable. Use the browser holding your original visitor cookie; a number or link cannot grant access to someone else’s record.') : errorMessage(e, locale);
       get('[data-load-retry]').hidden = false;
     } finally { get<HTMLButtonElement>('[data-load-retry]').disabled = false; }

@@ -37,7 +37,7 @@ async function api(path: string, body?: unknown, method = 'POST'): Promise<any> 
   const response = await fetch('/api' + path, { method: body === undefined ? 'GET' : method, credentials: 'same-origin',
     ...(body === undefined ? {} : { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }) });
   const data = await response.json();
-  if(response.status===401)el('login').hidden=false;
+  if(data.error?.code==='SESSION_REQUIRED')el('login').hidden=false;
   if (!response.ok) throw Object.assign(new Error(data.error?.message ?? l('请求失败', 'Request failed')), data.error);
   return data;
 }

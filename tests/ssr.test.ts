@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { get } from 'node:http';
+import { createServer, get, request } from 'node:http';
 import { brotliDecompressSync, gunzipSync } from 'node:zlib';
 import { chromium, expect } from '@playwright/test';
 import { createContentSchema, editContentSchema } from '@plotstay/contracts';
@@ -31,6 +31,65 @@ test('built PostgreSQL → standalone API → Astro → browser', { timeout: 120
   const initialHash = await artifactHash();
   const roomPath = '/en/worlds/lathe-worlds/stays/observation-room';
   const room = f.data.ids['observation-room'];
+
+  await t.test('cookie session failures do not invalidate cached Basic Auth credentials', async () => {
+    const basic = 'Basic ' + Buffer.from('preview:test-password').toString('base64');
+    const proxy = createServer((incoming, outgoing) => {
+      if (incoming.headers.authorization !== basic) {
+        outgoing.writeHead(401, { 'WWW-Authenticate': 'Basic realm="Plotstay regression"' });
+        outgoing.end('Authentication required');
+        return;
+      }
+      const { authorization: _, ...headers } = incoming.headers;
+      const upstream = request(webUrl + incoming.url, { method: incoming.method, headers }, response => {
+        outgoing.writeHead(response.statusCode!, response.headers);
+        response.pipe(outgoing);
+      });
+      upstream.on('error', () => { outgoing.writeHead(502); outgoing.end(); });
+      incoming.pipe(upstream);
+    });
+    await new Promise<void>(resolve => proxy.listen(0, '127.0.0.1', resolve));
+    const origin = `http://127.0.0.1:${(proxy.address() as import('node:net').AddressInfo).port}`;
+    const browser = await chromium.launch();
+    try {
+      for (const path of ['/en', '/api/auth/me', '/api/guest', '/media/quarters.svg']) {
+        const rejected = await fetch(origin + path);
+        assert.equal(rejected.status, 401);
+        assert.match(rejected.headers.get('www-authenticate')!, /Basic/);
+      }
+      const context = await browser.newContext();
+      const page = await context.newPage();
+      const cdp = await context.newCDPSession(page);
+      let challenges = 0;
+      await cdp.send('Fetch.enable', { handleAuthRequests: true });
+      cdp.on('Fetch.requestPaused', event => { void cdp.send('Fetch.continueRequest', { requestId: event.requestId }); });
+      cdp.on('Fetch.authRequired', event => {
+        challenges++;
+        void cdp.send('Fetch.continueWithAuth', { requestId: event.requestId, authChallengeResponse: {
+          response: 'ProvideCredentials', username: 'preview', password: 'test-password',
+        } });
+      });
+      for (const path of ['/en', roomPath, '/zh', '/en/account']) {
+        assert.equal((await page.goto(origin + path))!.status(), 200);
+        const failures = await page.evaluate(async () => {
+          return Promise.all(['/api/auth/me', '/api/guest', '/api/me/personas', '/api/admin/worlds'].map(async path => {
+            const response = await fetch(path);
+            return { status: response.status, challenge: response.headers.get('www-authenticate'), body: await response.json() };
+          }));
+        });
+        for (const failure of failures) {
+          assert.equal(failure.status, 403);
+          assert.equal(failure.challenge, null);
+          assert.equal(failure.body.error.code, 'SESSION_REQUIRED');
+        }
+      }
+      assert.equal(challenges, 1, 'Only the initial visit should request HTTP credentials');
+      await context.close();
+    } finally {
+      await browser.close();
+      await new Promise<void>(resolve => { proxy.close(() => resolve()); proxy.closeAllConnections(); });
+    }
+  });
 
   await t.test('SSR returns database text, expected routes, no-store headers and real status codes', async () => {
     const redirect = await fetch(webUrl + '/?world=test-harbour', { redirect: 'manual' });
@@ -187,7 +246,7 @@ test('built PostgreSQL → standalone API → Astro → browser', { timeout: 120
       await page.screenshot({ path: 'test-results/management.png', fullPage: true });
       await page.locator('#logout').click();
       await expect(page.locator('#login')).toBeVisible();
-      assert.equal((await context.request.get(webUrl + '/api/auth/me')).status(), 401);
+      assert.equal((await context.request.get(webUrl + '/api/auth/me')).status(), 403);
     } finally { await browser.close(); }
   });
 

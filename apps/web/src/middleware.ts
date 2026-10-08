@@ -25,6 +25,13 @@ export const onRequest = defineMiddleware(async (context, next) => {
   if (normalized && normalized !== context.url.pathname && ['GET', 'HEAD'].includes(context.request.method)) {
     response = context.redirect(normalized + context.url.search, 308);
   } else response = await next();
+  // Only the outer Basic Auth gate may send a browser-facing 401. Cookie
+  // session failures must not evict the browser's cached HTTP credentials.
+  // Preserve the API error code/body so clients can still request sign-in.
+  if (response.status === 401) {
+    response = new Response(response.body, { status: 403, headers: response.headers });
+    response.headers.delete('WWW-Authenticate');
+  }
   response.headers.set('Cache-Control', 'no-store');
   response.headers.set('X-Content-Type-Options', 'nosniff');
   if (!indexable || response.status >= 400 || prefix === 'api') response.headers.set('X-Robots-Tag', 'noindex, follow');

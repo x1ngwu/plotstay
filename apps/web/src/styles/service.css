@@ -5,6 +5,8 @@
 .service-detail p { line-height:1.65; }
 .service-detail h3 { font-size:1rem; line-height:1.5; margin:0 0 .4rem; }
 .service-sidebar { min-width:0; position:sticky; top:1.25rem; }
+/* Expanded dates can exceed the viewport, especially in the no-script view. */
+.service-sidebar:has(.stay-expand[open]) { position:static; }
 .service-introduction { text-align:center; }
 .service-cover { display:grid; place-items:center; aspect-ratio:2; width:100%; border:1px solid var(--line); }
 .service-cover img { width:100%; height:100%; object-fit:cover; }

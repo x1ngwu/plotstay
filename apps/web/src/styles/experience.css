@@ -23,6 +23,7 @@
 .experience-facts p { color:var(--muted); font-size:.8rem; margin:.15rem 0 0; }
 .experience-main { grid-column:1; grid-row:3; }
 .experience-sessions { grid-column:2; grid-row:3 / 6; position:sticky; top:1rem; padding-top:.25rem; min-width:0; }
+.experience-sessions:has(.stay-expand[open]) { position:static; }
 .experience-location { grid-column:1; grid-row:4; }
 .experience-host { grid-column:1; grid-row:5; }
 .experience-gallery .detail-gallery:has(.gallery-thumbs) { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.5rem; }

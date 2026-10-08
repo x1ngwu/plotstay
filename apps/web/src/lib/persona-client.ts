@@ -72,7 +72,7 @@ export async function initAccount() {
     });
     const data = await r.json();
     if (!r.ok) {
-      if (r.status === 401) {
+      if (data.error?.code === 'SESSION_REQUIRED') {
         login.hidden = false;
         content.inert = true;
       }

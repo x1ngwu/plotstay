@@ -15,6 +15,12 @@
 - 应用维持 `SITE_INDEXABLE=false`，页面不开放索引，sitemap 为空。Nginx 同时统一覆盖上游索引头，避免新增页面遗漏。
 - 开发域名响应使用 `Cache-Control: private, no-store`，避免认证后的页面或静态资源被共享缓存。新增 Nginx location 时必须保留认证和上述响应头。
 
+### Basic Auth 与应用会话的状态码
+
+浏览器会因应用接口的 `401` 清除同源 Basic Auth 凭据，即使该响应没有 `WWW-Authenticate`，也会导致之后的页面和资源重新弹窗。因此浏览器入口由 Web middleware 将应用返回的 `401` 转为 `403`，保留 `SESSION_REQUIRED` / `INVALID_CREDENTIALS` 错误正文；账号、后台与预订客户端按错误码处理重新登录或游客身份恢复。草稿预览的未登录响应同样转换。
+
+Nginx 未通过 Basic Auth 时仍返回 `401` 和原认证 realm；内部 API 的原始状态码不变。不要将应用会话失败重新暴露为浏览器端 `401`，也不要为解决弹窗而放开页面、API 或资源的 Basic Auth。浏览器负责记住 Basic Auth 凭据，其保留时间受浏览器会话／隐私设置影响，不是应用账号的 12 小时 Cookie 有效期。
+
 ## 日常发布
 
 工作目录为 `/data/apps/plotstay`。按修改范围完成相关检查，然后执行：

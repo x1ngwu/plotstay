@@ -23,6 +23,39 @@ test('phase 4 detail browser acceptance', {timeout:180000}, async t => {
   const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
   const route=(kind:string,locale='en')=>`/${locale}/worlds/lathe-worlds/${kind==='stay'?'stays':kind==='experience'?'experiences':'services'}/detail-${kind}`;
   const dir='test-results/phase4';await mkdir(dir,{recursive:true});
+  await t.test('expanded content has its collapse control at the bottom, including without JavaScript', async () => {
+    for (const javaScriptEnabled of [true, false]) {
+      const c = await browser.newContext({ javaScriptEnabled });
+      try {
+        const p = await c.newPage();
+        for (const locale of ['en', 'zh']) for (const width of [1440, 390]) {
+          await p.setViewportSize({ width, height: 900 });
+          for (const path of ['stays/dockside-window', 'experiences/forge-walk', 'services/augmetic-tune-up']) {
+            await p.goto(webUrl + `/${locale}/worlds/lathe-worlds/${path}`);
+            for (const disclosure of await p.locator('.stay-expand').all()) {
+              const summary = disclosure.locator(':scope > summary');
+              const content = disclosure.locator(':scope > .stay-expanded');
+              await summary.focus(); await p.keyboard.press('Enter');
+              await expect(content).toBeVisible();
+              const bounds = await disclosure.evaluate(el => ({
+                control: el.querySelector('summary')!.getBoundingClientRect().top,
+                content: el.querySelector('.stay-expanded')!.getBoundingClientRect().bottom,
+              }));
+              assert.ok(bounds.control >= bounds.content, `${path}: collapse must follow content`);
+              await expect(summary).toContainText(locale === 'en' ? 'Show less' : '收起');
+              const preview = disclosure.locator('..').locator(':scope > .stay-review-preview');
+              if (await preview.count()) await expect(preview).toBeHidden();
+              try { await summary.click({ timeout: 5000 }); }
+              catch (error) { throw new Error(`${path}, ${locale}, width ${width}, JS ${javaScriptEnabled}, disclosure ${await disclosure.getAttribute('id')}: ${error}`); }
+              await expect(content).toBeHidden();
+              if (await preview.count()) await expect(preview).toBeVisible();
+            }
+            assert.ok(await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+          }
+        }
+      } finally { await c.close(); }
+    }
+  });
   await t.test('each type renders published special modules, people and fictional notes',async()=>{
     for(const kind of ['stay','experience','service']){
       await page.goto(webUrl+route(kind));
