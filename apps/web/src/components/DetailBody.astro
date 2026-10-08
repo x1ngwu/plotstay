@@ -1,0 +1,71 @@
+---
+import { detailMessages, detailBilingual } from '../lib/detail-copy';
+import BookingEntry from './booking/Entry.astro';
+import Service from './detail/service/Service.astro';
+import '../styles/service.css';
+import Experience from './detail/experience/Experience.astro';
+import '../styles/experience.css';
+import Trip from './Trip.astro';
+import Card from './Card.astro';
+import Gallery from './detail/Gallery.astro';
+import DetailSection from './detail/DetailSection.astro';
+import StayOverview from './detail/stay/Overview.astro';
+import StayDescription from './detail/stay/Description.astro';
+import StayAmenities from './detail/stay/Amenities.astro';
+import StayReviews from './detail/stay/Reviews.astro';
+import StayLocation from './detail/stay/Location.astro';
+import StayHost from './detail/stay/Host.astro';
+import StayPolicies from './detail/stay/Policies.astro';
+import StaySleeping from './detail/stay/Sleeping.astro';
+import { browsePath, detailPath, type ContentDetail, type Locale, type World, type BrowseState } from '@plotstay/contracts';
+const {detail,locale,world,state}=Astro.props as {detail:ContentDetail;locale:Locale;world:World;state:BrowseState};
+if(!Astro.locals.detailCopy){try{const {api}=await import('../lib/api');Astro.locals.detailCopy=(await api<{body:Record<string,Record<string,string>>}>('/api/detail-copy')).body;}catch{/* Original wording is the offline fallback. */}}
+const content=detail.content,ui=detailMessages(locale.code,Astro.locals.detailCopy),t=detailBilingual(locale.code, Astro.locals.detailCopy, 'common');
+const notesHref=(page:number)=>{const url=new URL(detailPath(locale,content,state),Astro.url);if(page>1)url.searchParams.set('notesPage',String(page));return url.pathname+url.search+'#notes';};
+---
+    <article class="detail-panel" data-content-id={content!.id} data-publication-id={content!.publicationId}>
+      {content!.kind === 'experience' ? <Experience detail={detail!} locale={locale} world={world!} state={state}/> : content!.kind === 'service' ? <Service detail={detail!} locale={locale} world={world!} state={state} pageHref={notesHref}/> : <>
+      <header class="detail-heading">
+        <p class="eyebrow">{content!.kind === 'stay' ? ui.stays : ui.services} / {world!.name}</p>
+        <h1 lang={content!.languageTag}>{content!.text.title}</h1>
+        <div class="detail-meta"><span>{content!.placeName ?? world!.name}</span>
+          {content!.attributes.category && <span>{content!.categoryName ?? content!.attributes.category}</span>}
+          {content!.attributes.durationMinutes && <span>{content!.attributes.durationMinutes} {ui.minutes}</span>}
+          {detail!.reviews.total > 0 && <a href="#notes">{ui.notes} · {detail!.reviews.total}</a>}
+        </div>
+        {content!.isFallback && <p class="notice">{ui.fallback}</p>}
+      </header>
+      <Gallery content={content!} locale={locale} />
+      {content!.kind === 'stay' && <nav class="stay-section-nav" aria-label={t('住宿详情栏目','Stay detail sections')}>
+        <a href="#stay-specs">{t('概览','Overview')}</a><a href="#facilities">{t('设施','Amenities')}</a><a href="#notes">{t('手记','Reviews')}</a><a href="#location">{t('位置','Location')}</a><a href="#host">{t('房东','Host')}</a><a href="#rules">{t('须知','Things to know')}</a>
+      </nav>}
+      <div class="detail-columns">
+        <div class="detail-body">
+          <StayOverview detail={detail!} locale={locale}/>
+          <StayDescription content={content!} locale={locale}/>
+          <StaySleeping content={content!} locale={locale}/>
+          <StayAmenities content={content!} locale={locale}/>
+        </div>
+        <aside class="detail-sidebar panel" aria-label={t('价格与行程', 'Price and trip preferences')}>
+          <div class="window-bar"><span>{t('旅行摘要', 'Trip summary')}</span><span aria-hidden="true">PLOTSTAY</span></div>
+          <div class="detail-sidebar-body">
+            {content!.attributes.price && <p class="detail-price"><strong>{new Intl.NumberFormat(locale.languageTag).format(content!.attributes.price.amount)}</strong> {world!.currencyName} <span>/ {ui[content!.attributes.price.unit]}</span></p>}
+            <p class="detail-fiction">{ui.about}</p>
+            <Trip state={state} locale={locale} />
+            <BookingEntry content={content!} locale={locale} state={state}/>
+            <a class="detail-return-link" href={browsePath(locale, state)}>{state.view === 'results' ? t('返回列表', 'Back to results') : t('继续浏览', 'Continue exploring')} →</a>
+          </div>
+        </aside>
+      </div>
+      {content!.kind === 'stay' && <div class="stay-full-width">
+        <StayReviews detail={detail!} locale={locale} pageHref={notesHref}/>
+        <StayLocation content={content!} locale={locale} state={state} world={world!}/>
+        <StayHost content={content!} locale={locale}/>
+        <StayPolicies content={content!} locale={locale}/>
+      </div>}
+      </>}
+    </article>
+    {detail!.related.length > 0 && <DetailSection id="related" title={t('继续探索这个世界', 'Explore more in this world')}>
+      <ul class="detail-related">{detail!.related.map(item => <Card content={item} world={world!} locale={locale} category={item.categoryName ?? undefined} href={detailPath(locale, item, state)} />)}</ul>
+    </DetailSection>}
+    {content!.kind === 'experience' && <StayReviews detail={detail!} locale={locale} pageHref={notesHref}/>}

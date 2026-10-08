@@ -21,7 +21,8 @@ if (failed) Astro.response.status = localeFailure ? 503 : 404;
       <div class="admin-actions"><span id="account"></span><button id="logout">{label('退出登录', 'Sign out')}</button></div>
       <label>{label('管理世界', 'World')}<select id="world"></select></label>
       <div class="admin-actions"><button id="new">{label('新建内容', 'New content')}</button><button id="refresh-list">{label('刷新列表', 'Refresh list')}</button></div>
-      <label>{label('筛选类型', 'Filter type')}<select id="filter-kind"><option value="">{label('全部', 'All')}</option><option value="stay">{label('住宿', 'Homes')}</option><option value="experience">{label('活动', 'Experiences')}</option><option value="service">{label('服务', 'Services')}</option><option value="review">{label('手记', 'Notes')}</option></select></label><div class="admin-table"><table><thead><tr><th>{label('内容', 'Content')}</th><th>{label('草稿状态', 'Draft status')}</th><th>{label('公开状态', 'Visibility')}</th><th>{label('操作', 'Action')}</th></tr></thead><tbody id="content-list"></tbody></table></div>
+      <label>{label('筛选类型', 'Filter type')}<select id="filter-kind"><option value="">{label('全部', 'All')}</option><option value="stay">{label('住宿', 'Homes')}</option><option value="experience">{label('活动', 'Experiences')}</option><option value="service">{label('服务', 'Services')}</option><option value="review">{label('手记', 'Notes')}</option></select></label><label>{label('名称或网址标识','Title or slug')}<input id="filter-query" type="search" /></label><label>{label('发布状态','Publication status')}<select id="filter-status"><option value="">{label('全部','All')}</option><option value="published">{label('已公开','Published')}</option><option value="unpublished">{label('未公开','Unpublished')}</option><option value="submitted">{label('待审核','Submitted')}</option><option value="draft">{label('草稿','Draft')}</option></select></label><button id="search-list">{label('查找全部内容','Search all entries')}</button><div class="admin-actions"><button id="list-prev">←</button><span id="list-page"></span><button id="list-next">→</button></div><div class="admin-table"><table><thead><tr><th>{label('内容', 'Content')}</th><th>{label('草稿状态', 'Draft status')}</th><th>{label('公开状态', 'Visibility')}</th><th>{label('操作', 'Action')}</th></tr></thead><tbody id="content-list"></tbody></table></div>
+      <details class="panel"><summary>{label('共用详情文案与关联资料','Detail copy and shared references')}</summary><section id="settings-panel"></section></details>
       <details class="panel" id="import-panel">
         <summary>{label('批量导入', 'Batch import')}</summary>
         <p>{label('先预览校验结果，再导入为草稿。相同来源与外部编号不会重复导入，已有内容不会被覆盖。', 'Preview validation before importing drafts. Source and external IDs prevent duplicate imports; existing content is preserved.')}</p>
@@ -51,18 +52,27 @@ if (failed) Astro.response.status = localeFailure ? 503 : 404;
             <label>{label('手记叙事评分（可选 1–5）', 'Narrative rating (optional, 1–5)')}<input name="rating" type="number" min="1" max="5" step="1" /></label>
           </fieldset>
           <label>{label('分类', 'Category')}<select name="category"></select></label>
+          <button id="toggle-mode" type="button">{label('切换到高级 JSON','Switch to advanced JSON')}</button>
+          <p>{label('文本列表按语言独立管理，图片以 ID 关联。删除项目会保存空列表；取消栏目配置恢复旧默认。','Text lists are independent per language. Images use stable IDs. Removing items saves an empty list; disabling a section restores legacy defaults.')}</p>
+          <button id="refresh-image-fields" type="button">{label('刷新图片说明字段','Refresh image description fields')}</button>
+          <div id="structured-editor"></div>
+          <div id="advanced-fields" hidden>
           <label>{label('图片，每行填写：图片标识 | HTTPS 地址', 'Images, one per line: image ID | HTTPS URL')}<textarea name="images" rows="3"></textarea></label>
           <label>{label('服务样例日期（JSON，可留空）', 'Service sample dates (JSON, optional)')}<textarea name="serviceAttributes" rows="4"></textarea></label>
           <label>{label('活动场次与开放时间（JSON，可留空）', 'Experience sessions and opening time (JSON, optional)')}<textarea name="experienceAttributes" rows="4"></textarea></label>
           <label>{label('住宿规格与房东统计（JSON，可留空）', 'Stay specifications and host statistics (JSON, optional)')}<textarea name="stayAttributes" rows="4"></textarea></label>
           <label>{label('手记分项评分（JSON，可留空）', 'Visitor rating dimensions (JSON, optional)')}<textarea name="reviewRatings" rows="3"></textarea></label>
           <div id="language-fields"></div>
+          </div>
           <button type="submit">{label('保存为新草稿', 'Save as new draft')}</button>
+          <button id="export-draft" type="button">{label('下载当前草稿副本','Download current draft copy')}</button>
           <button id="reload-editor" type="button">{label('重新载入最新版本', 'Reload latest version')}</button>
         </form>
         <section id="workflow" hidden>
+          <div class="admin-actions"><button id="entry-notes">{label('管理此条目的手记','Manage notes for this entry')}</button><button id="new-note">{label('新增后台手记','New editorial note')}</button><button id="preview-draft">{label('打开已保存草稿预览','Preview saved draft')}</button><span id="preview-links"></span></div>
           <h3>{label('审核与发布', 'Review and publication')}</h3>
           <p>{label('请检查源文与所有译文。以下操作针对已保存的版本；未保存的输入不会被发布。', 'Check the source and every translation. These actions apply to the saved version.')}</p>
+          <pre id="content-changes"></pre>
           <label>{label('审核备注', 'Moderation note')}<textarea id="moderation-note" rows="2"></textarea></label>
           <div class="admin-actions">
             <button id="submit-revision">{label('提交审核', 'Submit for review')}</button>
@@ -86,6 +96,13 @@ if (failed) Astro.response.status = localeFailure ? 503 : 404;
   import '../../lib/admin';
 </script>
 <style is:global>
+  #admin .bilingual-fields { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; }
+  #admin .language-tabs { display:none; }
+  #admin #structured-editor fieldset { padding:.6rem; }
+  #admin .repeat-row > fieldset { border:0; margin:.25rem 0; padding:0; }
+  #admin .repeat-row { padding:.5rem; border-bottom:1px solid var(--line); }
+  #admin input[type=checkbox] { width:auto; }
+  @media(max-width:700px) { #admin .bilingual-fields { grid-template-columns:1fr; } #admin .language-pane[data-active=false] { display:none; } #admin .language-tabs { display:flex; } }
   #admin [hidden] { display: none !important; }
   #admin label { display: grid; gap: .35rem; margin: .8rem 0; }
   #admin input, #admin select, #admin textarea, #admin button { font: inherit; color: var(--text); background: var(--surface); border: 1px solid var(--line); padding: .55rem; max-width: 100%; }

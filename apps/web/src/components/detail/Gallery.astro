@@ -1,11 +1,11 @@
 ---
+import { detailBilingual } from '../../lib/detail-copy';
 import type { PublicContent, Locale } from '@plotstay/contracts';
-import { bilingual } from '../../lib/i18n';
 const { content, locale } = Astro.props as { content: PublicContent; locale: Locale };
-const t = bilingual(locale.code);
+const t = detailBilingual(locale.code, Astro.locals.detailCopy, 'common');
 const images = content.attributes.images;
 const symbol = content.kind === 'stay' ? '⌂' : content.kind === 'experience' ? '✳' : '⌘';
-const label = (index: number) => `${t('查看图片', 'View image')} ${index + 1} / ${images.length}`;
+const label = (index: number) => t.format('imagePosition',{index:index+1,count:images.length});
 ---
 <section class="detail-gallery" data-gallery aria-label={t('图库', 'Photo gallery')}>
   {images.length ? <>

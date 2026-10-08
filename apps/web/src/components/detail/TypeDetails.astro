@@ -1,9 +1,9 @@
 ---
+import { detailBilingual } from '../../lib/detail-copy';
 import type { PublicContent, Locale } from '@plotstay/contracts';
-import { bilingual } from '../../lib/i18n';
 import DetailSection from './DetailSection.astro';
 const { content, locale } = Astro.props as { content: PublicContent; locale: Locale };
-const t = bilingual(locale.code);
+const t = detailBilingual(locale.code, Astro.locals.detailCopy, 'common');
 const stay = content.kind === 'stay', experience = content.kind === 'experience';
 const sections = [
   ...(stay ? [

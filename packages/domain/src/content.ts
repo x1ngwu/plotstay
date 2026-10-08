@@ -101,9 +101,10 @@ export function saveTranslation(db: Database, actor: Actor, id: string, revision
     return { saved: true };
   });
 }
-export function submitRevision(db: Database, actor: Actor, id: string, revisionId: string) {
+export function submitRevision(db: Database, actor: Actor, id: string, revisionId: string, draftToken?: string) {
   return transaction(db, async client => {
     const { content } = await lockContent(client, actor, id);
+    assert(!draftToken || content.draft_token === draftToken,409,'REVISION_CONFLICT','Draft translations changed. Reload before submitting.');
     assert(content.head_revision_id === revisionId, 409, 'REVISION_CONFLICT', 'Submit the current draft.');
     const result = await client.query("UPDATE content_revisions SET status='submitted' WHERE id=$1 AND status IN ('draft','rejected') RETURNING id", [revisionId]);
     assert(result.rowCount, 409, 'REVISION_LOCKED', 'This version cannot be submitted.');
@@ -111,9 +112,10 @@ export function submitRevision(db: Database, actor: Actor, id: string, revisionI
     return { submitted: true };
   });
 }
-export function reviewRevision(db: Database, actor: Actor, id: string, revisionId: string, decision: 'publish' | 'reject', note: string) {
+export function reviewRevision(db: Database, actor: Actor, id: string, revisionId: string, decision: 'publish' | 'reject', note: string, draftToken?: string) {
   return transaction(db, async client => {
     const { content, world } = await lockContent(client, actor, id, true);
+    assert(!draftToken || content.draft_token === draftToken,409,'REVISION_CONFLICT','Draft translations changed. Reload before reviewing.');
     assert(content.head_revision_id === revisionId, 409, 'REVISION_CONFLICT', 'Review the current submitted version.');
     const { rows: [revision] } = await client.query('SELECT * FROM content_revisions WHERE id=$1', [revisionId]);
     assert(revision.status === 'submitted', 409, 'NOT_SUBMITTED', 'Submit this version for review first.');

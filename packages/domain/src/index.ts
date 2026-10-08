@@ -8,3 +8,4 @@ export * from './translation.ts';
 export * from './home.ts';
 export * from './browse.ts';
 export * from './detail.ts';
+export * from './settings.ts';

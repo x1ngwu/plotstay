@@ -140,6 +140,7 @@ test('built PostgreSQL → standalone API → Astro → browser', { timeout: 120
       const cookies = await context.cookies(webUrl + '/api/auth/me');
       assert.ok(cookies.some(cookie => cookie.name === 'plotstay_session' && cookie.httpOnly && cookie.path === '/api'));
       await page.locator('#new').click();
+      await page.locator('#toggle-mode').click();
       await page.locator('[name=slug]').fill('browser-managed-room');
       await page.locator('[name=amount]').fill('42');
       await page.locator('[name="en:title"]').fill('Browser managed room');
@@ -161,6 +162,7 @@ test('built PostgreSQL → standalone API → Astro → browser', { timeout: 120
       await page.locator('[name="en:title"]').fill('First editor saved');
       await page.locator('#editor button[type=submit]').click();
       await expect(page.locator('#revision-state')).toContainText('版本 2');
+      await second.locator('#toggle-mode').click();
       await second.locator('[name="en:title"]').fill('SECOND EDITOR INPUT MUST REMAIN');
       await second.locator('#editor button[type=submit]').click();
       await expect(second.locator('#message')).toContainText('保存冲突');

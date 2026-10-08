@@ -1,11 +1,11 @@
 ---
+import { detailBilingual } from '../../../lib/detail-copy';
 import BookingEntry from '../../booking/Entry.astro';
 import type { PublicContent,Locale,World,BrowseState } from '@plotstay/contracts';
-import { bilingual } from '../../../lib/i18n';
 import Icon from '../stay/Icon.astro';
 import Expand from '../stay/Expand.astro';
 const {content:c,locale,world,state}=Astro.props as {content:PublicContent;locale:Locale;world:World;state:BrowseState};
-const t=bilingual(locale.code),e=c.attributes.experience;
+const t=detailBilingual(locale.code, Astro.locals.detailCopy, 'experience'),e=c.attributes.experience;
 const date=new Intl.DateTimeFormat(locale.languageTag,{month:'long',day:'numeric',weekday:'long',timeZone:'UTC'});
 const time=new Intl.DateTimeFormat(locale.languageTag,{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'UTC'});
 ---

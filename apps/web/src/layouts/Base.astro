@@ -26,7 +26,7 @@ if (!seo.canonical) Astro.response.headers.set('X-Robots-Tag', 'noindex, follow'
     {fontPreloads(fontStyle, interfaceTag, preloadDisplayFonts).map(font => <link rel="preload" href={font.href} as="font" type={font.type} crossorigin="anonymous" />)}
     <title>{title} · Plotstay</title>
     <meta name="description" content={description} />
-    {!seo.canonical && <meta name="robots" content="noindex, follow" />}
+    {!seo.canonical && <meta name="robots" content={Astro.url.pathname.startsWith('/api/admin/preview/') ? 'noindex, nofollow, noarchive' : 'noindex, follow'} />}
     {seo.canonical && <link rel="canonical" href={seo.canonical} />}
     {seo.alternates.map(item => <link rel="alternate" hreflang={item.tag} href={item.url} />)}
   </head>

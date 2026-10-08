@@ -1,0 +1,55 @@
+import { z } from 'zod';
+// Text lists are language independent. Media references use IDs, never translated indexes.
+const names: Record<string,string> = {
+ title:'名称',summary:'短介绍',description:'详细说明',tags:'关键词',facilities:'原有设施（与完整设施并列）',rules:'原有须知（展开区域）',itinerary:'原有流程（展开区域）',hostName:'人物姓名',hostBio:'原人物介绍（保留独立正文）',imageAlts:'图片说明',highlights:'亮点',included:'包含项目',serviceItems:'原服务项目',stay:'住宿栏目',experience:'活动栏目',service:'服务栏目',review:'手记旅客',
+ propertyType:'住宿类型',bathroom:'卫浴说明',introduction:'栏目介绍',space:'房间与公共空间',registration:'登记信息',sleeping:'睡眠安排',name:'名称',favoriteTitle:'口碑标题',favoriteDescription:'口碑说明',amenities:'完整设施',icon:'图标',category:'类别',status:'提供状态',hostBadge:'人物身份',hostIntroduction:'栏目人物介绍',hostBadgeDescription:'身份说明',responseTime:'回复时间',contactNote:'联系说明',neighborhood:'周边介绍',locationNote:'地点说明',nearby:'周边入口',kind:'类型',cancellation:'取消政策',cancellationDetails:'取消政策全文',checkIn:'入住时间',checkOut:'退房时间',houseRules:'房屋守则',safety:'安全与房产',demo:'演示资料标记',guests:'每间人数上限',bedrooms:'卧室数',beds:'床数',bathrooms:'卫浴数',hostYears:'人物接待年限（叙事统计）',hostReviewCount:'人物评价数（叙事统计）',hostRating:'人物评分（叙事统计）',responseRate:'回复率 %',origin:'来源地',stayDuration:'住宿／参与说明',cleanliness:'清洁度',accuracy:'描述准确度',communication:'沟通',location:'位置',value:'性价比',privateGroups:'私人团体说明',cancellationBadge:'取消政策摘要',hostRole:'向导身份',language:'活动语言',expertiseTitle:'经历标题',expertiseDescription:'经历介绍',originalTitle:'原创体验标题',originalDescription:'原创体验说明',whatToDo:'你会做什么',steps:'图文流程',imageId:'图片 ID',meetingTitle:'集合地点名称',meetingAddress:'集合地址',meetingNote:'集合说明',directions:'抵达路线',guestRequirements:'参与要求',activityLevel:'活动强度',bring:'携带物品',accessibility:'无障碍说明',screening:'参加前核对',opensAt:'开放时间（UTC）',sessions:'固定场次（留空采用每日模拟规则）',startsAt:'开始时间（UTC）',endsAt:'结束时间（UTC）',providerRole:'提供者身份',venueName:'场所名称',venueAddress:'场所地址',offeringTitle:'项目名称',offeringDescription:'项目介绍',offeringImageId:'项目图片 ID',customization:'定制说明',qualifications:'资质',images:'图库（双语共用）',id:'稳定图片 ID',url:'图片地址',map:'地图叙事标注',transit:'接驳站标注',lounge:'休息区标注',dining:'用餐区／观察廊标注',center:'中心地点标注',accessibleDescription:'地图无障碍说明',caption:'地图说明',price:'价格',amount:'金额',unit:'计价单位',durationMinutes:'时长（分钟）',rating:'手记星级',reviewRatings:'手记分项评分',translations:'双语资料',currencyName:'货币名称',bio:'人物介绍',categoryNames:'分类名称'
+};
+export function fieldLabel(key:string,zh:boolean){return zh ? names[key] ?? key : key.replace(/([A-Z])/g,' $1').replace(/^./,c=>c.toUpperCase());}
+export function structuredFields(container:HTMLElement,schema:z.ZodType,value:any,onChange:(v:any)=>void,opts:{zh:boolean;path:string;kind?:string;keys?:string[];media?:()=>string[];onEdited?:(path:string,value:any)=>void}):void {
+ const l=(zh:string,en:string)=>opts.zh?zh:en;
+ const node=(tag:string,text?:string)=>{const e=document.createElement(tag);if(text)e.textContent=text;return e;};
+ const action=(label:string,fn:()=>void)=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.addEventListener('click',()=>{fn();container.dispatchEvent(new Event('input',{bubbles:true}));});return b;};
+ function render(parent:HTMLElement,raw:any,current:any,set:(v:any)=>void,path:string,key:string){
+  let s=raw;let optional=false;
+  while(['optional','default','nullable'].includes(s.type)){if(s.type==='optional')optional=true;s=s.unwrap?s.unwrap():s._def.innerType;}
+  const title=key==='dining'&&opts.kind==='service'?l('休息区标注','Lounge marker'):key==='dining'&&opts.kind==='experience'?l('观察廊标注','Gallery marker'):fieldLabel(key,opts.zh);
+  if(s.type==='object'){
+   const section=document.createElement('fieldset');section.dataset.field=path;section.append(node('legend',title));parent.append(section);
+   let data=structuredClone(current ?? {});const body=node('div');
+   if(optional){const label=document.createElement('label');const enable=document.createElement('input');enable.type='checkbox';enable.checked=current!==undefined;label.append(enable,document.createTextNode(l('配置此栏目（取消勾选恢复旧版默认）','Configure section (uncheck to restore legacy defaults)')));section.append(label);body.hidden=!enable.checked;
+    enable.addEventListener('change',()=>{body.hidden=!enable.checked;if(enable.checked){const parsed=s.safeParse(data);if(parsed.success)data=parsed.data;set(data);}else {opts.onEdited?.(path,undefined);set(undefined);}});}
+   section.append(body);
+   const groups:Record<string,[string,string,string[]][]>={
+    stay:[['规格与睡眠','Specifications and sleeping',['propertyType','bathroom','sleeping','guests','bedrooms','beds','bathrooms']],['口碑与亮点','Reputation and highlights',['favoriteTitle','favoriteDescription','highlights']],['住宿介绍','Stay description',['introduction','space','registration']],['设施','Amenities',['amenities']],['房东资料','Host profile',['hostBadge','hostIntroduction','hostBadgeDescription','responseTime','contactNote','hostYears','hostReviewCount','hostRating','responseRate','demo']],['周边与地图','Neighborhood and location',['neighborhood','locationNote','nearby']],['入住须知','Things to know',['cancellation','cancellationDetails','checkIn','checkOut','houseRules','safety']]],
+    experience:[['简介与亮点','Introduction and highlights',['introduction','privateGroups','cancellationBadge','hostRole','language','expertiseTitle','expertiseDescription','originalTitle','originalDescription']],['活动介绍与流程','Story and steps',['whatToDo','steps']],['集合地点','Meeting place',['meetingTitle','meetingAddress','meetingNote','directions']],['向导','Guide',['hostIntroduction','contactNote']],['参与须知','Things to know',['guestRequirements','activityLevel','bring','accessibility','cancellation','screening']],['场次（UTC）','Sessions (UTC)',['opensAt','sessions','demo']]],
+    service:[['服务简介','Introduction',['introduction','providerRole','cancellationBadge']],['服务项目','Offering',['offeringTitle','offeringDescription','offeringImageId','customization']],['提供者与资质','Provider and qualifications',['qualifications','contactNote']],['地点与地图','Location and map',['venueName','venueAddress','locationNote','directions']],['参与须知','Things to know',['guestRequirements','accessibility','cancellation']],['场次（UTC）','Sessions (UTC)',['sessions','demo']]]
+   };
+   const targets=new Map<string,HTMLElement>();
+   if(groups[key]){const nav=node('nav');nav.className='admin-actions';body.append(nav);for(const [zh,en,keys]of groups[key]!){if(!keys.some(k=>s.shape[k]))continue;const group=document.createElement('details');group.open=true;group.id='field-'+path.replaceAll('.','-')+'-'+keys[0];const summary=node('summary',l(zh,en));group.append(summary);body.append(group);const a=document.createElement('a');a.href='#'+group.id;a.textContent=l(zh,en);nav.append(a);for(const k of keys)targets.set(k,group);}}
+   for(const [child,sub] of Object.entries(s.shape)){if(key==='map'&&child==='lounge'&&opts.kind!=='stay')continue;if(path===opts.path && opts.keys && !opts.keys.includes(child))continue;render(targets.get(child)??body,sub,data[child],v=>{if(v===undefined)delete data[child];else data[child]=v;set(structuredClone(data));},`${path}.${child}`,child);}
+   return;
+  }
+  if(s.type==='array'){
+   const box=document.createElement('fieldset');box.dataset.field=path;box.append(node('legend',title));parent.append(box);let items=structuredClone(current??[]);const rows=node('div');box.append(rows);
+   const redraw=()=>{rows.replaceChildren();items.forEach((item:any,index:number)=>{const row=node('div');row.className='repeat-row';row.dataset.index=String(index);rows.append(row);render(row,s.element,item,v=>{items[index]=v;set(structuredClone(items));},`${path}.${index}`,`${index+1}`);const controls=node('div');controls.className='admin-actions';row.append(controls);
+    controls.append(action(l('上移','Move up'),()=>{if(index){[items[index-1],items[index]]=[items[index],items[index-1]];set(items);redraw();}}),action(l('下移','Move down'),()=>{if(index<items.length-1){[items[index+1],items[index]]=[items[index],items[index+1]];set(items);redraw();}}),action(l('删除','Remove'),()=>{items.splice(index,1);opts.onEdited?.(path,items);set(items);redraw();}));});};redraw();
+   box.append(action(l('新增项目','Add item'),()=>{let inner=s.element;while(['default','optional'].includes(inner.type))inner=inner.unwrap();const parsed=s.element.safeParse(inner.type==='object'?{}:'');items.push(parsed.success?parsed.data:inner.type==='object'?{}:'');set(items);redraw();}));return;
+  }
+  if(s.type==='record'){
+   const box=document.createElement('fieldset');box.append(node('legend',title));parent.append(box);const data=structuredClone(current??{});const keys=new Set([...Object.keys(data),...(key==='imageAlts'?opts.media?.()??[]:[])]);
+   for(const k of keys)render(box,s._def.valueType,data[k]??'',v=>{data[k]=v;set(data);},`${path}.${k}`,k);
+   if(!keys.size)box.append(node('p',l('先添加图片并保存，即可填写中英图片说明。','Add images and save to enter bilingual descriptions.')));return;
+  }
+  const label=document.createElement('label');label.append(node('span',title));parent.append(label);
+  let input:HTMLInputElement|HTMLTextAreaElement|HTMLSelectElement;
+  if(s.type==='enum'){input=document.createElement('select');for(const v of s.options){const o=document.createElement('option');o.value=v;o.textContent=fieldLabel(v,opts.zh);input.append(o);}input.value=current??s.options[0];}
+  else if(s.type==='boolean'){input=document.createElement('input');input.type='checkbox';input.checked=current??false;}
+  else if(s.type==='number'){input=document.createElement('input');input.type='number';input.step='any';input.value=current===undefined?'':String(current);}
+  else if(['startsAt','endsAt','opensAt'].includes(key)){input=document.createElement('input');input.type='datetime-local';input.step='1';input.value=current?new Date(current).toISOString().slice(0,19):'';}
+  else {input=document.createElement(['title','name','id','url','imageId','offeringImageId'].includes(key)?'input':'textarea');input.value=current??'';if(input instanceof HTMLTextAreaElement)input.rows=key==='description'?5:2;}
+  input.name=path;input.dataset.fieldInput=path;label.append(input);
+  input.addEventListener('input',()=>{let v:any=input.value;if(input instanceof HTMLInputElement&&input.type==='checkbox')v=input.checked;else if(s.type==='number')v=v===''?undefined:Number(v);else if(input instanceof HTMLInputElement&&input.type==='datetime-local')v=v?new Date(v+'Z').toISOString():undefined;opts.onEdited?.(path,v);set(v);});
+  if(key==='url'&&current){const img=document.createElement('img');img.src=current;img.alt=l('图片预览','Image preview');img.width=140;img.addEventListener('error',()=>{img.replaceWith(node('p',l('图片暂时无法显示；地址仍保留。','Image unavailable; the address is preserved.')));});label.append(img);}
+ }
+ container.replaceChildren();render(container,schema,value,onChange,opts.path,opts.path.split('.').at(-1)!);
+}

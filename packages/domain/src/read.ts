@@ -107,12 +107,20 @@ export async function adminWorlds(db: Connection, actor: Actor) {
     WHERE $2 OR m.role IS NOT NULL OR w.owner_id=$1 ORDER BY w.created_at,w.id`, [actor.id, actor.siteRole === 'admin']);
   return rows;
 }
-export async function adminList(db: Connection, actor: Actor, worldId: string) {
+export async function adminList(db: Connection, actor: Actor, worldId: string, filters: {page?:number;kind?:string;q?:string;status?:string;parentId?:string}={}) {
   await requireWorld(db, actor, worldId);
-  const { rows } = await db.query(`SELECT c.id,c.kind,c.slug,c.site_blocked,c.published_publication_id,
-    r.id AS revision_id,r.number,r.status,r.source_locale,r.source_text->>'title' AS title
-    FROM contents c JOIN content_revisions r ON r.id=c.head_revision_id WHERE c.world_id=$1 ORDER BY r.created_at DESC,c.id LIMIT 200`, [worldId]);
-  return rows;
+  const page=filters.page??1,pageSize=25;
+  const { rows: [result] } = await db.query(`WITH matching AS MATERIALIZED (
+    SELECT c.id,c.kind,c.slug,c.parent_content_id,c.site_blocked,c.published_publication_id,
+    r.id AS revision_id,r.number,r.status,r.source_locale,r.source_text->>'title' AS title,r.created_at
+    FROM contents c JOIN content_revisions r ON r.id=c.head_revision_id WHERE c.world_id=$1
+    AND ($2::text IS NULL OR c.kind=$2) AND ($3::text IS NULL OR r.source_text->>'title' ILIKE $3 OR c.slug ILIKE $3 OR EXISTS(SELECT 1 FROM revision_locales rl JOIN translations tx ON tx.id=rl.translation_id WHERE rl.revision_id=r.id AND tx.body->>'title' ILIKE $3))
+    AND ($4::text IS NULL OR ($4='published' AND c.published_publication_id IS NOT NULL) OR ($4='unpublished' AND c.published_publication_id IS NULL) OR r.status=$4)
+    AND ($5::uuid IS NULL OR c.parent_content_id=$5)
+  ) SELECT (SELECT count(*)::int FROM matching) AS total,
+    coalesce((SELECT jsonb_agg(p ORDER BY created_at DESC,id) FROM (SELECT * FROM matching ORDER BY created_at DESC,id LIMIT $6 OFFSET $7)p),'[]') AS contents`,
+    [worldId,filters.kind??null,filters.q?`%${filters.q}%`:null,filters.status??null,filters.parentId??null,pageSize,(page-1)*pageSize]);
+  return {...result,page,pageSize,pages:Math.max(1,Math.ceil(result.total/pageSize))};
 }
 export async function adminDetail(db: Connection, actor: Actor, id: string) {
   const { rows: [content] } = await db.query('SELECT * FROM contents WHERE id=$1', [id]);

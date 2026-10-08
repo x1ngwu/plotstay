@@ -1,4 +1,6 @@
-import { textSchema, type ContentText, type ContentAttributes, type Locale } from '@plotstay/contracts';
+import { settingsEditor } from './settings-editor';
+import { structuredFields } from './structured-fields';
+import { attributesSchema, textSchema, type ContentText, type ContentAttributes, type Locale } from '@plotstay/contracts';
 
 import { bilingual } from './i18n';
 
@@ -11,14 +13,23 @@ const el = <T extends HTMLElement = HTMLElement>(id: string) => document.getElem
 const editor = el<HTMLFormElement>('editor');
 const field = (name: string) => editor.elements.namedItem(name) as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 let locales: Locale[] = [], worlds: any[] = [], options: any = {}, detail: any = null, actor: any = null;
+let settingsDirty=false;
 let dirty = false, selectedRevision: string | null = null, previewedImport = '';
 let importIsValid = false;
+let loadedWorld='';
+let listRequest=0;
+let listPage = 1;
+let formMode = 'structured';
+let parentFilter = '';
+let originalAttributes: ContentAttributes = {images:[]};
+let formTexts: Record<string,any> = {};
 const statuses: Record<string, string> = l('zh', 'en') === 'zh' ? { draft: '草稿', submitted: '待审核', approved: '已审核', rejected: '已退回', pending: '等待执行', running: '执行中', completed: '完成', failed: '失败', superseded: '已过期' } : {};
 const status = (value: string) => statuses[value] ?? value;
 const worldId = () => el<HTMLSelectElement>('world').value;
 const message = (text: string) => { el('message').textContent = text; };
 const errorText = (error: any) => {
   if (error.code === 'REVISION_CONFLICT' || error.code === 'TRANSLATION_CONFLICT') return l('保存冲突：另一位编辑或翻译任务已更新内容。你的输入仍保留；请先复制或导出，再载入最新版本比较。', 'Save conflict: the draft changed. Your input is preserved. Copy it before loading the latest version.');
+  if(error.code==='SESSION_REQUIRED'){el('login').hidden=false;return l('会话已过期。输入仍保留；请重新登录后重试，系统将重新核对版本和权限。','Session expired. Your input is preserved. Sign in again, then retry; permissions and versions will be checked.');}
   if (error.code === 'TRANSLATIONS_REQUIRED') return l('缺少发布所需译文：', 'Required translations missing: ') + JSON.stringify(error.details);
   return error.message + (error.details ? '\n' + JSON.stringify(error.details) : '');
 };
@@ -26,6 +37,7 @@ async function api(path: string, body?: unknown, method = 'POST'): Promise<any> 
   const response = await fetch('/api' + path, { method: body === undefined ? 'GET' : method, credentials: 'same-origin',
     ...(body === undefined ? {} : { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }) });
   const data = await response.json();
+  if(response.status===401)el('login').hidden=false;
   if (!response.ok) throw Object.assign(new Error(data.error?.message ?? l('请求失败', 'Request failed')), data.error);
   return data;
 }
@@ -45,7 +57,7 @@ function button(title: string, fn: () => Promise<void>) {
   return item;
 }
 function line(text: string) { const item = document.createElement('p'); item.textContent = text; return item; }
-function confirmDiscard() { return !dirty || confirm(l('放弃未保存的输入？', 'Discard unsaved input?')); }
+function confirmDiscard() { return !(dirty||settingsDirty) || confirm(l('放弃未保存的输入？', 'Discard unsaved input?')); }
 const textFields = [
   ['title', '名称', 'Title', false], ['summary', '短介绍', 'Summary', false], ['description', '完整介绍', 'Description', false],
   ['tags', '标签（每行一项）', 'Tags (one per line)', true],
@@ -58,9 +70,11 @@ const textFields = [
   ['service', '服务完整资料（JSON，可留空）', 'Full service details (JSON, optional)', false],
   ['experience', '活动完整资料（JSON，可留空）', 'Full experience details (JSON, optional)', false],
   ['stay', '住宿完整资料（JSON，可留空）', 'Full stay details (JSON, optional)', false],
+  ['map', '地图叙事标注（JSON）', 'Map narrative labels (JSON)', false],
   ['review', '手记旅客资料（JSON，可留空）', 'Visitor note profile (JSON, optional)', false],
 ] as const;
 function renderTextFields(translations: Record<string, ContentText>) {
+  formTexts=structuredClone(translations);
   const fragment = document.createDocumentFragment();
   for (const language of locales) {
     const section = document.createElement('fieldset'); section.dataset.language = language.code;
@@ -70,24 +84,60 @@ function renderTextFields(translations: Record<string, ContentText>) {
       const input = document.createElement(key === 'title' || key === 'hostName' ? 'input' : 'textarea');
       input.name = `${language.code}:${key}`;
       const value = translations[language.code]?.[key];
-      input.value = key === 'imageAlts' ? JSON.stringify(value ?? {}) : key === 'service' || key === 'experience' || key === 'stay' || key === 'review' ? (value ? JSON.stringify(value,null,2) : '') : array ? (value as string[] ?? []).join('\n') : String(value ?? '');
+      input.value = key === 'imageAlts' ? JSON.stringify(value ?? {}) : key === 'map' || key === 'service' || key === 'experience' || key === 'stay' || key === 'review' ? (value ? JSON.stringify(value,null,2) : '') : array ? (value as string[] ?? []).join('\n') : String(value ?? '');
       if (input instanceof HTMLTextAreaElement) input.rows = key === 'stay' || key === 'experience' || key === 'service' ? 8 : key === 'description' ? 5 : key === 'review' ? 3 : 2;
       label.append(input); section.append(label);
     }
     fragment.append(section);
   }
   el('language-fields').replaceChildren(fragment);
+  renderStructured();
 }
+function renderStructured() {
+  const kind = detail?.content.kind ?? field('kind').value;
+  const panel = el('structured-editor'); panel.replaceChildren();
+  panel.hidden = formMode !== 'structured'; el('advanced-fields').hidden = formMode === 'structured';
+  if (formMode !== 'structured') return;
+  const shared = document.createElement('div'); panel.append(shared);
+  const attrs = { ...originalAttributes, images: formMode==='structured'?structuredClone(originalAttributes.images):field('images').value.split('\n').filter(Boolean).map(row => { const [id,url]=row.split('|').map(v=>v.trim());return {id,url};}) } as any;
+  for(const [key,name] of [['stay','stayAttributes'],['experience','experienceAttributes'],['service','serviceAttributes'],['reviewRatings','reviewRatings']]) {
+    const value=field(name!).value; if(value)attrs[key!]=JSON.parse(value);else delete attrs[key!];
+  }
+  structuredFields(shared,attributesSchema,attrs,value=>{
+    originalAttributes=value;
+    field('images').value=value.images.map((i:any)=>`${i.id} | ${i.url}`).join('\n');
+    for(const [key,name] of [['stay','stayAttributes'],['experience','experienceAttributes'],['service','serviceAttributes'],['reviewRatings','reviewRatings']])field(name!).value=value[key!]?JSON.stringify(value[key!]):'';
+  },{zh:locale==='zh-CN',path:'attributes',kind,keys:kind==='review'?['reviewRatings']:['images',kind],media:()=>attrs.images.map((i:any)=>i.id)});
+  const tabs=document.createElement('div');tabs.className='language-tabs admin-actions';panel.append(tabs);
+  const languages=document.createElement('div');languages.className='bilingual-fields';panel.append(languages);
+  for(const language of locales){
+    const section=document.createElement('section');section.className='language-pane';section.dataset.active=String(language.code===(field('sourceLocale').value||'en'));section.dataset.code=language.code;const tab=document.createElement('button');tab.type='button';tab.textContent=language.name;tab.addEventListener('click',()=>{for(const pane of languages.querySelectorAll<HTMLElement>('.language-pane'))pane.dataset.active=String(pane.dataset.code===language.code);});tabs.append(tab);const h=document.createElement('h3');h.textContent=language.name;section.append(h);const target=document.createElement('div');section.append(target);languages.append(section);
+    const data:any=structuredClone(formTexts[language.code]??{});
+    const keys=kind==='review'?['title','description','tags','review']:['title','summary','description','tags','hostName','hostBio','imageAlts',kind,'map','facilities','rules'];
+    if(kind==='stay')keys.push('highlights');if(kind==='experience')keys.push('included','itinerary');if(kind==='service')keys.push('serviceItems','itinerary');
+    const existingCleared=el('language-fields').querySelector<HTMLElement>(`[data-language="${language.code}"]`)?.dataset.cleared;
+    const cleared = new Set<string>(existingCleared?JSON.parse(existingCleared):detail?.revisions.find((r:any)=>r.id===selectedRevision)?.translations[language.code]?.clearedFields ?? []);
+    data.clearedFields=[...cleared];
+    structuredFields(target,textSchema,data,value=>{formTexts[language.code]=structuredClone(value);for(const [key,,,array]of textFields){const v=value[key];field(`${language.code}:${key}`).value=['stay','experience','service','review','map'].includes(key)?(v===undefined?'':JSON.stringify(v)):key==='imageAlts'?JSON.stringify(v??{}):array?(v??[]).join('\n'):v??'';}},{zh:locale==='zh-CN',path:language.code,kind,keys,media:()=>attrs.images.map((i:any)=>i.id),onEdited:(path,v)=>{const key=path.slice(language.code.length+1);if(!/^(?:stay|experience|service|review|map|hostName|hostBio|highlights|facilities|rules|itinerary)(?:\.[a-zA-Z]+)*$/.test(key))return;if(v===undefined){for(const item of cleared)if(item===key||item.startsWith(key+'.'))cleared.delete(item);}if(v===''||Array.isArray(v)&&!v.length)cleared.add(key);else cleared.delete(key);data.clearedFields=[...cleared];el('language-fields').querySelector<HTMLElement>(`[data-language="${language.code}"]`)!.dataset.cleared=JSON.stringify([...cleared]);}});
+  }
+}
+on('toggle-mode', async()=>{if(formMode==='structured'){formMode='advanced';}else{const parsed=readTexts();originalAttributes=attributesSchema.parse(formValue().attributes);formTexts=parsed;formMode='structured';}renderStructured();el('toggle-mode').textContent=formMode==='structured'?l('切换到高级 JSON','Switch to advanced JSON'):l('返回栏目表单','Return to section forms');});
 function readTexts() {
   const result: Record<string, ContentText> = {};
   for (const language of locales) {
-    const body: Record<string, unknown> = {};
+    const body: Record<string, unknown> = formMode==='structured'?structuredClone(formTexts[language.code]??{}):{};
     let any = false;
     for (const [key, , , array] of textFields) {
       const value = field(`${language.code}:${key}`).value.trim();
       if (key !== 'imageAlts' && value) any = true;
-      body[key] = key === 'imageAlts' ? JSON.parse(value || '{}') : key === 'service' || key === 'experience' || key === 'stay' || key === 'review' ? (value ? JSON.parse(value) : undefined) : array ? value.split('\n').map(v => v.trim()).filter(Boolean) : value;
+      if(formMode==='structured')continue;
+      if(array && value===(formTexts[language.code]?.[key]??[]).join('\n').trim()){body[key]=structuredClone(formTexts[language.code]?.[key]??[]);continue;}
+      body[key] = key === 'imageAlts' ? JSON.parse(value || '{}') : key === 'map' || key === 'service' || key === 'experience' || key === 'stay' || key === 'review' ? (value ? JSON.parse(value) : undefined) : array ? value.split('\n').map(v => v.trim()).filter(Boolean) : value;
     }
+    const metadata=el('language-fields').querySelector<HTMLElement>(`[data-language="${language.code}"]`)?.dataset.cleared;
+    const previous=detail?.revisions.find((r:any)=>r.id===selectedRevision)?.translations[language.code]?.clearedFields;
+    if(metadata)body.clearedFields=JSON.parse(metadata);else if(previous)body.clearedFields=previous;
+    if(Array.isArray(body.clearedFields)&&!body.clearedFields.length&&!previous)delete body.clearedFields;
     if (any) result[language.code] = textSchema.parse(body);
   }
   return result;
@@ -97,17 +147,18 @@ function formValue() {
   if (!texts[sourceLocale]) throw new Error(l('请填写源语言的名称与完整介绍。', 'Complete the source title and description.'));
   const text = texts[sourceLocale]; delete texts[sourceLocale];
   const kind = detail?.content.kind ?? field('kind').value;
-  const attributes: ContentAttributes = { images: field('images').value.split('\n').filter(row => row.trim()).map(row => {
+  const attributes: ContentAttributes = { ...originalAttributes, images: formMode==='structured'?structuredClone(originalAttributes.images):field('images').value.split('\n').filter(row => row.trim()).map(row => {
     const [id, url, ...extra] = row.split('|').map(value => value.trim());
     if (!id || !url || extra.length) throw new Error(l('每行图片需要：标识 | 地址', 'Each image needs: ID | URL'));
     return { id, url };
   }) };
   if (kind !== 'review') {
     if (field('amount').value === '') throw new Error(l('请填写虚构金额。', 'Enter the fictional amount.'));
-    attributes.price = { amount: Number(field('amount').value), unit: kind === 'stay' ? 'night' : kind === 'service' ? 'session' : 'person' };
   }
-  if (kind === 'experience' || (kind === 'service' && field('duration').value)) attributes.durationMinutes = Number(field('duration').value);
-  if (kind === 'review' && field('rating').value) attributes.rating = Number(field('rating').value);
+  for(const key of ['price','durationMinutes','rating','category','stay','experience','service','reviewRatings'] as const) delete attributes[key];
+  if (kind !== 'review') attributes.price = { amount: Number(field('amount').value), unit: kind === 'stay' ? 'night' : kind === 'service' ? 'session' : 'person' };
+  if(field('duration').value)attributes.durationMinutes=Number(field('duration').value);
+  if(field('rating').value)attributes.rating=Number(field('rating').value);
   if (field('category').value) attributes.category = field('category').value;
   if (field('serviceAttributes').value.trim()) attributes.service = JSON.parse(field('serviceAttributes').value);
   if (field('experienceAttributes').value.trim()) attributes.experience = JSON.parse(field('experienceAttributes').value);
@@ -121,7 +172,14 @@ function formValue() {
   };
 }
 async function refreshList() {
-  const data = await api(`/admin/worlds/${worldId()}/contents`);
+  const request=++listRequest;el('content-list').replaceChildren();
+  const params=new URLSearchParams({page:String(listPage)});
+  for(const [key,id]of [['kind','filter-kind'],['q','filter-query'],['status','filter-status']]){const value=el<HTMLInputElement>(id!).value;if(value)params.set(key!,value);}
+  if(parentFilter)params.set('parentId',parentFilter);
+  const data = await api(`/admin/worlds/${worldId()}/contents?${params}`);
+  if(request!==listRequest)return;
+  el('list-page').textContent=`${data.page} / ${data.pages} · ${data.total}`;
+  el<HTMLButtonElement>('list-prev').disabled=listPage<=1;el<HTMLButtonElement>('list-next').disabled=listPage>=data.pages;
   const rows = data.contents.filter((c: any) => !el<HTMLSelectElement>('filter-kind').value || c.kind === el<HTMLSelectElement>('filter-kind').value).map((content: any) => {
     const tr = document.createElement('tr');
     for (const text of [content.title, `${content.number} · ${status(content.status)}`, content.site_blocked ? l('网站限制', 'Site restricted') : content.published_publication_id ? l('已公开', 'Published') : l('未公开', 'Unpublished')]) {
@@ -138,10 +196,13 @@ async function refreshList() {
   }));
 }
 async function loadWorld() {
+  loadedWorld=worldId();
+  listPage=1;parentFilter='';
   options = await api(`/admin/worlds/${worldId()}/options`);
   el('editor-panel').hidden = true; detail = null; dirty = false;
   previewedImport = ''; el<HTMLButtonElement>('import-apply').disabled = true;
   await refreshList();
+  settingsEditor(el('settings-panel'),worldId(),locale==='zh-CN',api,v=>settingsDirty=v);
 }
 async function signIn() {
   ({ actor } = await api('/auth/me'));
@@ -154,6 +215,7 @@ async function signIn() {
   if (worlds.length) await loadWorld(); else { el<HTMLButtonElement>('new').disabled = true; message(l('没有可管理的世界。', 'No worlds are assigned to this account.')); }
 }
 function fillRevision(revision: any) {
+  originalAttributes=structuredClone(revision.attributes);
   field('sourceLocale').value = revision.source_locale;
   refreshCategories();
   field('category').value = revision.attributes.category ?? '';
@@ -165,17 +227,18 @@ function fillRevision(revision: any) {
   field('stayAttributes').value = revision.attributes.stay ? JSON.stringify(revision.attributes.stay,null,2) : '';
   field('reviewRatings').value = revision.attributes.reviewRatings ? JSON.stringify(revision.attributes.reviewRatings,null,2) : '';
   field('images').value = revision.attributes.images.map((image: any) => `${image.id} | ${image.url}`).join('\n');
-  renderTextFields(revision.translations);
   selectedRevision = revision.id;
+  renderTextFields(revision.translations);
 }
 function refreshCategories() {
   const value = field('category').value;
   const kind = detail?.content.kind ?? field('kind').value;
   (field('category') as HTMLSelectElement).replaceChildren(option('', l('无', 'None')), ...(options.categories ?? []).filter((c: any) => c.kind === kind).map((c: any) => option(c.slug, c.slug)));
   field('category').value = value;
+  for(const [name,visible]of [['amount',kind!=='review'],['duration',kind==='experience'||kind==='service'],['rating',kind==='review'],['category',kind!=='review']] as const)field(name).closest('label')!.hidden=!visible;
 }
-field('kind').addEventListener('change', refreshCategories);
-el('filter-kind').addEventListener('change', () => { void refreshList().catch(error => message(errorText(error))); });
+field('kind').addEventListener('change', () => { refreshCategories(); renderStructured(); });
+el('filter-kind').addEventListener('change', () => { listPage=1;parentFilter=''; void refreshList().catch(error => message(errorText(error))); });
 function identity() {
   refreshCategories();
   (field('sourceLocale') as HTMLSelectElement).replaceChildren(...locales.map(item => option(item.code, item.name)));
@@ -189,6 +252,7 @@ function refreshActions() {
   el<HTMLButtonElement>('import-apply').disabled = !previewedImport || !importIsValid;
   if (!detail) return;
   const head = detail.revisions[0];
+  el<HTMLButtonElement>('preview-draft').disabled=dirty;
   const unsaved = dirty || selectedRevision !== detail.content.head_revision_id;
   el<HTMLButtonElement>('submit-revision').disabled = unsaved || !['draft', 'rejected'].includes(head.status);
   for (const id of ['publish', 'reject']) el<HTMLButtonElement>(id).disabled = unsaved || !detail.canReview || head.status !== 'submitted';
@@ -197,6 +261,7 @@ function refreshActions() {
   el('release-block').hidden = actor.siteRole !== 'admin' || !detail.content.site_blocked;
 }
 async function openContent(id: string) {
+  el('preview-links').replaceChildren();
   detail = await api(`/admin/contents/${id}`);
   identity();
   for (const name of ['kind', 'slug']) field(name).value = detail.content[name];
@@ -226,6 +291,12 @@ async function openContent(id: string) {
     }
     return row;
   }));
+  const published=detail.publications.find((p:any)=>p.id===detail.content.published_publication_id);
+  const previous=detail.revisions.find((r:any)=>r.id===published?.revision_id);
+  const changed:string[]=[];
+  const compare=(a:any,b:any,path:string)=>{if(JSON.stringify(a)===JSON.stringify(b))return;if(a&&b&&typeof a==='object'&&typeof b==='object'){for(const key of new Set([...Object.keys(a),...Object.keys(b)]))compare(a[key],b[key],path+'.'+key);}else changed.push(path);};
+  compare(previous?.attributes,detail.revisions[0].attributes,'attributes');compare(previous?.translations,detail.revisions[0].translations,'translations');
+  el('content-changes').textContent=l('相对当前公开版本的改动字段：','Fields changed from the public revision: ')+(changed.join(', ')||l('无','None'))+'\n'+locales.map(language=>language.name+': '+(detail.revisions[0].translations[language.code]?l('已填写，请校订','Present; review wording'):l('缺译，不能发布','Missing; cannot publish'))).join(' · ');
   el('jobs').replaceChildren(...detail.jobs.map((job: any) => {
     const row = line(`${job.locale} · ${status(job.status)} · ${job.attempts}/${job.max_attempts} ${job.last_error ?? ''}`);
     if (job.status === 'failed') row.append(button(l('重试', 'Retry'), async () => { await api(`/admin/translation-jobs/${job.id}/retry`, {}); if (!dirty) await openContent(id); }));
@@ -236,7 +307,7 @@ async function openContent(id: string) {
 }
 el<HTMLFormElement>('login').addEventListener('submit', async event => {
   event.preventDefault(); const data = new FormData(event.currentTarget as HTMLFormElement);
-  try { await api('/auth/login', Object.fromEntries(data)); (event.target as HTMLFormElement).reset(); await signIn(); message(''); }
+  try { await api('/auth/login', Object.fromEntries(data)); (event.target as HTMLFormElement).reset(); if(dirty||settingsDirty){({actor}=await api('/auth/me'));el('login').hidden=true;message(l('已重新登录，输入已保留。','Signed in again; your input is preserved.'));}else{await signIn();message('');} }
   catch (error) { message(errorText(error)); }
 });
 editor.addEventListener('input', () => { dirty = true; refreshActions(); });
@@ -250,27 +321,35 @@ editor.addEventListener('submit', async event => {
 });
 on('new', async () => {
   if (!confirmDiscard()) return;
-  detail = null; editor.reset(); identity(); el<HTMLFieldSetElement>('identity').disabled = false;
+  detail = null; originalAttributes={images:[]}; editor.reset(); identity(); el<HTMLFieldSetElement>('identity').disabled = false;
   renderTextFields({}); selectedRevision = null; dirty = false;
   el('editor-title').textContent = l('新建内容', 'New content'); el('revision-state').textContent = '';
   el('editor-panel').hidden = false; el('workflow').hidden = true;
 });
+on('export-draft',async()=>{const blob=new Blob([JSON.stringify({contentId:detail?.content.id??null,...formValue()},null,2)],{type:'application/json'});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='plotstay-draft.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);message(l('草稿副本已下载到本机。','A draft copy was downloaded to this device.'));});
+on('refresh-image-fields',async()=>renderStructured());
 on('reload-editor', async () => { if (detail && confirmDiscard()) await openContent(detail.content.id); });
 on('clear-translations', async () => {
   if (!confirm(l('清空表单中的其他语言？保存草稿后会创建缺译任务，历史版本会保留。', 'Clear other languages in this form? Saving queues missing translations and preserves history.'))) return;
   const source = field('sourceLocale').value;
   for (const language of locales.filter(item => item.code !== source)) {
+    delete formTexts[language.code];
     for (const [key] of textFields) field(`${language.code}:${key}`).value = key === 'imageAlts' ? '{}' : '';
   }
-  dirty = true; refreshActions();
+  renderStructured(); dirty = true; refreshActions();
 });
-on('refresh-list', refreshList);
+on('refresh-list', async()=>{listPage=1;await refreshList();});
+on('list-prev',async()=>{listPage--;await refreshList();});on('list-next',async()=>{listPage++;await refreshList();});
+on('search-list',async()=>{listPage=1;parentFilter='';await refreshList();});
+on('entry-notes',async()=>{if(!detail)return;parentFilter=detail.content.kind==='review'?detail.content.parent_content_id:detail.content.id;el<HTMLSelectElement>('filter-kind').value='review';el<HTMLInputElement>('filter-query').value='';el<HTMLSelectElement>('filter-status').value='';listPage=1;await refreshList();el('content-list').scrollIntoView();});
+on('new-note',async()=>{if(!detail||!confirmDiscard())return;const parent=detail.content.kind==='review'?detail.content.parent_content_id:detail.content.id;detail=null;originalAttributes={images:[]};editor.reset();identity();el<HTMLFieldSetElement>('identity').disabled=false;field('kind').value='review';field('parentContentId').value=parent;refreshCategories();renderTextFields({});dirty=false;selectedRevision=null;el('workflow').hidden=true;el('editor-title').textContent=l('新建后台手记','New editorial note');});
+on('preview-draft',async()=>{if(!detail||dirty)throw new Error(l('请先保存草稿。','Save the draft first.'));const rev=detail.content.head_revision_id;const links=el('preview-links');links.replaceChildren(...locales.map(language=>{const a=document.createElement('a');a.href=`/api/admin/preview/${language.pathPrefix}/${detail.content.id}?revisionId=${rev}&token=${detail.content.draft_token}`;a.target='_blank';a.rel='noopener';a.textContent=language.name+' ↗ ';return a;}));});
 on('logout', async () => { if (!confirmDiscard()) return; await api('/auth/logout', {}); location.reload(); });
-el<HTMLSelectElement>('world').addEventListener('change', async () => { if (!confirmDiscard()) { if (detail) el<HTMLSelectElement>('world').value = detail.content.world_id; return; } try { await loadWorld(); } catch (error) { message(errorText(error)); } });
+el<HTMLSelectElement>('world').addEventListener('change', async () => { if (!confirmDiscard()) { el<HTMLSelectElement>('world').value = loadedWorld; return; } try { await loadWorld(); } catch (error) { message(errorText(error)); } });
 for (const [id, route, payload] of [
-  ['submit-revision', 'submit', () => ({ revisionId: detail.content.head_revision_id })],
-  ['publish', 'review', () => ({ revisionId: detail.content.head_revision_id, decision: 'publish', note: el<HTMLTextAreaElement>('moderation-note').value })],
-  ['reject', 'review', () => ({ revisionId: detail.content.head_revision_id, decision: 'reject', note: el<HTMLTextAreaElement>('moderation-note').value })],
+  ['submit-revision', 'submit', () => ({ revisionId: detail.content.head_revision_id, draftToken: detail.content.draft_token })],
+  ['publish', 'review', () => ({ revisionId: detail.content.head_revision_id, draftToken: detail.content.draft_token, decision: 'publish', note: el<HTMLTextAreaElement>('moderation-note').value })],
+  ['reject', 'review', () => ({ revisionId: detail.content.head_revision_id, draftToken: detail.content.draft_token, decision: 'reject', note: el<HTMLTextAreaElement>('moderation-note').value })],
   ['unpublish', 'unpublish', () => ({ siteBlock: false, note: el<HTMLTextAreaElement>('moderation-note').value })],
   ['site-block', 'unpublish', () => ({ siteBlock: true, note: el<HTMLTextAreaElement>('moderation-note').value })],
   ['release-block', 'release-site-block', () => ({ note: el<HTMLTextAreaElement>('moderation-note').value })],
@@ -309,7 +388,7 @@ on('import-apply', async () => {
   el('import-results').textContent = JSON.stringify(data.results, null, 2); previewedImport = '';
   await refreshList();
 });
-window.addEventListener('beforeunload', event => { if (dirty) event.preventDefault(); });
+window.addEventListener('beforeunload', event => { if (dirty||settingsDirty) event.preventDefault(); });
 signIn().catch(error => { if (error.code !== 'SESSION_REQUIRED') message(errorText(error)); });
 
 }

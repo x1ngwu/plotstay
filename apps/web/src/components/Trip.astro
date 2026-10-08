@@ -1,8 +1,8 @@
 ---
+import { detailBilingual } from '../lib/detail-copy';
 import { hasTrip, type BrowseState, type Locale } from '@plotstay/contracts';
-import { bilingual } from '../lib/i18n';
 const { state, locale } = Astro.props as { state: BrowseState; locale: Locale };
-const t = bilingual(locale.code);
+const t = detailBilingual(locale.code, Astro.locals.detailCopy, 'common');
 ---
 {hasTrip(state) && <aside class="trip-summary" aria-label={t('行程条件','Trip preferences')}>
   <strong>{t('行程条件', 'Trip preferences')}</strong>

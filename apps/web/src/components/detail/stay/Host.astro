@@ -1,31 +1,31 @@
 ---
+import { detailBilingual, contentFallback } from '../../../lib/detail-copy';
 import type { PublicContent, Locale } from '@plotstay/contracts';
-import { bilingual } from '../../../lib/i18n';
 import DetailSection from '../DetailSection.astro';
 import Expand from './Expand.astro';
 import Icon from './Icon.astro';
 const { content: c, locale } = Astro.props as { content: PublicContent; locale: Locale };
-const t = bilingual(locale.code), s = c.text.stay, a = c.attributes.stay;
-const name = c.text.hostName || t('房东姓名待补充','Host name to be added');
+const t = detailBilingual(locale.code, Astro.locals.detailCopy, 'stay'), s = c.text.stay, a = c.attributes.stay;
+const name = contentFallback(c,'hostName',c.text.hostName,t('房东姓名待补充','Host name to be added'));
 ---
 <div data-stay-module="09"><DetailSection id="host" title={t('认识你的房东','Meet your host')}>
   <div class="stay-host-grid">
     <div class="stay-host-card">
-      <div class="stay-host-identity"><span class="stay-avatar stay-host-portrait" aria-hidden="true"><Icon name="person"/></span><h3 lang={c.languageTag}>{name}</h3><p lang={c.languageTag}><Icon/>{s?.hostBadge || t('身份待补充','Status to be added')}</p></div>
+      <div class="stay-host-identity"><span class="stay-avatar stay-host-portrait" aria-hidden="true"><Icon name="person"/></span><h3 lang={c.languageTag}>{name}</h3><p lang={c.languageTag}><Icon/>{contentFallback(c,'stay.hostBadge',s?.hostBadge,t('身份待补充','Status to be added'))}</p></div>
       <dl class="stay-host-stats"><div><dt>{t('条评价','Reviews')}</dt><dd>{a?.hostReviewCount ?? '—'}</dd></div><div><dt>{t('评分','Rating')}</dt><dd>{a?.hostRating?.toFixed(2) ?? '—'} <small>★</small></dd></div><div><dt>{t('年接待经验','Years hosting')}</dt><dd>{a?.hostYears ?? '—'}</dd></div></dl>
       {a?.demo && <p class="stay-demo">{t('人物数据为演示占位','Profile statistics are demonstration details')}</p>}
     </div>
     <div class="stay-host-about" lang={c.languageTag}>
-      <h3>{s?.hostBadge || t('关于房东','About the host')}</h3>
-      <p>{s?.hostBadgeDescription || t('房东身份说明待补充。','Host status details will be added.')}</p>
+      <h3>{contentFallback(c,'stay.hostBadge',s?.hostBadge,t('关于房东','About the host'))}</h3>
+      <p>{contentFallback(c,'stay.hostBadgeDescription',s?.hostBadgeDescription,t('房东身份说明待补充。','Host status details will be added.'))}</p>
       {c.text.hostBio && <p class="prose">{c.text.hostBio}</p>}
-      <p class="prose">{s?.hostIntroduction || t('房东介绍待补充。','The host’s introduction will be added.')}</p>
+      <p class="prose">{contentFallback(c,'stay.hostIntroduction',s?.hostIntroduction,t('房东介绍待补充。','The host’s introduction will be added.'))}</p>
     </div>
     <div class="stay-host-contact"><h3>{t('房东详情','Host details')}</h3>
       <p>{t('回复率：','Response rate: ')}{a?.responseRate === undefined ? t('待补充','To be added') : `${a.responseRate}%`}</p>
-      <p lang={c.languageTag}>{s?.responseTime || t('回复时间待补充。','Response time will be added.')}</p>
+      <p lang={c.languageTag}>{contentFallback(c,'stay.responseTime',s?.responseTime,t('回复时间待补充。','Response time will be added.'))}</p>
       <Expand locale={locale} id="stay-contact-host" label={t('联系房东','Message host')}>
-        <h4>{t('联系说明','Contact information')}</h4><p lang={c.languageTag}>{s?.contactNote || t('联系资料待补充，当前不发送消息。','Contact details will be added. Messaging is not available yet.')}</p>
+        <h4>{t('联系说明','Contact information')}</h4><p lang={c.languageTag}>{contentFallback(c,'stay.contactNote',s?.contactNote,t('联系资料待补充，当前不发送消息。','Contact details will be added. Messaging is not available yet.'))}</p>
       </Expand>
     </div>
   </div>

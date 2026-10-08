@@ -1,19 +1,19 @@
 ---
+import { detailBilingual, contentFallback } from '../../../lib/detail-copy';
 import type { PublicContent, Locale } from '@plotstay/contracts';
-import { bilingual } from '../../../lib/i18n';
 import DetailSection from '../DetailSection.astro';
 import Expand from './Expand.astro';
 const { content: c, locale } = Astro.props as { content: PublicContent; locale: Locale };
-const t = bilingual(locale.code), s = c.text.stay;
+const t = detailBilingual(locale.code, Astro.locals.detailCopy, 'stay'), s = c.text.stay;
 ---
 <div data-stay-module="05"><DetailSection id="about" title={t('关于这处住宿','About this stay')} languageTag={c.languageTag}>
   {c.text.summary && <p class="detail-intro">{c.text.summary}</p>}
   <p class="prose">{c.text.description}</p>
-  <p class="prose">{s?.introduction?.split('\n\n')[0] || t('详细介绍待补充。','A detailed introduction will be added.')}</p>
+  <p class="prose">{contentFallback(c,'stay.introduction',s?.introduction?.split('\n\n')[0],t('详细介绍待补充。','A detailed introduction will be added.'))}</p>
   <Expand locale={locale} id="stay-description-more">
     {s?.introduction?.includes('\n\n') && <p class="prose">{s.introduction.split('\n\n').slice(1).join('\n\n')}</p>}
-    <h3>{t('房间与公共空间','The space')}</h3><p class="prose">{s?.space || t('房间布局与公共空间说明待补充。','Room layout and shared-space details will be added.')}</p>
-    <h3>{t('登记信息','Registration details')}</h3><p class="prose">{s?.registration || t('登记信息待补充。','Registration details will be added.')}</p>
+    <h3>{t('房间与公共空间','The space')}</h3><p class="prose">{contentFallback(c,'stay.space',s?.space,t('房间布局与公共空间说明待补充。','Room layout and shared-space details will be added.'))}</p>
+    <h3>{t('登记信息','Registration details')}</h3><p class="prose">{contentFallback(c,'stay.registration',s?.registration,t('登记信息待补充。','Registration details will be added.'))}</p>
   </Expand>
   {c.text.tags.length > 0 && <ul class="detail-tags">{c.text.tags.map(tag => <li>{tag}</li>)}</ul>}
 </DetailSection></div>

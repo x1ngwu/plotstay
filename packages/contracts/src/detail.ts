@@ -8,6 +8,7 @@ export const detailQuerySchema = z.object({
   notesPage: z.string().regex(/^[1-9]\d*$/).transform(Number).pipe(z.number().int().max(1000000)).default(1),
 }).strict();
 export interface ContentDetail {
+  previewSetting?: { kind: string; body: any; revisionId: string };
   content: PublicContent;
   reviews: ContentPage;
   related: PublicContent[];

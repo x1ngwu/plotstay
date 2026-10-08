@@ -1,0 +1,78 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {spawn} from 'node:child_process';
+import {mkdir} from 'node:fs/promises';
+import {chromium,expect} from '@playwright/test';
+import {detailFixture} from './detail-fixture.ts';
+import {unusedPort,waitFor,stop} from './runtime.ts';
+import {initializeSettings,adminDetail} from '@plotstay/domain';
+import {seedStayDetails} from '../scripts/seed-stay-details.ts';
+import {seedExperienceReviews} from '../scripts/seed-experience-reviews.ts';
+import {seedExperienceDetails} from '../scripts/seed-experience-details.ts';
+import {seedServiceDetails} from '../scripts/seed-service-details.ts';
+test('phase 5.5 section forms and protected preview',{timeout:180000},async t=>{
+ const f=await detailFixture();t.after(f.cleanup);await seedStayDetails(f.db,f.data.admin,true);await seedExperienceDetails(f.db,f.data.admin,true);await seedExperienceReviews(f.db,f.data.admin,true);await seedServiceDetails(f.db,f.data.admin,true);await initializeSettings(f.db,f.data.admin,true);
+ const apiPort=await unusedPort(),webPort=await unusedPort(),apiUrl=`http://127.0.0.1:${apiPort}`,webUrl=`http://127.0.0.1:${webPort}`;
+ const env={...process.env,PGOPTIONS:f.options,NODE_ENV:'production',SITE_INDEXABLE:'false',API_PORT:String(apiPort),API_HOST:'127.0.0.1',HOST:'127.0.0.1',PORT:String(webPort),WEB_ORIGIN:webUrl,API_INTERNAL_URL:apiUrl};
+ const launch=(entry:string)=>{const child=spawn(process.execPath,[entry],{env,stdio:['ignore','pipe','pipe']});let logs='';child.stdout!.on('data',d=>logs+=d);child.stderr!.on('data',d=>logs+=d);t.after(()=>stop(child));return {child,logs:()=>logs};};
+ const api=launch('apps/api/dist/server.mjs');await waitFor(apiUrl+'/api/health',api.child,api.logs);const web=launch('apps/web/server.mjs');await waitFor(webUrl+'/en',web.child,web.logs);
+ const browser=await chromium.launch({headless:true});t.after(()=>browser.close());const context=await browser.newContext();const page=await context.newPage();const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));page.on('dialog',dialog=>dialog.accept());
+ await page.goto(webUrl+'/en/admin');await page.locator('#login [name=email]').fill(f.credentials.email);await page.locator('#login [name=password]').fill(f.credentials.password);await page.locator('#login button').click();await expect(page.locator('#workspace')).toBeVisible();
+ const open=async(slug:string)=>{await page.locator('#filter-kind').selectOption('');await page.locator('#filter-query').fill(slug);await page.locator('#search-list').click();await expect(page.locator('#search-list')).toBeEnabled();await expect(page.locator('#content-list tr')).toHaveCount(1);await page.locator('#content-list button').first().click();await expect(page.locator('[name=slug]')).toHaveValue(slug);};
+ const save=async()=>{const response=page.waitForResponse(r=>r.request().method()==='POST'&&r.url().endsWith('/revisions'));await page.locator('#editor button[type=submit]').click();const result=await response;assert.equal(result.status(),200,await result.text());await expect(page.locator('#message')).toContainText('Draft saved');};
+ await mkdir('test-results/phase55',{recursive:true});
+ await t.test('stay checkpoint: bilingual form save, clear, reorder, preview, publish and restore',async()=>{
+  await open('dockside-window');const id=(await f.db.query("SELECT id FROM contents WHERE slug='dockside-window'")).rows[0].id;const before=await adminDetail(f.db,f.data.admin,id);
+  await page.locator('[name="en.title"]').fill('Managed stay');await page.locator('[name="zh-CN.title"]').fill('后台维护住宿');await page.locator('[name="en.summary"]').fill('');await page.locator('[data-field="en.rules"] > button').click();await page.locator('[name="en.rules.0"]').fill('One list item\nwith a second line');await page.locator('[name="en.stay.space"]').fill('');await page.locator('[name="attributes.stay.bedrooms"]').fill('0');await page.locator('[name="attributes.stay.responseRate"]').fill('0');
+  const amenities=page.locator('[data-field="en.stay.amenities"]');await amenities.locator(':scope > div > .repeat-row').nth(1).getByRole('button',{name:'Move up',exact:true}).click();
+  const originalZh=before.revisions[0].translations['zh-CN'];await save();
+  const after=await adminDetail(f.db,f.data.admin,id);assert.equal(after.revisions[0].translations.en.rules[0],'One list item\nwith a second line');assert.equal(after.revisions[0].translations.en.stay.space,'');assert.ok(after.revisions[0].translations.en.clearedFields.includes('stay.space'));assert.deepEqual(after.revisions[0].translations['zh-CN'].stay,originalZh.stay);assert.equal(after.revisions[0].attributes.stay.bedrooms,0);assert.equal(after.content.published_publication_id,before.content.published_publication_id);
+  await page.locator('#reload-editor').click();await expect(page.locator('[name="en.title"]')).toHaveValue('Managed stay');await page.locator('#preview-draft').click();
+  for(const lang of ['English','简体中文']){const href=await page.locator('#preview-links a').filter({hasText:lang}).getAttribute('href');assert.ok(href);const preview=await context.newPage();const response=await preview.goto(webUrl+href);assert.equal(response!.status(),200);await expect(preview.locator('[data-preview-banner]')).toBeVisible();await expect(preview.locator('[data-booking-entry]')).toHaveCount(0);await expect(preview.locator('h1')).toHaveText(lang==='English'?'Managed stay':'后台维护住宿');if(lang==='English'){await preview.locator('#stay-description-more summary').click();await expect(preview.locator('#about')).not.toContainText('Room layout and shared-space details will be added.');}await preview.close();
+   const anonymous=await fetch(webUrl+href);assert.equal(anonymous.status,401);assert.ok(anonymous.headers.get('x-robots-tag')?.includes('noindex'));
+  }
+  await page.locator('#submit-revision').click();await expect(page.locator('#publish')).toBeEnabled();await page.locator('#publish').click();await expect(page.locator('#revision-state')).toContainText('approved');
+  const live=await context.newPage();await live.goto(webUrl+'/zh/worlds/lathe-worlds/stays/dockside-window');await expect(live.locator('h1')).toHaveText('后台维护住宿');await live.close();
+  await page.setViewportSize({width:390,height:850});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await page.screenshot({path:'test-results/phase55/stay-admin-mobile.png'});await page.setViewportSize({width:1440,height:1000});await page.screenshot({path:'test-results/phase55/stay-admin-desktop.png'});
+  await page.locator('#history').getByRole('button',{name:'Restore publication',exact:true}).last().click();await expect(page.locator('#revision-state')).toContainText('approved');const restored=await adminDetail(f.db,f.data.admin,id);assert.equal(restored.content.head_revision_id,after.content.head_revision_id);
+ });
+ await t.test('experience and service bilingual forms, UTC sessions, lists and preview use saved values',async()=>{
+  for(const [kind,slug,list]of [['experience','forge-walk','steps'],['service','augmetic-tune-up','qualifications']]){
+   await page.setViewportSize({width:1440,height:1000});await open(slug!);
+   await page.locator(`[name="en.${kind}.introduction"]`).fill('English edited introduction.\nSecond line.');
+   await page.locator(`[name="zh-CN.${kind}.introduction"]`).fill('中文栏目介绍。\n第二行。');
+   const items=page.locator(`[data-field="en.${kind}.${list}"]`);await items.locator(':scope > div > .repeat-row').nth(1).getByRole('button',{name:'Move up',exact:true}).click();
+   const day=new Date(Date.now()+5*86400000).toISOString().slice(0,10);
+   await page.locator(`[name="attributes.${kind}.sessions.0.startsAt"]`).fill(day+'T10:00');await page.locator(`[name="attributes.${kind}.sessions.0.endsAt"]`).fill(day+'T11:30');
+   await save();await page.locator('#preview-draft').click();
+   for(const lang of ['English','简体中文']){const href=await page.locator('#preview-links a').filter({hasText:lang}).getAttribute('href');const preview=await context.newPage();await preview.setViewportSize({width:390,height:850});const r=await preview.goto(webUrl+href);assert.equal(r!.status(),200);await expect(preview.locator('[data-booking-entry]')).toHaveCount(0);await expect(preview.locator('main')).toContainText(lang==='English'?'English edited introduction.':'中文栏目介绍。');assert.ok(await preview.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await preview.screenshot({path:`test-results/phase55/${kind}-preview-${lang==='English'?'en':'zh'}.png`,fullPage:true});await preview.close();}
+   await page.locator('#submit-revision').click();await expect(page.locator('#publish')).toBeEnabled();await page.locator('#publish').click();await expect(page.locator('#revision-state')).toContainText('approved');
+   await page.setViewportSize({width:390,height:850});await page.locator('.language-tabs button').filter({hasText:'简体中文'}).click();await expect(page.locator(`[name="zh-CN.${kind}.introduction"]`)).toHaveValue('中文栏目介绍。\n第二行。');await page.locator('.language-tabs button').filter({hasText:'English'}).click();await expect(page.locator(`[name="en.${kind}.introduction"]`)).toHaveValue('English edited introduction.\nSecond line.');
+   await page.locator('#history').getByRole('button',{name:'Restore publication',exact:true}).last().click();await expect(page.locator('#revision-state')).toContainText('approved');
+  }
+ });
+ await t.test('shared copy form publishes without rebuilding and keeps type boundaries',async()=>{
+  await page.setViewportSize({width:1440,height:1000});const panel=page.locator('#settings-panel');await panel.locator('..').locator('summary').click();
+  const copy=(await f.db.query("SELECT id FROM detail_settings WHERE kind='copy'")).rows[0];await panel.locator(':scope > select').selectOption(copy.id);
+  const key=(await import('@plotstay/contracts')).detailCopyDefaults;const heading=Object.keys(key).find(k=>key[k]!.scope==='stay'&&key[k]!.en==='What this place offers')!;
+  await expect(panel.locator(`[name="translations.en.${heading}"]`)).toBeVisible();await panel.locator(`[name="translations.en.${heading}"]`).fill('Managed amenities heading');await panel.locator(`[name="translations.zh-CN.${heading}"]`).fill('后台设施标题');
+  await panel.getByRole('button',{name:'Save configuration draft',exact:true}).click();await expect(panel.locator('[role=status]')).toContainText('draft saved');
+  await panel.locator('form > select').selectOption((await f.db.query("SELECT id FROM contents WHERE slug='dockside-window'")).rows[0].id);await panel.getByRole('button',{name:'Preview saved configuration',exact:true}).click();const href=await panel.locator('form > span a').filter({hasText:'en'}).getAttribute('href');const preview=await context.newPage();await preview.goto(webUrl+href);await expect(preview.locator('#facilities-heading')).toHaveText('Managed amenities heading');await expect(preview.locator('[data-booking-entry]')).toHaveCount(0);await preview.close();
+  await panel.getByRole('button',{name:'Submit for review',exact:true}).click();await expect(panel.locator('[role=status]')).toContainText('Action completed');await panel.getByRole('button',{name:'Approve and publish',exact:true}).click();await expect(panel.locator('[role=status]')).toContainText('Action completed');
+  const live=await context.newPage();for(const lang of ['en','zh']){await live.goto(webUrl+`/${lang}/worlds/lathe-worlds/stays/dockside-window`);await expect(live.locator('#facilities-heading')).toHaveText(lang==='en'?'Managed amenities heading':'后台设施标题');}await live.goto(webUrl+'/en/worlds/lathe-worlds/services/augmetic-tune-up');await expect(live.locator('main')).not.toContainText('Managed amenities heading');await live.close();
+  await panel.getByRole('button',{name:'Restore publication',exact:true}).last().click();await expect(panel.locator('[role=status]')).toBeEmpty();
+ });
+ await t.test('save errors and expired sessions preserve form input, with reauthentication',async()=>{
+  await open('forge-walk');await page.locator('[name="en.title"]').fill('Input preserved after failure');
+  await page.route('**/api/admin/contents/*/revisions',route=>route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({error:{code:'UNAVAILABLE',message:'Temporary save failure'}})}));await page.locator('#editor button[type=submit]').click();await expect(page.locator('#message')).toContainText('Temporary save failure');await expect(page.locator('[name="en.title"]')).toHaveValue('Input preserved after failure');await page.unroute('**/api/admin/contents/*/revisions');
+  await page.evaluate(async()=>{await fetch('/api/auth/logout',{method:'POST',headers:{'content-type':'application/json'},body:'{}'});});await page.locator('#editor button[type=submit]').click();await expect(page.locator('#login')).toBeVisible();await expect(page.locator('[name="en.title"]')).toHaveValue('Input preserved after failure');await page.locator('#login [name=email]').fill(f.credentials.email);await page.locator('#login [name=password]').fill(f.credentials.password);await page.locator('#login button').click();await expect(page.locator('#login')).toBeHidden();await save();
+ });
+ await t.test('editorial notes stay under their parent and affect public ratings only after publication',async()=>{
+  await open('forge-walk');await page.locator('#entry-notes').click();await expect(page.locator('#entry-notes')).toBeEnabled();await expect(page.locator('#content-list tr')).not.toHaveCount(0);await page.locator('#content-list button').first().click();await expect(page.locator('[name=kind]')).toHaveValue('review');
+  await page.locator('[name="en.review.name"]').fill('Managed visitor');await page.locator('[name="zh-CN.review.name"]').fill('后台旅客');await page.locator('[name="en.review.origin"]').fill('New origin');await page.locator('[name=rating]').fill('3');await page.locator('[name="attributes.reviewRatings.accuracy"]').fill('2');
+  const before=await (await page.request.get(webUrl+'/api/worlds/lathe-worlds/experience/forge-walk/detail?locale=en')).json();await save();const unchanged=await (await page.request.get(webUrl+'/api/worlds/lathe-worlds/experience/forge-walk/detail?locale=en')).json();assert.deepEqual(unchanged.reviewSummary,before.reviewSummary);
+  await page.locator('#preview-draft').click();const href=await page.locator('#preview-links a').filter({hasText:'English'}).getAttribute('href');const preview=await context.newPage();await preview.goto(webUrl+href);await expect(preview.locator('[data-review-preview]')).toContainText('Managed visitor');await expect(preview.locator('[data-review-preview]')).toContainText('New origin');await preview.close();
+  await page.locator('#submit-revision').click();await expect(page.locator('#publish')).toBeEnabled();await page.locator('#publish').click();await expect(page.locator('#revision-state')).toContainText('approved');const changed=await (await page.request.get(webUrl+'/api/worlds/lathe-worlds/experience/forge-walk/detail?locale=en')).json();assert.notEqual(changed.reviewSummary.rating,before.reviewSummary.rating);assert.equal(changed.reviewSummary.ratedCount,before.reviewSummary.ratedCount);
+ });
+ assert.deepEqual(errors,[]);
+});

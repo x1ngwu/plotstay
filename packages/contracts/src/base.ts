@@ -27,6 +27,8 @@ export const textSchema = z.object({
   service: serviceTextSchema.optional(),
   experience: experienceTextSchema.optional(),
   stay: stayTextSchema.optional(),
+  map: z.object({transit:z.string().max(500).optional(),lounge:z.string().max(500).optional(),dining:z.string().max(500).optional(),center:z.string().max(500).optional(),accessibleDescription:z.string().max(1000).optional(),caption:z.string().max(1000).optional()}).strict().optional(),
+  clearedFields: z.array(z.string().regex(/^(?:stay|experience|service|review|map|hostName|hostBio|highlights|facilities|rules|itinerary)(?:\.[a-zA-Z]+)*$/)).max(150).optional(),
   review: reviewTextSchema.optional()
 }).strict();
 export type ContentText = z.infer<typeof textSchema>;
@@ -74,7 +76,7 @@ export const importSchema = z.object({
   items: z.array(z.object({ externalId: z.string().trim().min(1).max(160), content: z.unknown() }).strict()).min(1).max(100)
 }).strict();
 
-export const revisionActionSchema = z.object({ revisionId: idSchema }).strict();
+export const revisionActionSchema = z.object({ revisionId: idSchema, draftToken: idSchema.optional() }).strict();
 export const reviewActionSchema = revisionActionSchema.extend({ decision: z.enum(['publish', 'reject']), note: z.string().trim().max(2000).default('') });
 export const restoreActionSchema = z.object({ publicationId: idSchema }).strict();
 export const unpublishActionSchema = z.object({ siteBlock: z.boolean().default(false), note: z.string().trim().max(2000).default('') }).strict();
@@ -103,6 +105,7 @@ export interface World {
   availableLocales: string[]; listingLocales: string[]; homeLocales?: string[];
 }
 export interface PublicContent {
+  preview?: boolean;
   id: string; worldId: string; worldSlug: string; slug: string; kind: ContentKind;
   placeId: string | null; placeSlug: string | null; placeName: string | null; locale: string; requestedLocale: string; isFallback: boolean;
   text: ContentText; attributes: ContentAttributes; publicationId: string; publishedAt: string;

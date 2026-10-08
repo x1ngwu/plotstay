@@ -66,3 +66,17 @@ systemctl status plotstay-preview
 journalctl -u plotstay-preview -n 100 --no-pager
 sudo tail -n 50 /var/log/nginx/plotstay.xingwu.dev.error.log
 ```
+
+
+## 阶段 5.5 增量配置接入
+
+当前库新增 `007_detail_management.sql`；不要改写已应用迁移。首次接入在原库运行必要迁移后，可预演并初始化缺失详情配置：
+
+```bash
+npm run db:init:details
+npm run db:init:details -- --apply
+```
+
+脚本仅创建缺失的文案／世界／地点／人物版本，记录原值，不覆盖既有草稿或发布，不自动 seed。后台正常修改通过保存、审核、发布生效，无需重建。共享资料发布影响当前引用页面，历史凭条不改变；内容恢复与共享资料恢复分别操作。
+
+后台预览路由 `/api/admin/preview/{locale}/{id}` 仍受 Nginx Basic Auth 和应用后台身份双重保护，响应禁止缓存和索引；不要为此路径添加 Nginx 公开例外。只有 robots.txt 公开。验收步骤及证据见 `docs/phase-5-5-content-management.md`。

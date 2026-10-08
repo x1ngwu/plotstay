@@ -1,9 +1,9 @@
 ---
 import { contentPath, type PublicContent, type World, type Locale } from '@plotstay/contracts';
-import { messages } from '../lib/i18n';
+import { detailMessages } from '../lib/detail-copy';
 interface Props { content: PublicContent; world: World; locale: Locale; href?: string; category?: string }
 const { content, world, locale, category, href = contentPath(Astro.props.locale, Astro.props.content) } = Astro.props;
-const ui = messages(locale.code);
+const ui = detailMessages(locale.code,Astro.locals.detailCopy);
 const cover = content.attributes.images[0];
 ---
 <li class="content-card" data-content-id={content.id}>

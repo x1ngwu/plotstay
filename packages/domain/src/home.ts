@@ -67,3 +67,29 @@ export function publishHome(db: Database, actor: Actor, worldId: string, revisio
     return { publicationId: publication.id as string };
   });
 }
+
+export async function adminHome(db:Connection,actor:Actor,worldId:string){
+ await requireWorld(db,actor,worldId);
+ const setting=(await db.query('SELECT * FROM world_home_settings WHERE world_id=$1',[worldId])).rows[0];
+ const revisions=(await db.query('SELECT * FROM world_home_revisions WHERE world_id=$1 ORDER BY created_at DESC,id DESC',[worldId])).rows;
+ const publications=(await db.query('SELECT * FROM world_home_publications WHERE world_id=$1 ORDER BY published_at DESC,id DESC',[worldId])).rows;
+ return {setting,revisions,publications};
+}
+export function reviewHome(db:Database,actor:Actor,worldId:string,action:'submit'|'publish'|'reject'|'restore',revisionId:string,publicationId?:string){return transaction(db,async client=>{
+ const world=await requireWorld(client,actor,worldId,true);assert(!world.site_blocked,403,'SITE_BLOCKED','World is restricted.');
+ const s=(await client.query('SELECT * FROM world_home_settings WHERE world_id=$1 FOR UPDATE',[worldId])).rows[0];
+ assert(s?.head_revision_id===revisionId,409,'REVISION_CONFLICT','Configuration changed.');
+ if(action==='submit'||action==='reject'){
+  await client.query('UPDATE world_home_settings SET submitted_revision_id=$2 WHERE world_id=$1',[worldId,action==='submit'?revisionId:null]);
+ }else{
+  let target=revisionId;
+  if(action==='restore'){const p=(await client.query('SELECT revision_id FROM world_home_publications WHERE id=$1 AND world_id=$2',[publicationId,worldId])).rows[0];assert(p,404,'NOT_FOUND','Publication not found.');target=p.revision_id;}
+  else assert(s.submitted_revision_id===revisionId,409,'NOT_SUBMITTED','Submit this version first.');
+  const r=(await client.query('SELECT body FROM world_home_revisions WHERE id=$1',[target])).rows[0];const body=homeConfigSchema.parse(r.body);
+  const required=(await client.query('SELECT code FROM locales WHERE enabled AND required_for_publish')).rows;
+  assert(required.every(l=>body.translations[l.code]),409,'TRANSLATIONS_REQUIRED','Complete required languages.');await validateRelations(client,worldId,body);
+  const p=(await client.query('INSERT INTO world_home_publications(world_id,revision_id,published_by)VALUES($1,$2,$3)RETURNING id',[worldId,target,actor.id])).rows[0];
+  await client.query('UPDATE world_home_settings SET published_id=$2 WHERE world_id=$1',[worldId,p.id]);
+ }
+ await client.query('INSERT INTO moderation_events(world_id,actor_id,action,note)VALUES($1,$2,$3,$4)',[worldId,actor.id,'home_'+action,publicationId??revisionId]);return {done:true};
+});}

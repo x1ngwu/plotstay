@@ -6,8 +6,8 @@ import { idSchema, kindSchema, localeSchema, loginSchema, slugSchema, createCont
   parseBrowse, detailQuerySchema,
   revisionActionSchema, reviewActionSchema, restoreActionSchema, unpublishActionSchema, noteActionSchema, translationActionSchema } from '@plotstay/contracts';
 import type { Database } from '@plotstay/database';
-import { adminDetail, adminList, adminWorlds, assert, digest, DomainError, getActor,
-  browseWorld, publishedDetail, publicHome, saveHomeDraft, publishHome, getPublished, listPublished, listWorlds, listLocales, publicDiscovery, login, createContent, editContent, submitRevision, reviewRevision,
+import { adminHome, reviewHome, listSettings, settingDetail, saveSetting, settingAction, publicDetailCopy, adminDetail, adminList, adminWorlds, assert, digest, DomainError, getActor,
+  browseWorld, previewDetail, publishedDetail, publicHome, saveHomeDraft, publishHome, getPublished, listPublished, listWorlds, listLocales, publicDiscovery, login, createContent, editContent, submitRevision, reviewRevision,
   restorePublication, unpublishContent, releaseSiteBlock, saveTranslation, importContent, requireWorld, retryTranslation,
   createGuest, getGuest, quoteBooking, createBooking, getReceipt, findBooking, latestBooking } from '@plotstay/domain';
 
@@ -130,11 +130,34 @@ export async function createApp(db: Database, options: { logger?: boolean; webOr
     await guest(request.cookies[GUEST]), z.object({ contentId: idSchema }).strict().parse(request.query).contentId) ?? null }));
   app.get('/api/bookings/:id', async request => ({ receipt: await getReceipt(db,
     { guestId: await guest(request.cookies[GUEST]) }, idParams.parse(request.params).id) }));
+  app.get('/api/detail-copy', async()=>({body:await publicDetailCopy(db)}));
+  app.get('/api/admin/worlds/:worldId/settings',async request=>({settings:await listSettings(db,await actor(request.cookies[SESSION]),z.object({worldId:idSchema}).parse(request.params).worldId)}));
+  app.get('/api/admin/settings/:id',async request=>settingDetail(db,await actor(request.cookies[SESSION]),idParams.parse(request.params).id));
+  app.put('/api/admin/settings/:id',async request=>{const b=z.object({body:z.unknown(),baseRevisionId:idSchema}).strict().parse(request.body);return saveSetting(db,await actor(request.cookies[SESSION]),idParams.parse(request.params).id,b.body,b.baseRevisionId);});
+  app.post('/api/admin/settings/:id/:action',async request=>{const p=z.object({id:idSchema,action:z.enum(['submit','publish','reject','restore'])}).parse(request.params);const b=z.object({revisionId:idSchema,publicationId:idSchema.optional()}).strict().parse(request.body);return settingAction(db,await actor(request.cookies[SESSION]),p.id,p.action,b.revisionId,b.publicationId);});
   app.get('/api/admin/worlds', async request => ({ worlds: await adminWorlds(db, await actor(request.cookies[SESSION])) }));
   app.get('/api/admin/worlds/:worldId/contents', async request => {
     const user = await actor(request.cookies[SESSION]);
     const { worldId } = z.object({ worldId: idSchema }).parse(request.params);
-    return { contents: await adminList(db, user, worldId) };
+    const query=z.object({page:z.coerce.number().int().min(1).max(100000).default(1),kind:kindSchema.optional(),q:z.string().max(200).optional(),status:z.enum(['draft','submitted','approved','rejected','published','unpublished']).optional(),parentId:idSchema.optional()}).strict().parse(request.query);
+    return adminList(db, user, worldId,query);
+  });
+  app.get('/api/admin/contents/:id/preview', async request => {
+    const query=z.object({revisionId:idSchema,token:idSchema,locale:localeSchema,settingId:idSchema.optional(),settingRevision:idSchema.optional(),homeRevision:idSchema.optional()}).strict().parse(request.query);
+    const user=await actor(request.cookies[SESSION]),id=idParams.parse(request.params).id;
+    const detail=await previewDetail(db,user,id,query.revisionId,query.token,query.locale);
+    if(query.settingId){
+      const config=await settingDetail(db,user,query.settingId),s=config.setting;
+      assert(s.head_revision_id===query.settingRevision,409,'REVISION_CONFLICT','Configuration preview is out of date.');
+      const entity=await adminDetail(db,user,id);
+      assert(s.kind==='copy'||(s.kind==='world'&&s.entity_id===detail.content.worldId)||(s.kind==='place'&&s.entity_id===detail.content.placeId)||(s.kind==='persona'&&s.entity_id===entity.content.persona_id),400,'INVALID_REFERENCE','This entry does not reference the selected configuration.');
+      const body=config.revisions.find(r=>r.id===query.settingRevision)!.body;
+      detail.previewSetting={kind:s.kind,body,revisionId:query.settingRevision!};
+      if(s.kind==='place')detail.content.placeName=body[query.locale]??body[entity.revisions[0].source_locale]??null;
+      if(s.kind==='persona')detail.content.personaName=(body[query.locale]??body[entity.revisions[0].source_locale])?.name??null;
+    }
+    if(query.homeRevision){const home=await adminHome(db,user,detail.content.worldId);assert(home.setting?.head_revision_id===query.homeRevision,409,'REVISION_CONFLICT','Home configuration changed.');const body=home.revisions.find(r=>r.id===query.homeRevision)!.body;detail.content.categoryName=(body.translations[query.locale]??body.translations[body.sourceLocale]).categoryNames[detail.content.attributes.category??'']??null;detail.previewSetting={kind:'categories',body:{},revisionId:query.homeRevision};}
+    return detail;
   });
   app.get('/api/admin/contents/:id', async request => {
     const user = await actor(request.cookies[SESSION]);
@@ -152,6 +175,8 @@ export async function createApp(db: Database, options: { logger?: boolean; webOr
     const home = await publicHome(db, worldId, 'en');
     return { categories: home?.config.categories ?? [], places: places.rows, personas: personas.rows, parents: parents.rows, translationProvider: process.env.TRANSLATION_PROVIDER ?? 'disabled' };
   });
+  app.get('/api/admin/worlds/:worldId/home',async request=>adminHome(db,await actor(request.cookies[SESSION]),z.object({worldId:idSchema}).parse(request.params).worldId));
+  app.post('/api/admin/worlds/:worldId/home/review/:action',async request=>{const p=z.object({worldId:idSchema,action:z.enum(['submit','publish','reject','restore'])}).parse(request.params);const b=z.object({revisionId:idSchema,publicationId:idSchema.optional()}).strict().parse(request.body);return reviewHome(db,await actor(request.cookies[SESSION]),p.worldId,p.action,b.revisionId,b.publicationId);});
   app.put('/api/admin/worlds/:worldId/home', async request => {
     const user = await actor(request.cookies[SESSION]);
     const { worldId } = z.object({ worldId: idSchema }).parse(request.params);
@@ -173,12 +198,12 @@ export async function createApp(db: Database, options: { logger?: boolean; webOr
   });
   app.post('/api/admin/contents/:id/submit', async request => {
     const user = await actor(request.cookies[SESSION]);
-    return submitRevision(db, user, idParams.parse(request.params).id, revisionActionSchema.parse(request.body).revisionId);
+    const body=revisionActionSchema.parse(request.body);return submitRevision(db, user, idParams.parse(request.params).id, body.revisionId,body.draftToken);
   });
   app.post('/api/admin/contents/:id/review', async request => {
     const user = await actor(request.cookies[SESSION]);
     const body = reviewActionSchema.parse(request.body);
-    return reviewRevision(db, user, idParams.parse(request.params).id, body.revisionId, body.decision, body.note);
+    return reviewRevision(db, user, idParams.parse(request.params).id, body.revisionId, body.decision, body.note,body.draftToken);
   });
   app.post('/api/admin/contents/:id/restore', async request => {
     const user = await actor(request.cookies[SESSION]);

@@ -1,15 +1,17 @@
 ---
+import { detailBilingual } from '../../lib/detail-copy';
 import type { PublicContent, Locale, BrowseState } from '@plotstay/contracts';
-import { bilingual } from '../../lib/i18n';
 import '../../styles/booking.css';
 const {content,locale,state}=Astro.props as {content:PublicContent;locale:Locale;state:BrowseState};
-const t=bilingual(locale.code);
+const t=detailBilingual(locale.code, Astro.locals.detailCopy, 'common');
 const query=new URLSearchParams();
 for(const key of ['start','end','guests','rooms','quantity','time'] as const)if(state[key]!==undefined)query.set(key,String(state[key]));
 ---
-<a class="booking-primary booking-entry" data-booking-entry href={`/${locale.pathPrefix}/booking/${content.id}?${query}`}>{t(content.kind==='stay'?'模拟预订':'模拟预约',content.kind==='stay'?'Book a fictional stay':'Reserve a fictional visit')} →</a>
+{content.preview ? <p class="notice">{t('草稿预览 · 不可预订','Draft preview · booking disabled')}</p> : <>
+<a class="booking-primary booking-entry" data-booking-entry href={`/${locale.pathPrefix}/booking/${content.id}?${query}`}>{t.format(content.kind==='stay'?'bookStay':'bookVisit',{})} →</a>
 <p class="booking-fine">{t('无需注册 · 不会真实扣款','No account needed · no real charge')}</p>
 <a class="booking-fine" data-recent-booking data-content={content.id} data-prefix={locale.pathPrefix} hidden>{t('恢复此内容的最近凭条','Recover my latest document for this listing')}</a>
+</>}
 <script>
  for(const link of document.querySelectorAll<HTMLAnchorElement>('[data-recent-booking]')){
   void fetch(`/api/bookings/latest?contentId=${encodeURIComponent(link.dataset.content!)}`,{cache:'no-store'}).then(async response=>{

@@ -26,7 +26,8 @@ export const uiLocale = (locale: string) => hasDictionary(locale) ? locale : 'en
 export const bilingual = (locale: string) => (zh: string, en: string) => uiLocale(locale) === 'zh-CN' ? zh : en;
 export function languagePath(url: URL, locale: Locale) {
   const segments = url.pathname.split('/');
-  segments[1] = locale.pathPrefix;
+  if(url.pathname.startsWith('/api/admin/preview/'))segments[4]=locale.pathPrefix;
+  else segments[1] = locale.pathPrefix;
   const params = new URLSearchParams(url.search);
   if (params.get('q')?.trim()) params.delete('page');
   return segments.join('/').replace(/\/+$/, '') + (params.size ? '?' + params : '');

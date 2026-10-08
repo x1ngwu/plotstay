@@ -234,21 +234,8 @@ test('phase 4 detail browser acceptance', {timeout:180000}, async t => {
         (SELECT jsonb_object_agg(l.locale,t.body) FROM revision_locales l JOIN translations t ON t.id=l.translation_id WHERE l.revision_id=r.id) AS texts
         FROM contents c JOIN content_revisions r ON r.id=c.head_revision_id WHERE c.slug=$1`,[slug]);
       await page.locator('#filter-kind').selectOption(slug==='augmetic-tune-up'?'service':slug==='forge-walk'?'experience':slug==='dockside-window'?'stay':'review');
-      // Demo review titles repeat across stays; select the matching content row by its click result.
-      if(slug==='augmetic-tune-up')await page.locator('#content-list tr').filter({hasText:'A little augmetic tune-up'}).getByRole('button',{name:'Edit',exact:true}).click();
-      else if(slug==='forge-walk')await page.locator('#content-list tr').filter({hasText:'Forge Walk'}).getByRole('button',{name:'Edit',exact:true}).click();
-      else if(slug==='dockside-window')await page.locator('#content-list tr').filter({hasText:'A window above the docks'}).getByRole('button',{name:'Edit',exact:true}).click();
-      else {
-        const target=await page.request.get(webUrl+`/api/admin/contents/${before.id}`);assert.equal(target.status(),200);
-        // This row is the first demonstration note for the selected parent in the sorted admin list.
-        for(const button of await page.locator('#content-list tr').filter({hasText:'Demonstration note 1'}).getByRole('button',{name:'Edit',exact:true}).all()){
-          const opened=page.waitForResponse(r=>r.request().method()==='GET' && /\/api\/admin\/contents\/[^/]+$/.test(r.url()));
-          await button.click();await opened;
-          await expect(page.locator('#editor-panel')).toBeVisible();
-          const current=await page.locator('[name=slug]').inputValue();
-          if(current===slug)break;
-        }
-      }
+      await page.locator('#filter-query').fill(slug);await page.locator('#search-list').click();await expect(page.locator('#search-list')).toBeEnabled();await expect(page.locator('#content-list tr')).toHaveCount(1);
+      await page.locator('#content-list button').click();
       await expect(page.locator('[name=slug]')).toHaveValue(slug);
       if(slug==='augmetic-tune-up'){assert.equal(JSON.parse(await page.locator('[name="en:service"]').inputValue()).qualifications.length,3);assert.equal(JSON.parse(await page.locator('[name=serviceAttributes]').inputValue()).sessions.length,2);}
       else if(slug==='forge-walk')assert.equal(JSON.parse(await page.locator('[name="en:experience"]').inputValue()).steps.length,5);

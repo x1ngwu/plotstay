@@ -1,10 +1,10 @@
 ---
+import { detailBilingual } from '../../../lib/detail-copy';
 import type { PublicContent, Locale } from '@plotstay/contracts';
-import { bilingual } from '../../../lib/i18n';
 import DetailSection from '../DetailSection.astro';
 import Icon from './Icon.astro';
 const {content:c,locale} = Astro.props as {content:PublicContent;locale:Locale};
-const t=bilingual(locale.code), rooms=c.text.stay?.sleeping ?? [];
+const t=detailBilingual(locale.code, Astro.locals.detailCopy, 'stay'), rooms=c.text.stay?.sleeping ?? [];
 const image=c.attributes.images[0];
 ---
 <DetailSection id="sleeping" title={t('你将在哪里休息','Where you’ll sleep')} languageTag={c.languageTag}>
