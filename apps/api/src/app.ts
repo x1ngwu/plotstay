@@ -1,3 +1,4 @@
+import {personaRoutes} from './persona-routes.ts';
 import Fastify from 'fastify';
 import cookie from '@fastify/cookie';
 import rateLimit from '@fastify/rate-limit';
@@ -6,7 +7,7 @@ import { idSchema, kindSchema, localeSchema, loginSchema, slugSchema, createCont
   parseBrowse, detailQuerySchema,
   revisionActionSchema, reviewActionSchema, restoreActionSchema, unpublishActionSchema, noteActionSchema, translationActionSchema } from '@plotstay/contracts';
 import type { Database } from '@plotstay/database';
-import { adminHome, reviewHome, listSettings, settingDetail, saveSetting, settingAction, publicDetailCopy, adminDetail, adminList, adminWorlds, assert, digest, DomainError, getActor,
+import { signatureProfiles, adminHome, reviewHome, listSettings, settingDetail, saveSetting, settingAction, publicDetailCopy, adminDetail, adminList, adminWorlds, assert, digest, DomainError, getActor,
   browseWorld, previewDetail, publishedDetail, publicHome, saveHomeDraft, publishHome, getPublished, listPublished, listWorlds, listLocales, publicDiscovery, login, createContent, editContent, submitRevision, reviewRevision,
   restorePublication, unpublishContent, releaseSiteBlock, saveTranslation, importContent, requireWorld, retryTranslation,
   createGuest, getGuest, quoteBooking, createBooking, getReceipt, findBooking, latestBooking } from '@plotstay/domain';
@@ -51,6 +52,7 @@ export async function createApp(db: Database, options: { logger?: boolean; webOr
     return result;
   }
 
+  personaRoutes(app,db);
   app.get('/api/health', async (_request, reply) => {
     try {
       // Readiness requires the schema as well as the connection.
@@ -150,11 +152,11 @@ export async function createApp(db: Database, options: { logger?: boolean; webOr
       const config=await settingDetail(db,user,query.settingId),s=config.setting;
       assert(s.head_revision_id===query.settingRevision,409,'REVISION_CONFLICT','Configuration preview is out of date.');
       const entity=await adminDetail(db,user,id);
-      assert(s.kind==='copy'||(s.kind==='world'&&s.entity_id===detail.content.worldId)||(s.kind==='place'&&s.entity_id===detail.content.placeId)||(s.kind==='persona'&&s.entity_id===entity.content.persona_id),400,'INVALID_REFERENCE','This entry does not reference the selected configuration.');
+      assert(s.kind==='copy'||(s.kind==='world'&&s.entity_id===detail.content.worldId)||(s.kind==='place'&&s.entity_id===detail.content.placeId)||(s.kind==='persona'&&(s.entity_id===entity.content.persona_id||(await db.query('SELECT 1 FROM provider_bindings WHERE content_id=$1 AND persona_id=$2',[id,s.entity_id])).rowCount)),400,'INVALID_REFERENCE','This entry does not reference the selected configuration.');
       const body=config.revisions.find(r=>r.id===query.settingRevision)!.body;
       detail.previewSetting={kind:s.kind,body,revisionId:query.settingRevision!};
       if(s.kind==='place')detail.content.placeName=body[query.locale]??body[entity.revisions[0].source_locale]??null;
-      if(s.kind==='persona')detail.content.personaName=(body[query.locale]??body[entity.revisions[0].source_locale])?.name??null;
+      if(s.kind==='persona'){const profile=(body[query.locale]??body[entity.revisions[0].source_locale]);detail.content.personaName=profile?.name??null;if(detail.content.kind!=='review'&&profile){detail.content.provider=signatureProfiles({[query.locale]:profile})[query.locale];detail.content.text={...detail.content.text,hostName:profile.name,hostBio:profile.bio};}}
     }
     if(query.homeRevision){const home=await adminHome(db,user,detail.content.worldId);assert(home.setting?.head_revision_id===query.homeRevision,409,'REVISION_CONFLICT','Home configuration changed.');const body=home.revisions.find(r=>r.id===query.homeRevision)!.body;detail.content.categoryName=(body.translations[query.locale]??body.translations[body.sourceLocale]).categoryNames[detail.content.attributes.category??'']??null;detail.previewSetting={kind:'categories',body:{},revisionId:query.homeRevision};}
     return detail;

@@ -1,0 +1,125 @@
+#persona-workspace {
+  max-width: 1050px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+#persona-workspace .panel {
+  margin: 1rem 0;
+  padding: 1rem;
+}
+#persona-workspace input,
+#persona-workspace textarea,
+#persona-workspace select {
+  width: 100%;
+  min-width: 0;
+}
+#persona-workspace label {
+  display: block;
+  margin: 0.7rem 0;
+}
+#persona-workspace textarea {
+  min-height: 7rem;
+}
+#persona-workspace fieldset {
+  min-width: 0;
+  margin: 1rem 0;
+  padding: 1rem;
+}
+#persona-workspace article {
+  overflow-wrap: anywhere;
+}
+#persona-workspace button {
+  margin: 0.3rem 0.5rem 0.3rem 0;
+}
+.account-tabs,
+.account-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.account-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+.persona-avatar {
+  width: 48px;
+  height: 48px;
+  border: 1px solid currentColor;
+  object-fit: cover;
+}
+.persona-preview {
+  border-left: 4px solid var(--accent, #b8f264);
+  padding: 1rem;
+  white-space: pre-wrap;
+}
+.provider-reply {
+  margin: 1rem 0 0 1rem;
+  border-left: 3px solid currentColor;
+  padding: 0.75rem;
+}
+.provider-reply img {
+  width: 32px;
+  height: 32px;
+}
+#persona-message:not(:empty) {
+  padding: 1rem;
+  border: 1px solid currentColor;
+}
+#persona-workspace [hidden] {
+  display: none !important;
+}
+@media (max-width: 600px) {
+  .account-grid {
+    grid-template-columns: 1fr;
+  }
+  #persona-workspace {
+    padding: 0 0.7rem;
+  }
+  #persona-workspace fieldset {
+    padding: 0.6rem;
+  }
+}
+
+#persona-workspace :is(input, select, button) {
+  min-height: 44px;
+  padding: 0.55rem;
+  font: inherit;
+}
+#persona-workspace textarea {
+  padding: 0.7rem;
+  font: inherit;
+}
+#persona-workspace fieldset {
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+#persona-workspace legend {
+  padding: 0.3rem 0.6rem;
+  background: #111 var(--dot-grid);
+}
+#persona-workspace h2 {
+  border-bottom: 3px dotted var(--accent);
+  padding: 0.65rem;
+  background: #111 var(--dot-grid);
+}
+#persona-workspace label {
+  font-size: 0.9rem;
+}
+#persona-workspace .account-tabs a {
+  padding: 0.6rem 0;
+}
+#persona-workspace button {
+  border: 1px solid var(--accent);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+#persona-workspace button:hover {
+  background: var(--accent);
+  color: var(--surface);
+}
+#persona-workspace button:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}

@@ -11,7 +11,7 @@ const name = contentFallback(c,'hostName',c.text.hostName,t('房东姓名待补�
 <div data-stay-module="09"><DetailSection id="host" title={t('认识你的房东','Meet your host')}>
   <div class="stay-host-grid">
     <div class="stay-host-card">
-      <div class="stay-host-identity"><span class="stay-avatar stay-host-portrait" aria-hidden="true"><Icon name="person"/></span><h3 lang={c.languageTag}>{name}</h3><p lang={c.languageTag}><Icon/>{contentFallback(c,'stay.hostBadge',s?.hostBadge,t('身份待补充','Status to be added'))}</p></div>
+      <div class="stay-host-identity"><span class="stay-avatar stay-host-portrait" aria-hidden="true">{c.provider?.avatarImage ? <img src={c.provider.avatarImage} alt="" style="width:100%;height:100%;object-fit:cover"/> : <Icon name="person"/>}</span><h3 lang={c.languageTag}>{name}</h3><p lang={c.languageTag}><Icon/>{contentFallback(c,'stay.hostBadge',s?.hostBadge,t('身份待补充','Status to be added'))}</p></div>
       <dl class="stay-host-stats"><div><dt>{t('条评价','Reviews')}</dt><dd>{a?.hostReviewCount ?? '—'}</dd></div><div><dt>{t('评分','Rating')}</dt><dd>{a?.hostRating?.toFixed(2) ?? '—'} <small>★</small></dd></div><div><dt>{t('年接待经验','Years hosting')}</dt><dd>{a?.hostYears ?? '—'}</dd></div></dl>
       {a?.demo && <p class="stay-demo">{t('人物数据为演示占位','Profile statistics are demonstration details')}</p>}
     </div>

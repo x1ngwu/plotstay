@@ -41,13 +41,16 @@ if (!seo.canonical) Astro.response.headers.set('X-Robots-Tag', 'noindex, follow'
       </div>
       <div class="header-actions">
         <a class="host-link" href={`/${locale.pathPrefix}/host`}>{t('成为房东', 'Become a host')}</a>
-        <a class="icon-button" data-account-link href={`/${locale.pathPrefix}/admin`} aria-label={t('账号登录', 'Sign in')}><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="8" r="3"/><path d="M5 21v-3a7 7 0 0 1 14 0v3"/></svg></a>
+        <a class="icon-button" data-account-link href={`/${locale.pathPrefix}/account`} aria-label={t('账号登录', 'Sign in')}><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="8" r="3"/><path d="M5 21v-3a7 7 0 0 1 14 0v3"/></svg></a>
         <details class="header-menu"><summary class="icon-button" aria-label={t('菜单', 'Menu')}><span aria-hidden="true">☰</span></summary><div class="menu-panel">
           <nav aria-label="Language">{locales.map(item => <a href={languagePath(Astro.url, item)} lang={item.languageTag} aria-current={locale.code === item.code ? 'page' : undefined}>{item.name}</a>)}</nav>
           {!fontPreview && interfaceTag.startsWith('zh') && <FontPreference selected={preferredFont} />}
           <a href={`/${locale.pathPrefix}/help`}>{t('帮助中心', 'Help centre')}</a>
           <a href={`/${locale.pathPrefix}/host`}>{t('成为房东', 'Become a host')}</a>
-          <a data-sign-in href={`/${locale.pathPrefix}/admin`}>{t('现有账号登录', 'Sign in to your account')}</a>
+          <a data-sign-in href={`/${locale.pathPrefix}/account`}>{t('现有账号登录', 'Sign in to your account')}</a>
+          <a href={`/${locale.pathPrefix}/account?view=personas`}>{t('我的角色', 'My personas')}</a>
+          <a href={`/${locale.pathPrefix}/account?view=reviews`}>{t('我的评价', 'My reviews')}</a>
+          <a href={`/${locale.pathPrefix}/account?view=replies`}>{t('提供者回复', 'Provider replies')}</a>
           <a data-manage hidden href={`/${locale.pathPrefix}/admin`}>{t('管理我的内容', 'Manage my listings')}</a>
           <button data-sign-out hidden>{t('退出登录', 'Sign out')}</button><span data-account-status role="status"></span>
         </div></details>

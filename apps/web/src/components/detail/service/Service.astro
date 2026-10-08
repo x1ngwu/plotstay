@@ -70,7 +70,7 @@ const policies=[{icon:'person',title:t('参与要求','Guest requirements'),body
   <div data-service-module="04"><Reviews detail={detail} locale={locale} pageHref={pageHref}/></div>
   <div data-service-module="05"><DetailSection id="host" title={t('服务资质','My qualifications')}>
    <div class="service-qualifications">
-    <div class="service-provider-card"><span class="stay-avatar service-provider-avatar"><Icon name="person"/></span><h3 lang={c.languageTag}>{host}</h3><p lang={c.languageTag}>{contentFallback(c,'service.providerRole',s?.providerRole,missing)}</p></div>
+    <div class="service-provider-card"><span class="stay-avatar service-provider-avatar">{c.provider?.avatarImage ? <img src={c.provider.avatarImage} alt="" style="width:100%;height:100%;object-fit:cover"/> : <Icon name="person"/>}</span><h3 lang={c.languageTag}>{host}</h3><p lang={c.languageTag}>{contentFallback(c,'service.providerRole',s?.providerRole,missing)}</p></div>
     <ul>{qualifications.map(q=><li><Icon name={q.icon}/><div><h3 lang={c.languageTag}>{q.title}</h3><p lang={c.languageTag}>{q.description}</p></div></li>)}</ul>
    </div>
    {c.text.hostBio&&<p class="prose service-provider-bio" lang={c.languageTag}>{c.text.hostBio}</p>}

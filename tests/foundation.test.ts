@@ -41,7 +41,7 @@ test('PostgreSQL foundation and API boundaries', async t => {
     assert.deepEqual(repeated[1].ids, data.ids);
     assert.deepEqual(await counts(), before);
     assert.equal((await db.query('SELECT password_hash FROM users WHERE id=$1', [data.admin.id])).rows[0].password_hash, oldHash);
-    assert.equal((await db.query('SELECT count(*)::int AS count FROM schema_migrations')).rows[0].count, 7);
+    assert.equal((await db.query('SELECT count(*)::int AS count FROM schema_migrations')).rows[0].count, 8);
     await db.query("UPDATE schema_migrations SET checksum='tampered' WHERE name='002_history_guards.sql'");
     await assert.rejects(() => migrate(db), /Applied migration changed/);
   });

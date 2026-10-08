@@ -105,6 +105,9 @@ export interface World {
   availableLocales: string[]; listingLocales: string[]; homeLocales?: string[];
 }
 export interface PublicContent {
+  provider?: {name:string;bio?:string;avatar?:string;avatarImage?:string};
+  signature?: {name:string;bio?:string;avatarImage?:string};
+  reply?: {id:string;body:string;name:string;avatarImage?:string;publishedAt:string;isFallback:boolean};
   preview?: boolean;
   id: string; worldId: string; worldSlug: string; slug: string; kind: ContentKind;
   placeId: string | null; placeSlug: string | null; placeName: string | null; locale: string; requestedLocale: string; isFallback: boolean;

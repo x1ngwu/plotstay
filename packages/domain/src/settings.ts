@@ -6,9 +6,16 @@ async function access(db:Connection,actor:Actor,s:any,manage=false){
  assert(s,404,'NOT_FOUND','Configuration not found.');
  if(s.kind==='copy')assert(actor.siteRole==='admin',403,'SITE_ADMIN_REQUIRED','Site copy requires a site administrator.');
  else if(s.kind==='persona'){
+  if(manage)assert(actor.siteRole==='admin',403,'SITE_ADMIN_REQUIRED','Shared persona approval requires a site administrator.');
   const p=(await db.query('SELECT owner_id FROM personas WHERE id=$1',[s.entity_id])).rows[0];
   assert(actor.siteRole==='admin'||p?.owner_id===actor.id,403,'PERSONA_FORBIDDEN','Only the profile owner or site administrator can edit this shared persona.');
  }else{const world=await requireWorld(db,actor,s.world_id,manage);if(manage)assert(!world.site_blocked,403,'SITE_BLOCKED','World is restricted.');}
+}
+// Use the same persona → setting lock order as the user editor and joint moderation.
+async function lockSetting(db:Connection,id:string){
+ const setting=(await db.query('SELECT * FROM detail_settings WHERE id=$1',[id])).rows[0];
+ if(setting?.kind==='persona')await db.query('SELECT id FROM personas WHERE id=$1 FOR UPDATE',[setting.entity_id]);
+ return (await db.query('SELECT * FROM detail_settings WHERE id=$1 FOR UPDATE',[id])).rows[0];
 }
 async function record(db:Connection,actor:Actor,s:any,action:string,revisionId:string,note=''){
  await db.query('INSERT INTO detail_setting_events(setting_id,actor_id,action,revision_id,note)VALUES($1,$2,$3,$4,$5)',[s.id,actor.id,action,revisionId,note]);
@@ -37,21 +44,22 @@ export async function settingDetail(db:Connection,actor:Actor,id:string){
  const revisions=(await db.query('SELECT * FROM detail_setting_revisions WHERE setting_id=$1 ORDER BY created_at DESC,id DESC',[id])).rows;
  const publications=(await db.query('SELECT * FROM detail_setting_publications WHERE setting_id=$1 ORDER BY published_at DESC,id DESC',[id])).rows;
  const events=(await db.query('SELECT * FROM detail_setting_events WHERE setting_id=$1 ORDER BY created_at DESC,id DESC',[id])).rows;
- const impacts=s.kind==='copy'?[]:(await db.query(`SELECT c.id,c.kind,c.slug,w.slug AS world FROM contents c JOIN worlds w ON w.id=c.world_id WHERE (( $1='world' AND c.world_id=$2) OR ($1='place' AND c.place_id=$2) OR ($1='persona' AND c.persona_id=$2)) AND ($3 OR w.owner_id=$4 OR EXISTS(SELECT 1 FROM world_members m WHERE m.world_id=w.id AND m.user_id=$4)) ORDER BY c.kind,c.slug`,[s.kind,s.entity_id,actor.siteRole==='admin',actor.id])).rows;
+ const impacts=s.kind==='copy'?[]:(await db.query(`SELECT c.id,c.kind,c.slug,w.slug AS world FROM contents c JOIN worlds w ON w.id=c.world_id WHERE (( $1='world' AND c.world_id=$2) OR ($1='place' AND c.place_id=$2) OR ($1='persona' AND (c.persona_id=$2 OR EXISTS(SELECT 1 FROM provider_bindings b WHERE b.content_id=c.id AND b.persona_id=$2)))) AND ($3 OR w.owner_id=$4 OR EXISTS(SELECT 1 FROM world_members m WHERE m.world_id=w.id AND m.user_id=$4)) ORDER BY c.kind,c.slug`,[s.kind,s.entity_id,actor.siteRole==='admin',actor.id])).rows;
  let canReview=true;try{await access(db,actor,s,true);}catch{canReview=false;}
  return {setting:s,revisions,publications,events,impacts,canReview};
 }
 export function saveSetting(db:Database,actor:Actor,id:string,raw:unknown,baseRevisionId:string){return transaction(db,async client=>{
- const s=(await client.query('SELECT * FROM detail_settings WHERE id=$1 FOR UPDATE',[id])).rows[0];await access(client,actor,s);
+ const s=await lockSetting(client,id);await access(client,actor,s);
  assert(s.head_revision_id===baseRevisionId,409,'REVISION_CONFLICT','Configuration changed. Your input is preserved.');
  const body=await validate(client,s.kind,raw);
  const r=(await client.query('INSERT INTO detail_setting_revisions(setting_id,body,created_by)VALUES($1,$2,$3)RETURNING id',[id,body,actor.id])).rows[0];
  await client.query('UPDATE detail_settings SET head_revision_id=$2,submitted_revision_id=NULL WHERE id=$1',[id,r.id]);await record(client,actor,s,'draft_saved',r.id);return {revisionId:r.id};
 });}
 export function settingAction(db:Database,actor:Actor,id:string,action:'submit'|'publish'|'reject'|'restore',revisionId:string,publicationId?:string){return transaction(db,async client=>{
- const s=(await client.query('SELECT * FROM detail_settings WHERE id=$1 FOR UPDATE',[id])).rows[0];await access(client,actor,s,action!=='submit');
+ const s=await lockSetting(client,id);await access(client,actor,s,action!=='submit');
  assert(s.head_revision_id===revisionId,409,'REVISION_CONFLICT','Configuration changed. Reload before reviewing.');
  if(action==='submit'){await client.query('UPDATE detail_settings SET submitted_revision_id=$2 WHERE id=$1',[id,revisionId]);await record(client,actor,s,'submitted',revisionId);return {submitted:true};}
+ if(s.kind==='persona'&&(action==='publish'||action==='reject')){await (await import('./persona-reviews.ts')).approvePersonaVersion(client,actor,revisionId,action==='publish'?'approved':'rejected');return {published:action==='publish'};}
  if(action==='reject'){assert(s.submitted_revision_id===revisionId,409,'NOT_SUBMITTED','Submit the current revision.');await client.query('UPDATE detail_settings SET submitted_revision_id=NULL WHERE id=$1',[id]);await record(client,actor,s,'rejected',revisionId);return {rejected:true};}
  let target=revisionId;
  if(action==='restore'){

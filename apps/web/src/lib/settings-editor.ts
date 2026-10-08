@@ -3,7 +3,7 @@ import {settingsSchema,detailCopyDefaults,completeDetailCopy} from '@plotstay/co
 import {structuredFields} from './structured-fields';
 export function settingsEditor(container:HTMLElement,worldId:string,zh:boolean,api:(path:string,body?:unknown,method?:string)=>Promise<any>,markDirty:(dirty:boolean)=>void){
  const l=(a:string,b:string)=>zh?a:b;
- let current:any,body:any,home=false,dirty=false,loadedSelection='';
+ let current:any,body:any,home=false,dirty=false,loadedSelection='',loadVersion=0;
  const node=(tag:string,text?:string)=>{const n=document.createElement(tag);n.textContent=text??'';return n;};
  const message=node('p');message.setAttribute('role','status');
  const select=document.createElement('select'),previewEntry=document.createElement('select'),previewLinks=node('span'),form=document.createElement('form'),fields=node('div'),history=node('div'),impact=node('p'),diff=node('pre');
@@ -16,18 +16,22 @@ export function settingsEditor(container:HTMLElement,worldId:string,zh:boolean,a
  form.append(search,fields,actions,previewEntry,previewLinks);form.addEventListener('submit',e=>e.preventDefault());container.replaceChildren(heading,description,select,message,impact,form,diff,history);
  const pathFor=(value:string)=>value==='home'?`/admin/worlds/${worldId}/home`:`/admin/settings/${value}`;
  const rootPath=()=>pathFor(loadedSelection);
+ function setLoading(value:boolean){fields.inert=value;for(const field of fields.querySelectorAll<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement|HTMLButtonElement>('input,select,textarea,button'))field.disabled=value;for(const b of actions.querySelectorAll('button'))b.disabled=value;previewEntry.disabled=value;}
  async function load(){
-  const selection=select.value;const fetched=await api(pathFor(selection));loadedSelection=selection;home=selection==='home';current=fetched;
+  const version=++loadVersion,selection=select.value;setLoading(true);
+  try{
+  const fetched=await api(pathFor(selection));if(version!==loadVersion)return;loadedSelection=selection;home=selection==='home';current=fetched;
   if(!current.setting){fields.replaceChildren(node('p',l('此世界尚无首页分类配置。','This world has no home categories.')));return;}
   const revision=current.revisions.find((r:any)=>r.id===current.setting.head_revision_id);
   body=structuredClone(revision.body);if(current.setting.kind==='copy')body=completeDetailCopy(body);setDirty(false);message.textContent='';
   impact.textContent=home?l('影响首页分类入口、列表分类与详情类别名；其他首页配置保留。','Affects home categories, listing filters and detail category names. Other home configuration is preserved.'):current.setting.kind==='copy'?l('影响三类详情与其中的行程控件，不改变首页、计价规则或凭条。','Affects detail pages and their trip controls; home, pricing rules and receipts keep their own copy.'):l('发布后影响首页、列表和以下引用：','Publication affects the home, listings and these references: ')+(current.impacts??[]).map((i:any)=>i.world+'/'+i.slug).join(', ');
-  render();history.replaceChildren();previewLinks.replaceChildren();
-  const options=await api(`/admin/worlds/${worldId}/options`);const candidates=home||current.setting.kind==='copy'||current.setting.kind==='world'?options.parents:(current.impacts??[]).filter((i:any)=>i.world===options.worldSlug||options.parents.some((p:any)=>p.id===i.id));previewEntry.replaceChildren(...candidates.map((p:any)=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.slug;return o;}));
+  render();setLoading(true);history.replaceChildren();previewLinks.replaceChildren();
+  const options=await api(`/admin/worlds/${worldId}/options`);if(version!==loadVersion)return;const candidates=home||current.setting.kind==='copy'||current.setting.kind==='world'?options.parents:(current.impacts??[]).filter((i:any)=>i.world===options.worldSlug||options.parents.some((p:any)=>p.id===i.id));previewEntry.replaceChildren(...candidates.map((p:any)=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.slug;return o;}));
   diff.textContent=l('当前保存版本：','Saved revision: ')+revision.id+'\n'+l('发布前请核对两种语言和影响范围。','Check both languages and the impact before publishing.');
   for(const p of current.publications){const row=node('p',`${p.published_at} · ${p.revision_id} `);if(p.id===current.setting.published_id)row.append(node('strong',l('当前公开','Current')));else row.append(button(l('恢复此发布','Restore publication'),async()=>{if(dirty)throw new Error(l('请先保存输入。','Save your input first.'));await api(rootPath()+(home?'/review/restore':'/restore'),{revisionId:current.setting.head_revision_id,publicationId:p.id});await load();}));history.append(row);}
   for(const r of current.revisions){const row=node('p',r.created_at+' · '+r.id+' ');row.append(button(l('载入历史版本为草稿','Load revision into draft'),async()=>{if(dirty&&!confirm(l('放弃未保存输入？','Discard unsaved input?')))return;body=structuredClone(r.body);if(current.setting.kind==='copy')body=completeDetailCopy(body);render();setDirty(true);message.textContent=l('历史正文已载入，保存将追加新草稿。','Historical values loaded. Saving appends a new draft.');}));history.append(row);}
   for(const e of current.events??[])history.append(node('p',`${e.created_at} · ${e.action}`));
+  }finally{if(version===loadVersion)setLoading(false);}
  }
  function render(){
   const kind=current.setting.kind;search.hidden=kind!=='copy';

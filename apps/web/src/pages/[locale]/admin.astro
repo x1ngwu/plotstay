@@ -10,7 +10,7 @@ if (failed) Astro.response.status = localeFailure ? 503 : 404;
 ---
 <Base title={label('内容管理', 'Content management')} locale={locale} locales={locales}>
   {failed ? <h1>{localeFailure ? messages(locale.code).unavailable : messages(locale.code).notFound}</h1> : <div id="admin" data-locale={locale.code}>
-    <h1>{label('内容管理', 'Content management')}</h1>
+    <h1>{label('内容管理', 'Content management')}</h1><p><a href={`/${locale.pathPrefix}/account?view=moderation`}>{label('角色评价与回复审核／创建账号','Persona review moderation / create account')}</a></p>
     <p id="message" role="status" aria-live="polite"></p>
     <form id="login" class="panel">
       <label>{label('邮箱', 'Email')}<input name="email" type="email" autocomplete="username" required /></label>

@@ -20,7 +20,7 @@ async function putTranslation(db: PoolClient, revisionId: string, locale: string
   await db.query(`INSERT INTO revision_locales(revision_id,locale,translation_id) VALUES ($1,$2,$3)
     ON CONFLICT (revision_id,locale) DO UPDATE SET translation_id=excluded.translation_id`, [revisionId, locale, t.id]);
 }
-async function appendRevision(db: PoolClient, actor: Actor, content: any, input: Omit<EditContentInput, 'baseRevisionId'>) {
+export async function appendRevision(db: PoolClient, actor: Actor, content: any, input: Omit<EditContentInput, 'baseRevisionId'>, queueTranslations = true) {
   const { rows: locales } = await db.query('SELECT code FROM locales WHERE enabled');
   const allowed = new Set(locales.map(l => l.code));
   assert(allowed.has(input.sourceLocale) && Object.keys(input.translations).every(l => allowed.has(l)), 400, 'INVALID_LOCALE', 'Language is not enabled.');
@@ -42,7 +42,7 @@ async function appendRevision(db: PoolClient, actor: Actor, content: any, input:
   for (const [locale, body] of Object.entries(input.translations)) await putTranslation(db, revision.id, locale, body, 'manual', actor.id);
   const { rows: [glossary] } = await db.query('SELECT id FROM glossaries WHERE world_id=$1 ORDER BY version DESC LIMIT 1', [content.world_id]);
   for (const { code } of locales) {
-    if (code !== input.sourceLocale && !input.translations[code]) {
+    if (queueTranslations && code !== input.sourceLocale && !input.translations[code]) {
       await db.query('INSERT INTO translation_jobs(revision_id,locale,glossary_id,provider,configuration) VALUES ($1,$2,$3,$4,$5)',
         [revision.id, code, glossary?.id ?? null, process.env.TRANSLATION_PROVIDER ?? 'disabled', { model: process.env.TRANSLATION_MODEL ?? '' }]);
     }
@@ -68,6 +68,7 @@ export async function createContentInTransaction(db: PoolClient, actor: Actor, i
   const { rows: [content] } = await db.query(`INSERT INTO contents(world_id,place_id,kind,slug,parent_content_id,persona_id,author_id)
     VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING *`, [input.worldId, input.placeId, input.kind, input.slug, input.parentContentId, input.personaId, actor.id]);
   const revision = await appendRevision(db, actor, content, input);
+  if(input.kind==='review' && input.personaId && (await db.query("SELECT to_regclass('review_signatures') AS t")).rows[0].t) { const p=(await db.query('SELECT profiles FROM personas WHERE id=$1',[input.personaId])).rows[0]; await db.query('INSERT INTO review_signatures(revision_id,persona_id,profiles,managed)VALUES($1,$2,$3,false)',[revision.id,input.personaId,p.profiles]); }
   return { id: content.id as string, revisionId: revision.id as string, number: revision.number as number };
 }
 export function createContent(db: Database, actor: Actor, input: CreateContentInput) {
@@ -76,15 +77,18 @@ export function createContent(db: Database, actor: Actor, input: CreateContentIn
 export function editContent(db: Database, actor: Actor, id: string, input: EditContentInput) {
   return transaction(db, async client => {
     const { content } = await lockContent(client, actor, id);
+    assert(!(await client.query('SELECT 1 FROM review_signatures s JOIN content_revisions r ON r.id=s.revision_id WHERE r.content_id=$1 AND s.managed',[id])).rowCount,409,'PERSONA_EDITOR_REQUIRED','Use the persona review editor for this entry.');
     assert(content.head_revision_id === input.baseRevisionId, 409, 'REVISION_CONFLICT', 'Another editor saved a new version. Your changes have not been overwritten.');
     assert(!input.baseDraftToken || content.draft_token === input.baseDraftToken, 409, 'REVISION_CONFLICT', 'Draft translations changed. Your input is preserved; reload before saving.');
     const revision = await appendRevision(client, actor, content, input);
+    if(content.kind==='review' && content.persona_id) await client.query('INSERT INTO review_signatures(revision_id,persona_id,profiles,managed) SELECT $1,persona_id,profiles,false FROM review_signatures WHERE revision_id=$2',[revision.id,content.head_revision_id]);
     return { id, revisionId: revision.id as string, number: revision.number as number };
   });
 }
 export function saveTranslation(db: Database, actor: Actor, id: string, revisionId: string, locale: string, body: ContentText, baseTranslationId?: string | null) {
   return transaction(db, async client => {
     const { content } = await lockContent(client, actor, id);
+    assert(!(await client.query('SELECT 1 FROM review_signatures s JOIN content_revisions r ON r.id=s.revision_id WHERE r.content_id=$1 AND s.managed',[id])).rowCount,409,'PERSONA_EDITOR_REQUIRED','Use the persona review editor for this entry.');
     assert(content.head_revision_id === revisionId, 409, 'REVISION_CONFLICT', 'This is no longer the current draft.');
     const { rows: [revision] } = await client.query('SELECT * FROM content_revisions WHERE id=$1', [revisionId]);
     assert(['draft','rejected'].includes(revision.status), 409, 'REVISION_LOCKED', 'Create a new draft to edit reviewed content.');
@@ -125,6 +129,7 @@ export function reviewRevision(db: Database, actor: Actor, id: string, revisionI
       return { published: false };
     }
     assert(!world.site_blocked && !content.site_blocked, 403, 'SITE_BLOCKED', 'Site moderation prevents publication.');
+    await (await import('./persona-reviews.ts')).validateReviewPublication(client,actor,content,revisionId);
     const { rows: missing } = await client.query(`SELECT code FROM locales WHERE enabled AND required_for_publish
       AND NOT EXISTS (SELECT 1 FROM revision_locales rl WHERE rl.revision_id=$1 AND rl.locale=locales.code)`, [revisionId]);
     if (missing.length) throw new DomainError(409, 'TRANSLATIONS_REQUIRED', 'Complete the required translations before publishing.', missing.map(l => l.code));

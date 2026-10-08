@@ -1,0 +1,20 @@
+---
+import Base from '../../layouts/Base.astro';
+import {fallbackLocales} from '@plotstay/contracts';
+import {bilingual} from '../../lib/i18n';
+import '../../styles/account.css';
+const locale=Astro.locals.locale??fallbackLocales[0]!,t=bilingual(locale.code);
+if(Astro.locals.localeFailure||!Astro.locals.locale)Astro.response.status=Astro.locals.localeFailure?503:404;
+Astro.response.headers.set('Cache-Control','private, no-store');
+---
+<Base title={t('角色与评价','Personas and reviews')} locale={locale} locales={Astro.locals.locales}>
+{Astro.response.status===200&&<div id="persona-workspace" data-locale={locale.code} data-prefix={locale.pathPrefix}>
+<h1>{t('角色与评价','Personas and reviews')}</h1>
+<p>{t('用虚构角色记录世界中的旅行。无需预订；角色资料与评价审核通过后公开。','Write fictional journeys in character. No booking is required. Profiles and reviews become public after approval.')}</p>
+<p>{t('草稿可以先填写一种语言；公开发表前需要补齐中文和英文。','Drafts may start in one language; complete Chinese and English before publication.')}</p>
+<p id="persona-message" role="status" aria-live="polite"></p>
+<form id="account-login" class="panel" hidden><h2>{t('登录现有账号','Sign in to your account')}</h2><p>{t('会话过期时，重新登录后可继续保存当前输入。','If your session expires, sign in again to save your current input.')}</p><label>{t('邮箱','Email')}<input name="email" type="email" autocomplete="username" required/></label><label>{t('密码','Password')}<input name="password" type="password" autocomplete="current-password" required/></label><button>{t('登录','Sign in')}</button></form>
+<div id="account-content" hidden><nav class="account-tabs"><a href={`/${locale.pathPrefix}/account?view=personas`}>{t('我的角色','My personas')}</a><a href={`/${locale.pathPrefix}/account?view=reviews`}>{t('我的评价','My reviews')}</a><a href={`/${locale.pathPrefix}/account?view=replies`}>{t('提供者回复','Provider replies')}</a><a data-review-admin hidden href={`/${locale.pathPrefix}/account?view=moderation`}>{t('评价与回复审核','Review moderation')}</a></nav><section id="account-view"></section></div>
+</div>}
+</Base>
+<script>import {initAccount} from '../../lib/persona-client';void initAccount();</script>

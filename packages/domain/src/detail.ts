@@ -1,3 +1,4 @@
+import {readReplies,signatureProfiles} from './persona-reviews.ts';
 import { transaction, type Database } from '@plotstay/database';
 import type { ContentDetail } from '@plotstay/contracts';
 import { getPublished, publicSelect, mapContent } from './read.ts';
@@ -18,7 +19,7 @@ export function publishedDetail(db: Database, locale: string,
     SELECT (SELECT count(*)::int FROM matching) AS total,
       (SELECT round(avg((attributes->>'rating')::numeric),2)::float FROM matching) AS rating,
       (SELECT count(attributes->>'rating')::int FROM matching) AS rated_count,
-      (SELECT coalesce(jsonb_agg(d),'[]') FROM (SELECT (attributes->>'rating')::int AS rating,count(*)::int AS count
+      (SELECT coalesce(jsonb_agg(d ORDER BY rating DESC),'[]') FROM (SELECT (attributes->>'rating')::int AS rating,count(*)::int AS count
         FROM matching WHERE attributes ? 'rating' GROUP BY attributes->>'rating') d) AS distribution,
       (SELECT coalesce(jsonb_object_agg(key,stats),'{}') FROM (
         SELECT key,jsonb_build_object('rating',round(avg(value::numeric),2)::float,'count',count(*)::int) AS stats
@@ -37,10 +38,11 @@ export function publishedDetail(db: Database, locale: string,
       AND c.world_id=$2 AND c.id<>$3 AND c.kind IN ('stay','experience','service')
       ORDER BY (c.place_id=$4) DESC NULLS LAST,p.published_at DESC,c.id LIMIT 6`,
     [locale, content.worldId, content.id, content.placeId]);
+    const replies=await readReplies(client,locale,notes.items.map((r:any)=>r.id));
     return { content, related: rows.map(row => mapContent(row, locale)),
       reviewSummary: { rating: notes.rating, ratedCount: notes.rated_count, mentions: notes.mentions, distribution:notes.distribution,dimensions:notes.dimensions },
       reviews: { total: notes.total, page: notesPage, pageSize, pages,
-        contents: notes.items.map((row: any) => mapContent({ ...row, published_at: new Date(row.published_at) }, locale)) } };
+        contents: notes.items.map((row: any) => ({...mapContent({ ...row, published_at: new Date(row.published_at) }, locale),...(replies[row.id]?{reply:replies[row.id]}:{})})) } };
   });
 }
 
@@ -63,6 +65,8 @@ export async function previewDetail(db: Database, actor: import('./auth.ts').Act
     let result:ContentDetail={content:null as any,related:[],reviews:{total:0,page:1,pageSize:6,pages:1,contents:[]},reviewSummary:{rating:null,ratedCount:0,mentions:[],distribution:[],dimensions:{}}};
     if(c.published_publication_id && c.kind!=='review') result=await publishedDetail(db,locale,{world:world.slug,kind:c.kind,slug:c.slug});
     result.content={id:c.id,worldId:c.world_id,worldSlug:world.slug,kind:c.kind,slug:c.slug,placeId:c.place_id,placeSlug:place?.slug??null,placeName:place?.names[locale]??place?.names[r.source_locale]??null,personaName:persona?.profiles[locale]?.name??null,locale:actual,requestedLocale:locale,isFallback:actual!==locale,languageTag:languages.find(l=>l.code===actual)!.languageTag,availableLocales:Object.keys(r.translations),text:r.translations[actual],attributes:r.attributes,publicationId:'',publishedAt:r.created_at.toISOString(),preview:true};
+    const binding=(await client.query('SELECT p.profiles FROM provider_bindings b JOIN personas p ON p.id=b.persona_id AND p.approved WHERE b.content_id=$1',[id])).rows[0];
+    if(binding){const profiles=signatureProfiles(binding.profiles),profile=profiles[actual]??Object.values(profiles)[0];result.content.provider=profile;result.content.text={...result.content.text,hostName:profile.name,hostBio:profile.bio,...(result.content.text.clearedFields?{clearedFields:result.content.text.clearedFields.filter(f=>!['hostName','hostBio'].includes(f))}:{})};}
     return result;
   });
 }

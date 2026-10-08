@@ -4,7 +4,7 @@ export {detailCopyDefaults};
 const text=z.string().trim().min(1).max(20000);
 export const sharedWorldSchema=z.record(z.string(),z.object({name:text,description:z.string().max(20000),currencyName:text}).strict());
 export const sharedPlaceSchema=z.record(z.string(),text);
-export const sharedPersonaSchema=z.record(z.string(),z.object({name:text,bio:z.string().max(6000).default('')}).strict());
+export const sharedPersonaSchema=z.record(z.string(),z.object({name:text,bio:z.string().max(6000).default(''),avatar:z.enum(['mint','amber','violet','sky']).optional()}).strict());
 export const copySchema=z.record(z.string(),z.record(z.string(),z.string().max(3000))).superRefine((body,ctx)=>{
  for(const [locale,values]of Object.entries(body)){
   for(const [key,value]of Object.entries(values)){

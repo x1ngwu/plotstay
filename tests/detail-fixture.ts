@@ -34,9 +34,9 @@ export async function detailFixture() {
       for (let i = 0; i < (kind === 'stay' ? 8 : 1); i++) {
         const note = await createContent(f.db, f.data.owner, createContentSchema.parse({
           worldId: f.data.latheId, kind: 'review', slug: `${kind}-note-${i}`, sourceLocale: 'en', parentContentId: created.id,
-          personaId: '00100000-0000-4000-8000-000000000001',
-          text: { title: `Visitor note ${i}`, description: `Fictional visitor account ${i}.` },
-          translations: { 'zh-CN': { title: `游客手记${i}`, description: `虚构的旅行记录${i}。` } }, attributes: {}
+          personaId: i === 0 ? '00100000-0000-4000-8000-000000000001' : null,
+          text: { title: `Visitor note ${i}`, description: `Fictional visitor account ${i}.`, review: {name:'Visitor 17'} },
+          translations: { 'zh-CN': { title: `游客手记${i}`, description: `虚构的旅行记录${i}。`, review: {name:'旅客十七'} } }, attributes: {}
         }));
         await publish(note);
       }
