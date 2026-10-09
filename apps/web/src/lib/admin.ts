@@ -23,10 +23,41 @@ let formMode = 'structured';
 let parentFilter = '';
 let originalAttributes: ContentAttributes = {images:[]};
 let formTexts: Record<string,any> = {};
+let previewRevisionId: string | null = null;
+let savingDraft = false;
 const statuses: Record<string, string> = l('zh', 'en') === 'zh' ? { draft: '草稿', submitted: '待审核', approved: '已审核', rejected: '已退回', pending: '等待执行', running: '执行中', completed: '完成', failed: '失败', superseded: '已过期' } : {};
 const status = (value: string) => statuses[value] ?? value;
 const worldId = () => el<HTMLSelectElement>('world').value;
 const message = (text: string) => { el('message').textContent = text; };
+function resetPreview() {
+  previewRevisionId = null;
+  el('draft-preview-area').hidden = true;
+  el<HTMLIFrameElement>('draft-preview-frame').removeAttribute('src');
+  el<HTMLAnchorElement>('draft-preview-full').hidden = true;
+  el('preview-links').replaceChildren();
+  updatePreviewState();
+}
+function updatePreviewState() {
+  const version = detail?.revisions[0]?.number;
+  const state = !detail ? l('新内容尚未保存。保存草稿后可预览。', 'New content is not saved yet. Save a draft to preview it.')
+    : dirty ? previewRevisionId ? l(`有未保存修改；当前预览仍是已保存版本 ${version}。点击“保存并预览”更新。`, `Unsaved changes. The preview still shows saved revision ${version}. Select Save and preview to update it.`) : l('有未保存修改；点击“保存并预览”查看效果。', 'Unsaved changes. Select Save and preview to see them.')
+    : previewRevisionId === detail.content.head_revision_id ? l(`已保存 · 版本 ${version} · 预览不影响公开页面。`, `Saved · revision ${version} · preview does not change the public page.`)
+    : l(`已保存 · 版本 ${version}。可以预览当前草稿。`, `Saved · revision ${version}. You can preview this draft.`);
+  el('draft-preview-state').textContent = state;
+}
+function showPreview() {
+  if (!detail) throw new Error(l('请先保存草稿。', 'Save the draft first.'));
+  const language = el<HTMLSelectElement>('draft-preview-language').value;
+  const q = new URLSearchParams({revisionId:detail.content.head_revision_id,token:detail.content.draft_token});
+  const url = `/api/admin/preview/${language}/${detail.content.id}?${q}`;
+  const full = el<HTMLAnchorElement>('draft-preview-full');
+  full.href = url; full.hidden = false;
+  const area = el('draft-preview-area'); area.hidden = false;
+  area.dataset.width = el<HTMLSelectElement>('draft-preview-width').value;
+  el<HTMLIFrameElement>('draft-preview-frame').src = url;
+  previewRevisionId = detail.content.head_revision_id;
+  updatePreviewState();
+}
 const errorText = (error: any) => {
   if (error.code === 'REVISION_CONFLICT' || error.code === 'TRANSLATION_CONFLICT') return l('保存冲突：另一位编辑或翻译任务已更新内容。你的输入仍保留；请先复制或导出，再载入最新版本比较。', 'Save conflict: the draft changed. Your input is preserved. Copy it before loading the latest version.');
   if(error.code==='SESSION_REQUIRED'){el('login').hidden=false;return l('会话已过期。输入仍保留；请重新登录后重试，系统将重新核对版本和权限。','Session expired. Your input is preserved. Sign in again, then retry; permissions and versions will be checked.');}
@@ -107,6 +138,7 @@ function renderStructured() {
     originalAttributes=value;
     field('images').value=value.images.map((i:any)=>`${i.id} | ${i.url}`).join('\n');
     for(const [key,name] of [['stay','stayAttributes'],['experience','experienceAttributes'],['service','serviceAttributes'],['reviewRatings','reviewRatings']])field(name!).value=value[key!]?JSON.stringify(value[key!]):'';
+    dirty = true; refreshActions();
   },{zh:locale==='zh-CN',path:'attributes',kind,keys:kind==='review'?['reviewRatings']:['images',kind],media:()=>attrs.images.map((i:any)=>i.id)});
   const tabs=document.createElement('div');tabs.className='language-tabs admin-actions';panel.append(tabs);
   const languages=document.createElement('div');languages.className='bilingual-fields';panel.append(languages);
@@ -118,7 +150,7 @@ function renderStructured() {
     const existingCleared=el('language-fields').querySelector<HTMLElement>(`[data-language="${language.code}"]`)?.dataset.cleared;
     const cleared = new Set<string>(existingCleared?JSON.parse(existingCleared):detail?.revisions.find((r:any)=>r.id===selectedRevision)?.translations[language.code]?.clearedFields ?? []);
     data.clearedFields=[...cleared];
-    structuredFields(target,textSchema,data,value=>{formTexts[language.code]=structuredClone(value);for(const [key,,,array]of textFields){const v=value[key];field(`${language.code}:${key}`).value=['stay','experience','service','review','map'].includes(key)?(v===undefined?'':JSON.stringify(v)):key==='imageAlts'?JSON.stringify(v??{}):array?(v??[]).join('\n'):v??'';}},{zh:locale==='zh-CN',path:language.code,kind,keys,media:()=>attrs.images.map((i:any)=>i.id),onEdited:(path,v)=>{const key=path.slice(language.code.length+1);if(!/^(?:stay|experience|service|review|map|hostName|hostBio|highlights|facilities|rules|itinerary)(?:\.[a-zA-Z]+)*$/.test(key))return;if(v===undefined){for(const item of cleared)if(item===key||item.startsWith(key+'.'))cleared.delete(item);}if(v===''||Array.isArray(v)&&!v.length)cleared.add(key);else cleared.delete(key);data.clearedFields=[...cleared];el('language-fields').querySelector<HTMLElement>(`[data-language="${language.code}"]`)!.dataset.cleared=JSON.stringify([...cleared]);}});
+    structuredFields(target,textSchema,data,value=>{formTexts[language.code]=structuredClone(value);for(const [key,,,array]of textFields){const v=value[key];field(`${language.code}:${key}`).value=['stay','experience','service','review','map'].includes(key)?(v===undefined?'':JSON.stringify(v)):key==='imageAlts'?JSON.stringify(v??{}):array?(v??[]).join('\n'):v??'';}dirty = true; refreshActions();},{zh:locale==='zh-CN',path:language.code,kind,keys,media:()=>attrs.images.map((i:any)=>i.id),onEdited:(path,v)=>{const key=path.slice(language.code.length+1);if(!/^(?:stay|experience|service|review|map|hostName|hostBio|highlights|facilities|rules|itinerary)(?:\.[a-zA-Z]+)*$/.test(key))return;if(v===undefined){for(const item of cleared)if(item===key||item.startsWith(key+'.'))cleared.delete(item);}if(v===''||Array.isArray(v)&&!v.length)cleared.add(key);else cleared.delete(key);data.clearedFields=[...cleared];el('language-fields').querySelector<HTMLElement>(`[data-language="${language.code}"]`)!.dataset.cleared=JSON.stringify([...cleared]);}});
   }
 }
 on('toggle-mode', async()=>{if(formMode==='structured'){formMode='advanced';}else{const parsed=readTexts();originalAttributes=attributesSchema.parse(formValue().attributes);formTexts=parsed;formMode='structured';}renderStructured();el('toggle-mode').textContent=formMode==='structured'?l('切换到高级 JSON','Switch to advanced JSON'):l('返回栏目表单','Return to section forms');});
@@ -200,6 +232,7 @@ async function loadWorld() {
   listPage=1;parentFilter='';
   options = await api(`/admin/worlds/${worldId()}/options`);
   el('editor-panel').hidden = true; detail = null; dirty = false;
+  resetPreview();
   previewedImport = ''; el<HTMLButtonElement>('import-apply').disabled = true;
   await refreshList();
   settingsEditor(el('settings-panel'),worldId(),locale==='zh-CN',api,v=>settingsDirty=v);
@@ -209,6 +242,7 @@ async function signIn() {
   ({ locales } = await api('/locales'));
   ({ worlds } = await api('/admin/worlds'));
   el('account').textContent = actor.email;
+  el<HTMLSelectElement>('draft-preview-language').value = locale === 'zh-CN' ? 'zh' : 'en';
   el('login').hidden = true; el('workspace').hidden = false;
   el<HTMLSelectElement>('world').replaceChildren(...worlds.map(world => option(world.id, world.translations[locale]?.name ?? world.slug)));
   if (worlds.length) el<HTMLSelectElement>('world').value = (worlds.find(world => world.slug === 'lathe-worlds') ?? worlds[0]).id;
@@ -250,9 +284,10 @@ function identity() {
 }
 function refreshActions() {
   el<HTMLButtonElement>('import-apply').disabled = !previewedImport || !importIsValid;
+  el<HTMLButtonElement>('preview-draft').disabled = !detail || dirty;
+  updatePreviewState();
   if (!detail) return;
   const head = detail.revisions[0];
-  el<HTMLButtonElement>('preview-draft').disabled=dirty;
   const unsaved = dirty || selectedRevision !== detail.content.head_revision_id;
   el<HTMLButtonElement>('submit-revision').disabled = unsaved || !['draft', 'rejected'].includes(head.status);
   for (const id of ['publish', 'reject']) el<HTMLButtonElement>(id).disabled = unsaved || !detail.canReview || head.status !== 'submitted';
@@ -261,8 +296,9 @@ function refreshActions() {
   el('release-block').hidden = actor.siteRole !== 'admin' || !detail.content.site_blocked;
 }
 async function openContent(id: string) {
-  el('preview-links').replaceChildren();
-  detail = await api(`/admin/contents/${id}`);
+  const next = await api(`/admin/contents/${id}`);
+  resetPreview();
+  detail = next;
   identity();
   for (const name of ['kind', 'slug']) field(name).value = detail.content[name];
   field('placeId').value = detail.content.place_id ?? '';
@@ -311,20 +347,42 @@ el<HTMLFormElement>('login').addEventListener('submit', async event => {
   catch (error) { message(errorText(error)); }
 });
 editor.addEventListener('input', () => { dirty = true; refreshActions(); });
-editor.addEventListener('submit', async event => {
-  event.preventDefault(); const submit = editor.querySelector<HTMLButtonElement>('button[type=submit]')!; submit.disabled = true;
+async function saveDraft() {
+  if (savingDraft) throw new Error(l('草稿正在保存，请稍候。', 'The draft is being saved. Please wait.'));
+  if (!editor.reportValidity()) throw new Error(l('请先修正表单中标出的字段。', 'Correct the highlighted form fields first.'));
+  savingDraft = true;
+  const submit = editor.querySelector<HTMLButtonElement>('button[type=submit]')!;
+  const previewButton = el<HTMLButtonElement>('save-preview');
+  submit.disabled = true; previewButton.disabled = true;
   try {
     const result = await api(detail ? `/admin/contents/${detail.content.id}/revisions` : '/admin/contents', formValue());
-    await openContent(result.id); await refreshList(); message(l('草稿已保存，公开内容保持原版本。', 'Draft saved. The public version is unchanged.'));
-  } catch (error) { message(errorText(error)); }
-  finally { submit.disabled = false; }
+    await openContent(result.id);
+    await refreshList();
+    message(l('草稿已保存，公开内容保持原版本。', 'Draft saved. The public version is unchanged.'));
+  } finally {
+    savingDraft = false; submit.disabled = false; previewButton.disabled = false;
+  }
+}
+editor.addEventListener('submit', async event => {
+  event.preventDefault();
+  try { await saveDraft(); } catch (error) { message(errorText(error)); }
+});
+on('save-preview', async () => {
+  if (dirty || !detail) await saveDraft();
+  showPreview();
+});
+el<HTMLSelectElement>('draft-preview-language').addEventListener('change', () => {
+  if (previewRevisionId) showPreview(); else updatePreviewState();
+});
+el<HTMLSelectElement>('draft-preview-width').addEventListener('change', () => {
+  el('draft-preview-area').dataset.width = el<HTMLSelectElement>('draft-preview-width').value;
 });
 on('new', async () => {
   if (!confirmDiscard()) return;
-  detail = null; originalAttributes={images:[]}; editor.reset(); identity(); el<HTMLFieldSetElement>('identity').disabled = false;
+  detail = null; resetPreview(); originalAttributes={images:[]}; editor.reset(); identity(); el<HTMLFieldSetElement>('identity').disabled = false;
   renderTextFields({}); selectedRevision = null; dirty = false;
   el('editor-title').textContent = l('新建内容', 'New content'); el('revision-state').textContent = '';
-  el('editor-panel').hidden = false; el('workflow').hidden = true;
+  el('editor-panel').hidden = false; el('workflow').hidden = true; updatePreviewState();
 });
 on('export-draft',async()=>{const blob=new Blob([JSON.stringify({contentId:detail?.content.id??null,...formValue()},null,2)],{type:'application/json'});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='plotstay-draft.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);message(l('草稿副本已下载到本机。','A draft copy was downloaded to this device.'));});
 on('refresh-image-fields',async()=>renderStructured());
@@ -342,7 +400,7 @@ on('refresh-list', async()=>{listPage=1;await refreshList();});
 on('list-prev',async()=>{listPage--;await refreshList();});on('list-next',async()=>{listPage++;await refreshList();});
 on('search-list',async()=>{listPage=1;parentFilter='';await refreshList();});
 on('entry-notes',async()=>{if(!detail)return;parentFilter=detail.content.kind==='review'?detail.content.parent_content_id:detail.content.id;el<HTMLSelectElement>('filter-kind').value='review';el<HTMLInputElement>('filter-query').value='';el<HTMLSelectElement>('filter-status').value='';listPage=1;await refreshList();el('content-list').scrollIntoView();});
-on('new-note',async()=>{if(!detail||!confirmDiscard())return;const parent=detail.content.kind==='review'?detail.content.parent_content_id:detail.content.id;detail=null;originalAttributes={images:[]};editor.reset();identity();el<HTMLFieldSetElement>('identity').disabled=false;field('kind').value='review';field('parentContentId').value=parent;refreshCategories();renderTextFields({});dirty=false;selectedRevision=null;el('workflow').hidden=true;el('editor-title').textContent=l('新建后台手记','New editorial note');});
+on('new-note',async()=>{if(!detail||!confirmDiscard())return;const parent=detail.content.kind==='review'?detail.content.parent_content_id:detail.content.id;detail=null;resetPreview();originalAttributes={images:[]};editor.reset();identity();el<HTMLFieldSetElement>('identity').disabled=false;field('kind').value='review';field('parentContentId').value=parent;refreshCategories();renderTextFields({});dirty=false;selectedRevision=null;el('workflow').hidden=true;el('editor-title').textContent=l('新建后台手记','New editorial note');refreshActions();});
 on('preview-draft',async()=>{if(!detail||dirty)throw new Error(l('请先保存草稿。','Save the draft first.'));const rev=detail.content.head_revision_id;const links=el('preview-links');links.replaceChildren(...locales.map(language=>{const a=document.createElement('a');a.href=`/api/admin/preview/${language.pathPrefix}/${detail.content.id}?revisionId=${rev}&token=${detail.content.draft_token}`;a.target='_blank';a.rel='noopener';a.textContent=language.name+' ↗ ';return a;}));});
 on('logout', async () => { if (!confirmDiscard()) return; await api('/auth/logout', {}); location.reload(); });
 el<HTMLSelectElement>('world').addEventListener('change', async () => { if (!confirmDiscard()) { el<HTMLSelectElement>('world').value = loadedWorld; return; } try { await loadWorld(); } catch (error) { message(errorText(error)); } });

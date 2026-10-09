@@ -65,6 +65,11 @@ export async function previewDetail(db: Database, actor: import('./auth.ts').Act
     let result:ContentDetail={content:null as any,related:[],reviews:{total:0,page:1,pageSize:6,pages:1,contents:[]},reviewSummary:{rating:null,ratedCount:0,mentions:[],distribution:[],dimensions:{}}};
     if(c.published_publication_id && c.kind!=='review') result=await publishedDetail(db,locale,{world:world.slug,kind:c.kind,slug:c.slug});
     result.content={id:c.id,worldId:c.world_id,worldSlug:world.slug,kind:c.kind,slug:c.slug,placeId:c.place_id,placeSlug:place?.slug??null,placeName:place?.names[locale]??place?.names[r.source_locale]??null,personaName:persona?.profiles[locale]?.name??null,locale:actual,requestedLocale:locale,isFallback:actual!==locale,languageTag:languages.find(l=>l.code===actual)!.languageTag,availableLocales:Object.keys(r.translations),text:r.translations[actual],attributes:r.attributes,publicationId:'',publishedAt:r.created_at.toISOString(),preview:true};
+    if(c.kind==='review'){
+      const signature=(await client.query('SELECT profiles,managed FROM review_signatures WHERE revision_id=$1',[revisionId])).rows[0];
+      const profile=signature?.profiles?.[actual]??Object.values(signature?.profiles??{})[0] as any;
+      if(profile){result.content.signature=profile;if(signature.managed&&result.content.text.review)result.content.text={...result.content.text,review:{...result.content.text.review,name:profile.name}};}
+    }
     const binding=(await client.query('SELECT p.profiles FROM provider_bindings b JOIN personas p ON p.id=b.persona_id AND p.approved WHERE b.content_id=$1',[id])).rows[0];
     if(binding){const profiles=signatureProfiles(binding.profiles),profile=profiles[actual]??Object.values(profiles)[0];result.content.provider=profile;result.content.text={...result.content.text,hostName:profile.name,hostBio:profile.bio,...(result.content.text.clearedFields?{clearedFields:result.content.text.clearedFields.filter(f=>!['hostName','hostBio'].includes(f))}:{})};}
     return result;

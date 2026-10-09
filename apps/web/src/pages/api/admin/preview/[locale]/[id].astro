@@ -1,6 +1,7 @@
 ---
 import Base from '../../../../../layouts/Base.astro';
 import DetailBody from '../../../../../components/DetailBody.astro';
+import ReviewCard from '../../../../../components/detail/stay/ReviewCard.astro';
 import {getLocales,getWorlds} from '../../../../../lib/api';
 import {fallbackLocales,resolveLocale,parseBrowse,type ContentDetail} from '@plotstay/contracts';
 import {noIndex} from '../../../../../lib/seo';
@@ -25,5 +26,5 @@ const state=parseBrowse(new URLSearchParams());
 ---
 <Base title="Draft preview" locale={locale} locales={locales} world={world} seo={noIndex()}>
  <p class="notice" data-preview-banner>草稿预览 / Draft preview · {Astro.url.searchParams.get('revisionId')} · {locale.name} · {detail?.previewSetting ? `配置预览 / Configuration: ${detail.previewSetting.revisionId}` : ''} · 不可预订 / Booking disabled</p>
- {!detail||!world?<h1>预览不可用：请登录后台并重新打开当前已保存版本。 / Sign in and reopen the saved version.</h1>:detail.content.kind==='review'?<article data-review-preview><h1>{detail.content.text.title}</h1><p>{detail.content.text.review?.name}</p><p>{detail.content.text.review?.origin} · {detail.content.text.review?.stayDuration}</p><p>{detail.content.attributes.rating} ★</p><dl>{Object.entries(detail.content.attributes.reviewRatings??{}).map(([key,value])=><div><dt>{key}</dt><dd>{value}</dd></div>)}</dl><ul>{detail.content.text.tags.map(tag=><li>{tag}</li>)}</ul><p>{detail.content.text.description}</p><p>此草稿不计入公开评分 / This draft does not count towards public ratings.</p></article>:<div class:list={['detail-page',`${detail.content.kind}-detail`]}><DetailBody detail={detail} locale={locale} world={world} state={state}/></div>}
+ {!detail||!world?<h1>预览不可用：请登录后台并重新打开当前已保存版本。 / Sign in and reopen the saved version.</h1>:detail.content.kind==='review'?<section class="detail-page stay-detail"><h1>{detail.content.text.title}</h1><p class="notice">{locale.code==='zh-CN'?'评价草稿卡片；不计入公开评分。':'Draft review card; it does not count towards public ratings.'}</p><div class="stay-review-grid"><ReviewCard review={detail.content} locale={locale} preview={true}/></div></section>:<div class:list={['detail-page',`${detail.content.kind}-detail`]}><DetailBody detail={detail} locale={locale} world={world} state={state}/></div>}
 </Base>

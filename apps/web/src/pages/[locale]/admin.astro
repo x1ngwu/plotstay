@@ -35,6 +35,17 @@ if (failed) Astro.response.status = localeFailure ? 503 : 404;
       <section id="editor-panel" class="panel" hidden>
         <h2 id="editor-title"></h2>
         <p id="revision-state"></p>
+        <section class="draft-preview-panel" aria-labelledby="draft-preview-title">
+          <h3 id="draft-preview-title">{label('页面预览', 'Page preview')}</h3>
+          <p id="draft-preview-state" role="status"></p>
+          <div class="admin-actions draft-preview-actions">
+            <button id="save-preview" type="button">{label('保存并预览', 'Save and preview')}</button>
+            <label>{label('预览语言', 'Preview language')}<select id="draft-preview-language"><option value="zh">简体中文</option><option value="en">English</option></select></label>
+            <label>{label('查看宽度', 'View width')}<select id="draft-preview-width"><option value="wide">{label('桌面', 'Desktop')}</option><option value="mobile">{label('手机', 'Mobile')}</option></select></label>
+            <a id="draft-preview-full" target="_blank" rel="noopener" hidden>{label('打开完整页面 ↗', 'Open full page ↗')}</a>
+          </div>
+          <div id="draft-preview-area" hidden><iframe id="draft-preview-frame" title={label('草稿页面预览', 'Draft page preview')}></iframe></div>
+        </section>
         <form id="editor">
           <fieldset id="identity"><legend>{label('归属与类型（创建后固定）', 'Identity (fixed after creation)')}</legend>
             <label>{label('类型', 'Type')}<select name="kind"><option value="stay">{label('住宿', 'Stay')}</option><option value="experience">{label('活动', 'Experience')}</option><option value="service">{label('服务', 'Service')}</option><option value="review">{label('游客手记', 'Visitor note')}</option></select></label>
@@ -118,4 +129,13 @@ if (failed) Astro.response.status = localeFailure ? 503 : 404;
   #admin #message { position: sticky; top: 0; background: var(--surface); padding: .7rem; z-index: 1; }
   #admin #message:empty { display: none; }
   #admin summary { cursor: pointer; }
+  #admin .draft-preview-panel { border:1px solid var(--line); padding:1rem; margin:1rem 0 1.5rem; background:var(--surface); }
+  #admin .draft-preview-panel h3 { margin:0; }
+  #admin .draft-preview-panel p { margin:.55rem 0; }
+  #admin .draft-preview-actions { align-items:end; }
+  #admin .draft-preview-actions label { margin:0; min-width:8rem; }
+  #admin .draft-preview-actions a { align-self:center; }
+  #admin #draft-preview-area, #admin .draft-preview-area { width:100%; max-width:100%; margin:1rem auto 0; border:1px solid var(--line); overflow:hidden; }
+  #admin #draft-preview-area[data-width=mobile], #admin .draft-preview-area[data-width=mobile] { max-width:390px; }
+  #admin #draft-preview-frame, #admin .draft-preview-area iframe { display:block; width:100%; height:680px; border:0; background:var(--surface); }
 </style>
