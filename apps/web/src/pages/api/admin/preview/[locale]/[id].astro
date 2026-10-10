@@ -10,6 +10,7 @@ import '../../../../../styles/stay.css';
 import '../../../../../styles/service.css';
 import '../../../../../styles/experience.css';
 let detail:ContentDetail|undefined,world;
+let previewErrorCode:string|undefined;
 const locales=(await getLocales()).locales;
 const locale=resolveLocale(Astro.params.locale??'',locales)??fallbackLocales[0]!;
 try{
@@ -18,13 +19,19 @@ try{
  const response=await fetch(url,{headers:{cookie:Astro.request.headers.get('cookie')??''},cache:'no-store'});
  Astro.response.status=response.status;
  if(response.ok){detail=await response.json();world=(await getWorlds(locale.code)).worlds.find(w=>w.id===detail!.content.worldId);}
+ else{const failure=await response.json().catch(()=>null);previewErrorCode=failure?.error?.code;}
 }catch{Astro.response.status=503;}
 if(detail?.previewSetting?.kind==='copy')Astro.locals.detailCopy=detail.previewSetting.body;
 if(detail?.previewSetting?.kind==='world'&&world){const text=detail.previewSetting.body[locale.code]??detail.previewSetting.body[world.sourceLocale];if(text)world={...world,...text};}
 Astro.response.headers.set('Cache-Control','private, no-store');Astro.response.headers.set('X-Robots-Tag','noindex, nofollow, noarchive');
 const state=parseBrowse(new URLSearchParams());
+const unavailableMessage=previewErrorCode==='PARENT_UNPUBLISHED'
+ ? locale.code==='zh-CN'
+   ? '手记所属条目尚未公开，因此当前无法预览这篇手记。请检查所属条目的发布状态。'
+   : 'This note cannot be previewed because its parent entry is not published. Check the parent entry’s publication status.'
+ : '预览不可用：请登录后台并重新打开当前已保存版本。 / Sign in and reopen the saved version.';
 ---
 <Base title="Draft preview" locale={locale} locales={locales} world={world} seo={noIndex()}>
  <p class="notice" data-preview-banner>草稿预览 / Draft preview · {Astro.url.searchParams.get('revisionId')} · {locale.name} · {detail?.previewSetting ? `配置预览 / Configuration: ${detail.previewSetting.revisionId}` : ''} · 不可预订 / Booking disabled</p>
- {!detail||!world?<h1>预览不可用：请登录后台并重新打开当前已保存版本。 / Sign in and reopen the saved version.</h1>:detail.content.kind==='review'?<section class="detail-page stay-detail"><h1>{detail.content.text.title}</h1><p class="notice">{locale.code==='zh-CN'?'评价草稿卡片；不计入公开评分。':'Draft review card; it does not count towards public ratings.'}</p><div class="stay-review-grid"><ReviewCard review={detail.content} locale={locale} preview={true}/></div></section>:<div class:list={['detail-page',`${detail.content.kind}-detail`]}><DetailBody detail={detail} locale={locale} world={world} state={state}/></div>}
+ {!detail||!world?<h1>{unavailableMessage}</h1>:detail.content.kind==='review'?<section class="detail-page stay-detail"><h1>{detail.content.text.title}</h1><p class="notice">{locale.code==='zh-CN'?'评价草稿卡片；不计入公开评分。':'Draft review card; it does not count towards public ratings.'}</p><div class="stay-review-grid"><ReviewCard review={detail.content} locale={locale} preview={true}/></div></section>:<div class:list={['detail-page',`${detail.content.kind}-detail`]}><DetailBody detail={detail} locale={locale} world={world} state={state}/></div>}
 </Base>
