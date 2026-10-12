@@ -3,20 +3,23 @@ import assert from 'node:assert/strict';
 import {spawn} from 'node:child_process';
 import {chromium,expect} from '@playwright/test';
 import {detailFixture} from './detail-fixture.ts';
+import {createContent,submitRevision} from '@plotstay/domain';
 import {seedStayDetails} from '../scripts/seed-stay-details.ts';
 import {unusedPort,waitFor,stop} from './runtime.ts';
 
 test('workspace checkpoint shares the saved stay draft with the previous admin', {timeout:120000}, async t=>{
   const f=await detailFixture();t.after(f.cleanup);await seedStayDetails(f.db,f.data.admin,true);
+  const longParent=await createContent(f.db,f.data.admin,{...f.entries[0]!.input,slug:'long-parent-identifier-'+'section-'.repeat(8)});await submitRevision(f.db,f.data.admin,longParent.id,longParent.revisionId);
   const apiPort=await unusedPort(),webPort=await unusedPort(),apiUrl=`http://127.0.0.1:${apiPort}`,webUrl=`http://127.0.0.1:${webPort}`;
   const env={...process.env,PGOPTIONS:f.options,NODE_ENV:'production',SITE_INDEXABLE:'false',API_PORT:String(apiPort),API_HOST:'127.0.0.1',HOST:'127.0.0.1',PORT:String(webPort),WEB_ORIGIN:webUrl,API_INTERNAL_URL:apiUrl};
   const launch=(entry:string)=>{const child=spawn(process.execPath,[entry],{env,stdio:['ignore','pipe','pipe']});let logs='';child.stdout!.on('data',d=>logs+=d);child.stderr!.on('data',d=>logs+=d);t.after(()=>stop(child));return {child,logs:()=>logs};};
   const api=launch('apps/api/dist/server.mjs');await waitFor(apiUrl+'/api/health',api.child,api.logs);const web=launch('apps/web/server.mjs');await waitFor(webUrl+'/en',web.child,web.logs);
   const browser=await chromium.launch({headless:true});t.after(()=>browser.close());const context=await browser.newContext({viewport:{width:1440,height:900}});const page=await context.newPage();const errors:string[]=[];const requests:string[]=[];page.on('pageerror',e=>errors.push(e.message));page.on('request',request=>requests.push(new URL(request.url()).pathname));
+  const guestContext=await browser.newContext({viewport:{width:390,height:850}});const guest=await guestContext.newPage();await guest.goto(webUrl+'/zh/workspace');await expect(guest.locator('#ws-login')).toBeVisible();await expect(guest.locator('#ws-message')).toContainText('请登录现有账号');await expect(guest.locator('#ws-todo')).not.toContainText('载入失败');const guestSession=await guestContext.request.get(webUrl+'/api/auth/me');assert.equal(guestSession.status(),403);assert.equal((await guestSession.json()).error.code,'SESSION_REQUIRED');await guestContext.close();
   await page.goto(webUrl+'/en/workspace?view=works');await expect(page.locator('#login')).toBeVisible();
-  await page.locator('#login [name=email]').fill(f.credentials.email);await page.locator('#login [name=password]').fill(f.credentials.password);await page.locator('#login button').click();await expect(page.locator('#workspace')).toBeVisible();
+  await page.locator('#login [name=email]').fill(f.credentials.email);await page.locator('#login [name=password]').fill(f.credentials.password);await page.locator('#login button').click();await expect(page.locator('#workspace')).toBeVisible();await expect(page.locator('#ws-message')).toBeEmpty();
   await expect(page.locator('#work-cards .ws-work-card')).not.toHaveCount(0);assert.equal(requests.filter(path=>/\/api\/admin\/worlds\/[^/]+\/contents$/.test(path)).length,1);assert.equal(requests.filter(path=>/\/api\/admin\/worlds\/[^/]+\/(imports|settings)$/.test(path)).length,0);
-  const slow=await context.newPage();await slow.route('**/api/admin/worlds',async route=>{await new Promise(resolve=>setTimeout(resolve,900));await route.continue();});await slow.goto(webUrl+'/en/workspace?view=works');await expect(slow.locator('#ws-page-title')).toHaveText('My works');await expect(slow.locator('#message')).toContainText('Loading workspace');await expect(slow.locator('#work-cards .ws-work-card')).not.toHaveCount(0);await slow.close();
+  const slow=await context.newPage();await slow.route('**/api/admin/worlds',async route=>{await new Promise(resolve=>setTimeout(resolve,900));await route.continue();});await slow.goto(webUrl+'/en/workspace?view=works');await expect(slow.locator('#ws-page-title')).toHaveText('Content I manage');await expect(slow.locator('#message')).toContainText('Loading workspace');await expect(slow.locator('#work-cards .ws-work-card')).not.toHaveCount(0);await slow.close();
   const slowOverview=await context.newPage();await slowOverview.route('**/api/me/personas',async route=>{await new Promise(resolve=>setTimeout(resolve,900));await route.continue();});await slowOverview.goto(webUrl+'/en/workspace');await expect(slowOverview.locator('#ws-todo .ws-loading')).toBeVisible();await expect(slowOverview.locator('#ws-todo-count')).toContainText('items');await slowOverview.close();
   await expect(page.locator('.site-header')).toHaveCount(0);await expect(page.locator('.ws-sidebar')).toBeVisible();
   await page.locator('#filter-query').fill('dockside-window');await page.locator('#search-list').click();await expect(page.locator('#work-cards .ws-work-card')).toHaveCount(1);
@@ -33,13 +36,61 @@ test('workspace checkpoint shares the saved stay draft with the previous admin',
   const old=await context.newPage();await old.goto(webUrl+'/en/admin');await expect(old.locator('#workspace')).toBeVisible();await old.locator('#filter-query').fill('dockside-window');await old.locator('#search-list').click();await old.locator('#content-list button').click();await expect(old.locator('[name="en.title"]')).toHaveValue('Workspace checkpoint');
   await old.locator('[name="en.title"]').fill('Saved in old admin');await old.locator('#editor button[type=submit]').click();await expect(old.locator('#message')).toContainText('Draft saved');
   await page.locator('[name="en.title"]').fill('Unsaved new workspace input');await page.locator('#editor button[type=submit]').click();await expect(page.locator('#message')).toContainText('conflict');await expect(page.locator('[name="en.title"]')).toHaveValue('Unsaved new workspace input');
+  page.once('dialog',dialog=>dialog.dismiss());await page.locator('#ws-back').click();assert.equal(new URL(page.url()).searchParams.get('view'),'editor');await expect(page.locator('[name="en.title"]')).toHaveValue('Unsaved new workspace input');
   await page.setViewportSize({width:390,height:850});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));if(process.env.PLOTSTAY_VISUAL_CAPTURE)await page.screenshot({path:'/tmp/plotstay-editor-390.png'});assert.deepEqual(errors,[]);
   const personas=await context.newPage();await personas.goto(webUrl+'/en/workspace?view=personas');await expect(personas.locator('#account-view h2')).toContainText('My personas');
   await personas.goto(webUrl+'/en/workspace');await expect(personas.locator('.ws-overview-columns')).toBeVisible();await expect(personas.locator('#ws-todo-count')).toContainText('items');
+  await expect(personas.locator('.ws-nav a[aria-current=page]')).toContainText('Overview');
   if(process.env.PLOTSTAY_VISUAL_CAPTURE){await personas.screenshot({path:'/tmp/plotstay-overview-1440.png',fullPage:true});await personas.setViewportSize({width:390,height:850});await personas.screenshot({path:'/tmp/plotstay-overview-390.png'});assert.ok(await personas.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));}
+  await personas.goto(webUrl+'/zh/workspace');await expect(personas.locator('#ws-continue')).toContainText('手记 · 已审核');
   await personas.goto(webUrl+'/en/workspace?view=reviews');await expect(personas.locator('#account-view h2')).toContainText('My reviews');
+  await personas.goto(webUrl+'/en/workspace?view=replies');await expect(personas.locator('.ws-nav a[aria-current=page]')).toContainText('Reviews and replies');
   await personas.goto(webUrl+'/en/workspace?view=worlds');await expect(personas.locator('#ws-world-list .ws-card')).not.toHaveCount(0);
   const worldId=(await f.db.query("SELECT id FROM worlds WHERE slug='lathe-worlds'")).rows[0].id;
   const owner=(await f.db.query('SELECT u.email FROM worlds w JOIN users u ON u.id=w.owner_id WHERE w.id=$1',[worldId])).rows[0].email;
   await personas.goto(webUrl+`/en/workspace?view=world-members&world=${worldId}`);await expect(personas.locator('#ws-member-list')).toContainText(owner);
+  const harbourId=f.data.harbourId;
+  await personas.goto(webUrl+`/zh/workspace?view=world-settings&world=${worldId}`);
+  await expect(personas.locator('#workspace')).toBeVisible();
+  await expect(personas.locator('#ws-context')).toHaveText('拉斯世界');
+  await expect(personas.locator('#work-cards .ws-work-card')).toHaveCount(0);
+  await expect(personas.locator('#settings-panel')).toBeVisible();
+  await expect(personas.locator('#shared-settings-panel')).toHaveAttribute('open','');
+  await expect(personas.locator('#settings-panel form [data-field-input]').first()).toBeVisible();
+  const settingInput=personas.locator('#settings-panel form [data-field-input]').first();await settingInput.fill((await settingInput.inputValue())+' test');
+  personas.once('dialog',dialog=>dialog.dismiss());await personas.locator('#world').selectOption(harbourId);await expect(personas.locator('#world')).toHaveValue(worldId);
+  personas.once('dialog',dialog=>dialog.accept());
+  if(process.env.PLOTSTAY_VISUAL_CAPTURE)await personas.screenshot({path:'/tmp/plotstay-world-settings-390.png'});
+  await personas.locator('#world').selectOption(harbourId);
+  await expect(personas.locator('#ws-context')).toHaveText('测试港湾');
+  await expect(personas.locator('.ws-world-nav a').first()).toHaveAttribute('href',new RegExp(`world=${harbourId}`));
+  assert.equal(new URL(personas.url()).searchParams.get('world'),harbourId);
+  await personas.goBack();await expect(personas.locator('#ws-context')).toHaveText('拉斯世界');
+  await personas.goForward();await expect(personas.locator('#ws-context')).toHaveText('测试港湾');
+  await personas.goto(webUrl+`/en/workspace?view=world-review&world=${worldId}`);
+  await expect(personas.locator('#import-panel')).toBeHidden();
+  await expect(personas.locator('#filter-status')).toHaveValue('submitted');
+  await personas.goto(webUrl+'/en/workspace?view=world-tools&world='+worldId);await expect(personas.locator('#import-panel')).toBeVisible();await expect(personas.locator('#work-cards .ws-work-card')).toHaveCount(0);
+  if(process.env.PLOTSTAY_VISUAL_CAPTURE)await personas.screenshot({path:'/tmp/plotstay-world-tools-390.png'});
+  await personas.goto(webUrl+'/en/workspace?view=works&world='+worldId);await personas.locator('#filter-query').fill('dockside-window');await personas.locator('#search-list').click();await expect(personas.locator('#work-cards .ws-work-card')).toHaveCount(1);
+  await personas.locator('#work-cards .ws-work-action').click();await expect(personas.locator('#editor-panel')).toBeVisible();assert.equal(new URL(personas.url()).searchParams.get('returnTo')?.includes('q=dockside-window'),true);
+  await personas.locator('#ws-back').click();await expect(personas.locator('#work-cards .ws-work-card')).toHaveCount(1);await expect(personas.locator('#filter-query')).toHaveValue('dockside-window');await expect(personas.locator('.ws-work-card[data-returned=true]')).toHaveCount(1);
+  const docksideId=(await f.db.query("SELECT id FROM contents WHERE slug='dockside-window'")).rows[0].id;
+  await personas.goto(webUrl+'/en/workspace?view=editor&world='+harbourId+'&content='+docksideId);
+  await expect(personas).toHaveURL(new RegExp('world='+worldId));await expect(personas.locator('#editor-panel')).toBeVisible();await expect(personas.locator('#ws-context')).toContainText('Lathe Worlds');
+  await personas.setViewportSize({width:1440,height:900});await personas.goto(webUrl+'/en/workspace?view=world-settings&world='+worldId);await expect(personas.locator('#settings-panel form [data-field-input]').first()).toBeVisible();if(process.env.PLOTSTAY_VISUAL_CAPTURE)await personas.screenshot({path:'/tmp/plotstay-world-settings-1440.png'});
+  await personas.goto(webUrl+'/en/workspace?view=world-review&world='+worldId);await expect(personas.locator('#filter-status')).toHaveValue('submitted');if(process.env.PLOTSTAY_VISUAL_CAPTURE)await personas.screenshot({path:'/tmp/plotstay-world-review-1440.png'});
+  await personas.locator('#work-cards .ws-work-action').first().click();await expect(personas.locator('#editor-panel')).toBeVisible();await expect(personas.locator('#ws-back')).toContainText('Back to world moderation');await personas.locator('#ws-back').click();await expect(personas.locator('#filter-status')).toHaveValue('submitted');
+  await personas.setViewportSize({width:390,height:850});
+  for(const language of ['zh','en']){
+    for(const entry of f.entries){
+      await personas.goto(webUrl+'/'+language+'/workspace?view=editor&world='+worldId+'&content='+entry.id);
+      await expect(personas.locator('#editor-panel')).toBeVisible();
+      const width=await personas.evaluate(()=>document.documentElement.scrollWidth);
+      assert.ok(width<=390,language+' '+entry.input.kind+' editor overflowed to '+width+'px');
+      const parent=await personas.locator('[name=parentContentId]').boundingBox();assert.ok(parent&&parent.width>0&&parent.x+parent.width<=390);
+      await personas.locator('#ws-tab-preview').click();await expect(personas.locator('#draft-preview-frame')).toBeVisible();await personas.locator('#ws-tab-edit').click();await expect(personas.locator('#editor')).toBeVisible();
+      if(process.env.PLOTSTAY_VISUAL_CAPTURE)await personas.screenshot({path:'/tmp/plotstay-editor-'+language+'-'+entry.input.kind+'-390.png'});
+    }
+  }
 });

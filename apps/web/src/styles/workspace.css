@@ -38,13 +38,14 @@
 #new-workspace #admin #save-preview {background:var(--ws-lime);color:#17271b;font-weight:700}
 #new-workspace #admin .draft-preview-panel {border-radius:.6rem}
 #new-workspace #admin #structured-editor details {scroll-margin-top:1.5rem}
-#new-workspace[data-view=editor] #admin #content-list,#new-workspace[data-view=editor] #admin .admin-table,#new-workspace[data-view=editor] #admin #list-page {display:none}
-#new-workspace[data-view=world-settings] #admin #editor-panel,#new-workspace[data-view=world-tools] #admin #editor-panel {display:none}
-#new-workspace[data-view=world-tools] #admin #settings-panel {display:none}
-#new-workspace[data-view=world-settings] #admin #import-panel {display:none}
-#new-workspace[data-view=works] #admin #settings-panel,#new-workspace[data-view=works] #admin #import-panel,#new-workspace[data-view=world-content] #admin #settings-panel,#new-workspace[data-view=world-content] #admin #import-panel,#new-workspace[data-view=editor] #admin #settings-panel,#new-workspace[data-view=editor] #admin #import-panel {display:none}
-#new-workspace[data-view=world-settings] #admin #new,#new-workspace[data-view=world-settings] #admin #refresh-list,#new-workspace[data-view=world-settings] #admin #filter-kind,#new-workspace[data-view=world-settings] #admin #filter-query,#new-workspace[data-view=world-settings] #admin #filter-status,#new-workspace[data-view=world-settings] #admin #search-list,#new-workspace[data-view=world-settings] #admin .admin-table,#new-workspace[data-view=world-settings] #admin #list-page {display:none}
 #new-workspace[data-view=settings] #persona-workspace {display:none}
+#new-workspace #admin,#new-workspace #admin #workspace,#new-workspace #admin #editor-panel,#new-workspace #admin #editor {min-width:0;max-width:100%}
+#new-workspace #admin .ws-work-card h3,#new-workspace #admin .ws-work-slug,#new-workspace #admin #editor-title {overflow-wrap:anywhere}
+#new-workspace #admin .ws-work-card[data-returned=true] {outline:2px solid #739d38;outline-offset:2px}
+#new-workspace #ws-login {max-width:440px}
+#new-workspace #ws-login label {display:grid;gap:5px;margin:12px 0}
+#new-workspace #ws-login input {width:100%;min-width:0;padding:9px;border:1px solid var(--line);border-radius:4px}
+#new-workspace #ws-login button {padding:9px 14px;background:var(--ws-lime);border:1px solid #6b7d42;border-radius:5px;cursor:pointer}
 #new-workspace .ws-world-actions {display:flex;gap:.7rem;flex-wrap:wrap}
 #new-workspace .ws-world-actions a {background:#edf2e7;padding:.5rem .7rem;border-radius:.3rem;text-decoration:none}
 #new-workspace a:focus-visible,#new-workspace button:focus-visible,#new-workspace input:focus-visible,#new-workspace select:focus-visible {outline:3px solid #729c37;outline-offset:2px}

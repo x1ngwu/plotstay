@@ -2,6 +2,10 @@
 import { bilingual } from '../../lib/i18n';
 const { locale, mode = 'legacy' } = Astro.props;
 const label = bilingual(locale.code);
+const workspaceView = Astro.url.searchParams.get('view') ?? 'works';
+const hasList = mode !== 'workspace' || ['works', 'world-content', 'world-review'].includes(workspaceView);
+const hasSettings = mode !== 'workspace' || workspaceView === 'world-settings';
+const hasTools = mode !== 'workspace' || workspaceView === 'world-tools';
 ---
 <div id="admin" data-locale={locale.code} data-mode={mode}>
     <h1>{label('内容管理', 'Content management')}</h1><p><a href={`/${locale.pathPrefix}/account?view=moderation`}>{label('角色评价与回复审核／创建账号','Persona review moderation / create account')}</a> · <a id="new-workspace-link" href={`/${locale.pathPrefix}/workspace?view=works`}>{label('试用新版后台 ↗','Try the new workspace ↗')}</a></p>
@@ -13,13 +17,15 @@ const label = bilingual(locale.code);
     </form>
     <section id="workspace" hidden>
       <div class="admin-actions"><span id="account"></span><button id="logout">{label('退出登录', 'Sign out')}</button></div>
-      <div class="ws-list-context"><label>{label('管理世界', 'World')}<select id="world"></select></label><div class="admin-actions"><button id="new">＋ {label('创建作品', 'Create work')}</button><button id="refresh-list">{label('刷新列表', 'Refresh list')}</button></div></div>
-      <div class="ws-list-filters"><label>{label('名称或网址标识','Title or slug')}<input id="filter-query" type="search" placeholder={label('搜索作品名称','Search work title')} /></label><label>{label('筛选类型', 'Filter type')}<select id="filter-kind"><option value="">{label('全部类型', 'All types')}</option><option value="stay">{label('住宿', 'Homes')}</option><option value="experience">{label('活动', 'Experiences')}</option><option value="service">{label('服务', 'Services')}</option><option value="review">{label('手记', 'Notes')}</option></select></label><label>{label('发布状态','Publication status')}<select id="filter-status"><option value="">{label('全部状态','All statuses')}</option><option value="published">{label('已公开','Published')}</option><option value="unpublished">{label('未公开','Unpublished')}</option><option value="submitted">{label('待审核','Submitted')}</option><option value="draft">{label('草稿','Draft')}</option></select></label><button id="search-list">{label('筛选','Filter')}</button></div>
+      <div class="ws-list-context"><label>{label('管理世界', 'World')}<select id="world"></select></label><div class="admin-actions" hidden={mode==='workspace' && !['works','world-content'].includes(workspaceView)}><button id="new">＋ {label('创建作品', 'Create work')}</button><button id="refresh-list">{label('刷新列表', 'Refresh list')}</button></div></div>
+      <section id="content-list-panel" hidden={!hasList}>
+      <div class="ws-list-filters"><label>{label('名称或网址标识','Title or slug')}<input id="filter-query" type="search" placeholder={label('搜索内容名称','Search content title')} /></label><label>{label('筛选类型', 'Filter type')}<select id="filter-kind"><option value="">{label('全部类型', 'All types')}</option><option value="stay">{label('住宿', 'Homes')}</option><option value="experience">{label('活动', 'Experiences')}</option><option value="service">{label('服务', 'Services')}</option><option value="review">{label('手记', 'Notes')}</option></select></label><label>{label('状态','Status')}<select id="filter-status"><option value="">{label('全部状态','All statuses')}</option><option value="published">{label('已公开','Published')}</option><option value="unpublished">{label('未公开','Unpublished')}</option><option value="submitted">{label('待审核','Submitted')}</option><option value="draft">{label('草稿','Draft')}</option></select></label><button id="search-list">{label('筛选','Filter')}</button></div>
       <div class="ws-list-meta"><span id="ws-result-count"></span><div class="admin-actions"><button id="list-prev" aria-label={label('上一页','Previous page')}>←</button><span id="list-page"></span><button id="list-next" aria-label={label('下一页','Next page')}>→</button></div></div>
       {mode==='workspace' && <div id="work-cards" class="ws-work-grid"><p class="ws-loading" role="status">{label('正在载入作品…','Loading works…')}</p></div>}
       <div class="admin-table"><table><thead><tr><th>{label('内容', 'Content')}</th><th>{label('草稿状态', 'Draft status')}</th><th>{label('公开状态', 'Visibility')}</th><th>{label('操作', 'Action')}</th></tr></thead><tbody id="content-list"></tbody></table></div>
-      <details class="panel" id="shared-settings-panel"><summary>{label('共用详情文案与关联资料','Detail copy and shared references')}</summary><section id="settings-panel"></section></details>
-      <details class="panel" id="import-panel">
+      </section>
+      <details class="panel" id="shared-settings-panel" hidden={!hasSettings} open={mode==='workspace' && hasSettings}><summary>{label('共用详情文案与关联资料','Detail copy and shared references')}</summary><section id="settings-panel"></section></details>
+      <details class="panel" id="import-panel" hidden={!hasTools} open={mode==='workspace' && hasTools}>
         <summary>{label('批量导入', 'Batch import')}</summary>
         <p>{label('先预览校验结果，再导入为草稿。相同来源与外部编号不会重复导入，已有内容不会被覆盖。', 'Preview validation before importing drafts. Source and external IDs prevent duplicate imports; existing content is preserved.')}</p>
         <button id="import-example">{label('填入示例', 'Use example')}</button>
@@ -64,7 +70,7 @@ const label = bilingual(locale.code);
           <label>{label('分类', 'Category')}<select name="category"></select></label>
           <button id="toggle-mode" type="button">{label('切换到高级 JSON','Switch to advanced JSON')}</button>
           <p id="list-alignment-warning" role="status"></p>
-          <p>{label('文本列表按语言独立管理，图片以 ID 关联。删除项目会保存空列表；取消栏目配置恢复旧默认。','Text lists are independent per language. Images use stable IDs. Removing items saves an empty list; disabling a section restores legacy defaults.')}</p>
+          <p>{label('重复项目的中英文字共用身份与顺序；清空一种语言的文字保留项目位置。图片以 ID 关联；取消栏目配置恢复旧默认。','Repeated items share identity and order across languages. Clearing one translation keeps its place. Images use stable IDs; disabling a section restores legacy defaults.')}</p>
           <button id="refresh-image-fields" type="button">{label('刷新图片说明字段','Refresh image description fields')}</button>
           <div id="structured-editor"></div>
           <div id="advanced-fields" hidden>
@@ -113,7 +119,9 @@ const label = bilingual(locale.code);
   @media(max-width:700px) { #admin .bilingual-fields { grid-template-columns:1fr; } #admin .language-pane[data-active=false] { display:none; } #admin .language-tabs { display:flex; } }
   #admin [hidden] { display: none !important; }
   #admin label { display: grid; gap: .35rem; margin: .8rem 0; }
-  #admin input, #admin select, #admin textarea, #admin button { font: inherit; color: var(--text); background: var(--surface); border: 1px solid var(--line); padding: .55rem; max-width: 100%; }
+  #admin input, #admin select, #admin textarea, #admin button { font: inherit; color: var(--text); background: var(--surface); border: 1px solid var(--line); padding: .55rem; max-width: 100%; min-width:0; box-sizing:border-box; }
+  #admin label, #admin form, #admin fieldset, #admin details, #admin section { min-width:0; }
+  #admin select { width:100%; }
   #admin input, #admin textarea { width: 100%; }
   #admin button { cursor: pointer; border-color: var(--accent); }
   #admin button:disabled { cursor: default; opacity: .45; }

@@ -12,7 +12,7 @@ Astro.response.headers.set('Cache-Control','private, no-store');
 const view = Astro.url.searchParams.get('view') ?? 'overview';
 const adminViews = ['works','editor','world-content','world-settings','world-tools','world-review'];
 const accountViews = ['personas','reviews','replies','moderation','site','settings'];
-const title = ({overview:t('今天，从这里继续','Today, pick up where you left off'),works:t('我的作品','My works'),editor:t('作品编辑','Edit work'),personas:t('我的角色','My personas'),reviews:t('评价与回复','Reviews and replies'),replies:t('评价与回复','Reviews and replies'),worlds:t('我管理的世界','Worlds I manage'),'world-content':t('世界内容','World content'),'world-settings':t('世界设定','World settings'),'world-tools':t('管理工具','Management tools'),'world-review':t('世界审核','World moderation'),'world-members':t('成员','Members'),moderation:t('世界审核','World moderation'),site:t('网站审核','Site moderation'),settings:t('账号设置','Account settings')} as Record<string,string>)[view] ?? t('概览','Overview');
+const title = ({overview:t('今天，从这里继续','Today, pick up where you left off'),works:t('我管理的内容','Content I manage'),editor:t('内容编辑','Edit content'),personas:t('我的角色','My personas'),reviews:t('评价与回复','Reviews and replies'),replies:t('评价与回复','Reviews and replies'),worlds:t('我管理的世界','Worlds I manage'),'world-content':t('世界内容','World content'),'world-settings':t('世界设定','World settings'),'world-tools':t('管理工具','Management tools'),'world-review':t('世界审核','World moderation'),'world-members':t('成员','Members'),moderation:t('世界审核','World moderation'),site:t('网站审核','Site moderation'),settings:t('账号设置','Account settings')} as Record<string,string>)[view] ?? t('概览','Overview');
 const worldId = Astro.url.searchParams.get('world');
 const oldAccountView = view==='site'?'moderation':view==='settings'?'personas':view;
 const oldQuery=new URLSearchParams();
@@ -30,7 +30,7 @@ const legacyTarget=accountViews.includes(view)?`/${locale.pathPrefix}/account?vi
     <nav class="ws-nav" aria-label={t('工作台导航','Workspace navigation')}>
       <a href={`/${locale.pathPrefix}/workspace`}><span aria-hidden="true">◫</span>{t('概览','Overview')}</a>
       <a href={`/${locale.pathPrefix}/workspace?view=personas`}><span aria-hidden="true">◉</span>{t('我的角色','My personas')}</a>
-      <a href={`/${locale.pathPrefix}/workspace?view=works`}><span aria-hidden="true">▧</span>{t('我的作品','My works')}</a>
+      <a href={`/${locale.pathPrefix}/workspace?view=works`}><span aria-hidden="true">▧</span>{t('我管理的内容','Content I manage')}</a>
       <a href={`/${locale.pathPrefix}/workspace?view=reviews`}><span aria-hidden="true">☷</span>{t('评价与回复','Reviews and replies')}</a>
       <a href={`/${locale.pathPrefix}/workspace?view=worlds`}><span aria-hidden="true">◎</span>{t('我管理的世界','Worlds I manage')}</a>
       <a href={`/${locale.pathPrefix}/workspace?view=settings`}><span aria-hidden="true">⚙</span>{t('账号设置','Account settings')}</a>
@@ -40,14 +40,15 @@ const legacyTarget=accountViews.includes(view)?`/${locale.pathPrefix}/account?vi
   </aside>
   <main id="main" class="ws-main">
     <div class="ws-page-navigation"><a id="ws-back" href={`/${locale.pathPrefix}/workspace`}>← {t('返回工作台','Back to workspace')}</a><nav class="ws-crumbs" aria-label={t('面包屑','Breadcrumb')}><a href={`/${locale.pathPrefix}/workspace`}>{t('我的工作台','My workspace')}</a><span id="ws-crumb-tail"></span></nav></div>
-    <div class="ws-page-head"><div><p class="ws-eyebrow">{t('我的工作台','My workspace')}</p><h1 id="ws-page-title">{title}</h1><p id="ws-context">{view==='overview'?t('查看需要处理的事，或接着完成上次的创作。','See what needs attention, or continue your last project.'):''}</p></div><a id="ws-head-action" href={`/${locale.pathPrefix}/workspace?view=works`}>{t('打开我的作品 →','Open my works →')}</a></div>
+    <div class="ws-page-head"><div><p class="ws-eyebrow">{t('我的工作台','My workspace')}</p><h1 id="ws-page-title">{title}</h1><p id="ws-context">{view==='overview'?t('查看需要处理的事，或接着完成上次的创作。','See what needs attention, or continue your last project.'):view==='works'?t('按所选世界的现有管理权限显示住宿、活动、服务和手记。','Homes, experiences, services and notes in the selected world, within your current management access.'):''}</p></div><a id="ws-head-action" href={`/${locale.pathPrefix}/workspace?view=works`}>{t('打开我管理的内容 →','Open managed content →')}</a></div>
     {worldId && view.startsWith('world-') && <nav class="ws-world-nav" aria-label={t('世界管理','World management')}><a href={`/${locale.pathPrefix}/workspace?view=world-content&world=${worldId}`}>{t('内容','Content')}</a><a href={`/${locale.pathPrefix}/workspace?view=world-review&world=${worldId}`}>{t('审核','Moderation')}</a><a href={`/${locale.pathPrefix}/workspace?view=world-settings&world=${worldId}`}>{t('设定与共享资料','Settings')}</a><a href={`/${locale.pathPrefix}/workspace?view=world-tools&world=${worldId}`}>{t('管理工具','Tools')}</a><a href={`/${locale.pathPrefix}/workspace?view=world-members&world=${worldId}`}>{t('成员','Members')}</a></nav>}
     <p id="ws-message" role="status" aria-live="polite"></p>
+    <form id="ws-login" class="ws-panel" hidden><h2>{t('登录现有账号','Sign in to your account')}</h2><label>{t('邮箱','Email')}<input name="email" type="email" autocomplete="username" required /></label><label>{t('密码','Password')}<input name="password" type="password" autocomplete="current-password" required /></label><button>{t('登录后继续','Sign in and continue')}</button></form>
     <section id="ws-overview" hidden><div class="ws-overview-columns"><div>
       <section class="ws-panel ws-task-panel"><div class="ws-panel-bar"><strong>{t('需要你处理','Needs your attention')}</strong><span id="ws-todo-count"></span></div><div id="ws-todo" class="ws-panel-body"><p class="ws-loading" role="status">{t('正在载入待办…','Loading tasks…')}</p></div></section>
-      <section class="ws-panel"><h2>{t('继续创作','Continue creating')}</h2><div id="ws-continue"><p class="ws-loading" role="status">{t('正在载入最近的创作…','Loading recent work…')}</p></div></section>
+      <section class="ws-panel"><h2>{t('继续处理','Continue working')}</h2><div id="ws-continue"><p class="ws-loading" role="status">{t('正在载入最近内容…','Loading recent content…')}</p></div></section>
     </div><div>
-      <section class="ws-panel"><h2>{t('快捷开始','Quick start')}</h2><div class="ws-shortcuts"><a href={`/${locale.pathPrefix}/workspace?view=personas`}>＋ {t('创建或管理角色','Create or manage a persona')}</a><a href={`/${locale.pathPrefix}/workspace?view=works`}>＋ {t('创建或管理作品','Create or manage a work')}</a><a href={`/${locale.pathPrefix}/workspace?view=worlds`}>{t('查看可管理的世界','View managed worlds')}</a></div></section>
+      <section class="ws-panel"><h2>{t('快捷开始','Quick start')}</h2><div class="ws-shortcuts"><a href={`/${locale.pathPrefix}/workspace?view=personas`}>＋ {t('创建或管理角色','Create or manage a persona')}</a><a href={`/${locale.pathPrefix}/workspace?view=works`}>＋ {t('管理世界内容','Manage world content')}</a><a href={`/${locale.pathPrefix}/workspace?view=worlds`}>{t('查看可管理的世界','View managed worlds')}</a></div></section>
       <section class="ws-panel"><h2>{t('最近的进展','Recent progress')}</h2><div id="ws-recent"><p class="ws-loading" role="status">{t('正在载入状态…','Loading updates…')}</p></div></section>
     </div></div></section>
     <section id="ws-worlds" hidden><div id="ws-world-list"></div></section>

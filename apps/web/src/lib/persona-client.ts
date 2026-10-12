@@ -894,6 +894,7 @@ export async function initAccount() {
       (login.elements.namedItem('password') as HTMLInputElement).value = '';
       await initialize();
       message.textContent = l('登录成功。', 'Signed in.');
+      if(root.closest('#new-workspace'))window.dispatchEvent(new Event('workspace:authenticated'));
     });
   };
   window.addEventListener('beforeunload', (e) => {

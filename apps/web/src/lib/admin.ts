@@ -26,7 +26,10 @@ let formTexts: Record<string,any> = {};
 let previewRevisionId: string | null = null;
 let savingDraft = false;
 const workspaceMode = root.dataset.mode === 'workspace';
+const initialWorkspaceView = document.getElementById('new-workspace')?.dataset.view;
+const listView = !workspaceMode || ['works','world-content','world-review'].includes(initialWorkspaceView ?? '');
 let openRequest=0;
+let worldLoadRequest=0;
 let previewNonce='';
 const statuses: Record<string, string> = l('zh', 'en') === 'zh' ? { draft: '草稿', submitted: '待审核', approved: '已审核', rejected: '已退回', pending: '等待执行', running: '执行中', completed: '完成', failed: '失败', superseded: '已过期' } : {};
 const status = (value: string) => statuses[value] ?? value;
@@ -252,6 +255,7 @@ function readTexts() {
 }
 function formValue() {
   const texts = readTexts(), sourceLocale = field('sourceLocale').value;
+  if(!detail&&formMode==='advanced')for(const path of sharedLists){const present=locales.filter(language=>texts[language.code]&&atPath(texts[language.code],path).length);if(!present.length||present.some(language=>texts[language.code]?.editorListIds?.[path]))continue;const lengths=present.map(language=>atPath(texts[language.code],path).length);if(new Set(lengths).size!==1)continue;const ids=Array.from({length:lengths[0]},()=>crypto.randomUUID());for(const language of present){texts[language.code]!.editorListIds??={};texts[language.code]!.editorListIds![path]=[...ids];formTexts[language.code]??={};formTexts[language.code].editorListIds??={};formTexts[language.code].editorListIds[path]=[...ids];}}
   const bodies=Object.values(texts);
   for(const path of sharedLists){const filled=bodies.filter(body=>atPath(body,path).length||body.editorListIds?.[path]);if(filled.length<2)continue;const signatures=filled.map(body=>JSON.stringify(body.editorListIds?.[path]??[]));if(new Set(signatures).size>1||filled.some(body=>(body.editorListIds?.[path]?.length??0)!==atPath(body,path).length))throw new Error(l('双语项目身份或顺序不一致，请校订后保存：','Bilingual item identities or order differ. Reconcile before saving: ')+path);}
   if (!texts[sourceLocale]) throw new Error(l('请填写源语言的名称与完整介绍。', 'Complete the source title and description.'));
@@ -282,27 +286,29 @@ function formValue() {
   };
 }
 async function refreshList() {
+  if(!listView)return;
   const request=++listRequest;el('content-list').replaceChildren();
-  if(workspaceMode){const loading=document.createElement('p');loading.className='ws-loading';loading.textContent=l('正在载入作品…','Loading works…');el('work-cards').replaceChildren(loading);}
-  const importRequest=(!workspaceMode||document.getElementById('new-workspace')?.dataset.view==='world-tools')
+  if(workspaceMode){const loading=document.createElement('p');loading.className='ws-loading';loading.textContent=l('正在载入内容…','Loading content…');el('work-cards').replaceChildren(loading);}
+  const importRequest=!workspaceMode
     ?api(`/admin/worlds/${worldId()}/imports`).then(value=>({value,error:null}),(error:unknown)=>({value:null,error})):null;
   const params=new URLSearchParams({page:String(listPage)});
   for(const [key,id]of [['kind','filter-kind'],['q','filter-query'],['status','filter-status']]){const value=el<HTMLInputElement>(id!).value;if(value)params.set(key!,value);}
   if(parentFilter)params.set('parentId',parentFilter);
   let data:any;
   try{data=await api(`/admin/worlds/${worldId()}/contents?${params}`);}
-  catch(error){if(workspaceMode&&request===listRequest){const box=el('work-cards');const retry=document.createElement('button');retry.type='button';retry.textContent=l('重试载入作品','Retry loading works');retry.addEventListener('click',()=>void refreshList().catch(e=>message(errorText(e))));box.replaceChildren(retry);}throw error;}
+  catch(error){if(workspaceMode&&request===listRequest){const box=el('work-cards');const retry=document.createElement('button');retry.type='button';retry.textContent=l('重试载入内容','Retry loading content');retry.addEventListener('click',()=>void refreshList().catch(e=>message(errorText(e))));box.replaceChildren(retry);}throw error;}
   if(request!==listRequest)return;
   if(workspaceMode){const url=new URL(location.href);url.searchParams.set('world',worldId());url.searchParams.set('page',String(listPage));for(const [key,id] of [['kind','filter-kind'],['q','filter-query'],['status','filter-status']]){const value=el<HTMLInputElement>(id!).value;if(value)url.searchParams.set(key!,value);else url.searchParams.delete(key!);}history.replaceState(history.state,'',url);}
   el('list-page').textContent=`${data.page} / ${data.pages} · ${data.total}`;
-  if(workspaceMode)el('ws-result-count').textContent=l(`${data.total} 件作品 · ${el<HTMLSelectElement>('world').selectedOptions[0]?.textContent??''}`,`${data.total} works · ${el<HTMLSelectElement>('world').selectedOptions[0]?.textContent??''}`);
+  if(workspaceMode)el('ws-result-count').textContent=l(`${data.total} 条内容 · ${el<HTMLSelectElement>('world').selectedOptions[0]?.textContent??''}`,`${data.total} ${data.total===1?'entry':'entries'} · ${el<HTMLSelectElement>('world').selectedOptions[0]?.textContent??''}`);
   el<HTMLButtonElement>('list-prev').disabled=listPage<=1;el<HTMLButtonElement>('list-next').disabled=listPage>=data.pages;
   const visibleContents=data.contents.filter((c: any) => !el<HTMLSelectElement>('filter-kind').value || c.kind === el<HTMLSelectElement>('filter-kind').value);
   const openFromList=async(content:any)=>{
     if (!confirmDiscard()) return;
+    const returnTo=location.pathname+location.search,returnY=scrollY;
     await openContent(content.id);
     if(detail?.content.id!==content.id)return;
-    if(workspaceMode)window.dispatchEvent(new CustomEvent('workspace:editor',{detail:{id:content.id,title:content.title,world:worldId()}}));
+    if(workspaceMode)window.dispatchEvent(new CustomEvent('workspace:editor',{detail:{id:content.id,title:content.title,world:worldId(),worldName:el<HTMLSelectElement>('world').selectedOptions[0]?.textContent??'',returnTo,returnY}}));
     el('editor-panel').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'start'});
     const heading=workspaceMode?document.getElementById('ws-page-title')!:el('editor-title');heading.setAttribute('tabindex','-1');heading.focus({preventScroll:true});
   };
@@ -318,7 +324,7 @@ async function refreshList() {
   if(workspaceMode){
     const cards=el('work-cards');cards.replaceChildren();
     for(const content of visibleContents){
-      const card=document.createElement('article');card.className='ws-work-card';
+      const card=document.createElement('article');card.className='ws-work-card';card.dataset.contentId=content.id;
       const art=document.createElement('div');art.className=`ws-work-art ws-work-art-${content.kind}`;art.setAttribute('aria-hidden','true');art.textContent=({stay:'⌂',experience:'◈',service:'⚒',review:'✎'} as Record<string,string>)[content.kind]??'◇';
       const body=document.createElement('div');body.className='ws-work-body';
       const type=document.createElement('p');type.className='ws-work-type';type.textContent=({stay:l('住宿','Stay'),experience:l('活动','Experience'),service:l('服务','Service'),review:l('手记','Note')} as Record<string,string>)[content.kind]??content.kind;
@@ -326,30 +332,32 @@ async function refreshList() {
       const slug=document.createElement('p');slug.className='ws-work-slug';slug.textContent=content.slug??content.number??'';
       const state=document.createElement('span');state.className='ws-badge';state.textContent=content.site_blocked?l('网站限制','Site restriction'):content.published_publication_id?l('已公开','Published'):l('未公开','Unpublished');
       const draft=document.createElement('span');draft.className='ws-badge ws-badge-muted';draft.textContent=status(content.status);
-      const action=button(content.status==='rejected'?l('查看意见并修改','View feedback and edit'):l('编辑作品','Edit work'),()=>openFromList(content));action.className='ws-work-action';
+      const action=button(initialWorkspaceView==='world-review'?l('查看送审版本','Review submission'):content.status==='rejected'?l('查看意见并修改','View feedback and edit'):l('编辑内容','Edit content'),()=>openFromList(content));action.className='ws-work-action';
       body.append(type,title,slug,state,draft,action);card.append(art,body);cards.append(card);
     }
-    if(!visibleContents.length){const empty=document.createElement('p');empty.className='ws-empty';empty.textContent=l('没有匹配的作品。试着调整筛选。','No matching works. Try another filter.');cards.append(empty);}
+    if(!visibleContents.length){const empty=document.createElement('p');empty.className='ws-empty';empty.textContent=initialWorkspaceView==='world-review'?l('当前没有符合筛选条件的待审核内容。','No submissions match these filters.'):l('没有匹配的内容。试着调整筛选。','No matching content. Try another filter.');cards.append(empty);}
+    try{const saved=JSON.parse(sessionStorage.getItem('plotstay:workspace-scroll')??'null');if(saved?.href===location.pathname+location.search){const selected=cards.querySelector<HTMLElement>(`[data-content-id="${saved.id}"]`);if(selected)selected.dataset.returned='true';sessionStorage.removeItem('plotstay:workspace-scroll');requestAnimationFrame(()=>scrollTo(0,Number(saved.y)||0));}}catch{sessionStorage.removeItem('plotstay:workspace-scroll');}
   }
   if(importRequest){
     const result=await importRequest;
     if(result.error)throw result.error;
-    const { batches } = result.value;
-    el('import-history').replaceChildren(...batches.map((batch: any) => {
-      const item = document.createElement('details'); const title = document.createElement('summary'); title.textContent = `${batch.source} · ${new Date(batch.created_at).toLocaleString(locale)}`;
-      const result = document.createElement('pre'); result.textContent = JSON.stringify(batch.results, null, 2); item.append(title, result); return item;
-    }));
+    renderImportHistory(result.value.batches);
   }
 }
+function renderImportHistory(batches:any[]){el('import-history').replaceChildren(...batches.map((batch:any)=>{const item=document.createElement('details');const title=document.createElement('summary');title.textContent=`${batch.source} · ${new Date(batch.created_at).toLocaleString(locale)}`;const result=document.createElement('pre');result.textContent=JSON.stringify(batch.results,null,2);item.append(title,result);return item;}));}
 async function loadWorld(page=1) {
+  const request=++worldLoadRequest;
   loadedWorld=worldId();
   listPage=page;parentFilter='';
   el('editor-panel').hidden = true; detail = null; dirty = false;
   resetPreview();
   previewedImport = ''; el<HTMLButtonElement>('import-apply').disabled = true;
-  if(!workspaceMode||document.getElementById('new-workspace')?.dataset.view==='world-settings')settingsEditor(el('settings-panel'),worldId(),locale==='zh-CN',api,v=>settingsDirty=v);
-  const [nextOptions]=await Promise.all([api(`/admin/worlds/${worldId()}/options`),refreshList()]);
-  options=nextOptions;
+  if(!workspaceMode||initialWorkspaceView==='world-settings')settingsEditor(el('settings-panel'),worldId(),locale==='zh-CN',api,v=>settingsDirty=v);
+  const tasks:Promise<unknown>[]=[];
+  if(!workspaceMode||listView||initialWorkspaceView==='editor')tasks.push(api(`/admin/worlds/${worldId()}/options`).then(value=>{if(request===worldLoadRequest)options=value;}));
+  if(listView)tasks.push(refreshList());
+  if(initialWorkspaceView==='world-tools')tasks.push(api(`/admin/worlds/${worldId()}/imports`).then(({batches})=>{if(request===worldLoadRequest)renderImportHistory(batches);}));
+  await Promise.all(tasks);
 }
 async function signIn() {
   const [session,languages,managed]=await Promise.all([api('/auth/me'),api('/locales'),api('/admin/worlds')]);
@@ -361,6 +369,11 @@ async function signIn() {
   if (worlds.length) el<HTMLSelectElement>('world').value = worlds.find(world=>world.id===new URLSearchParams(location.search).get('world'))?.id ?? (worlds.find(world => world.slug === 'lathe-worlds') ?? worlds[0]).id;
   if (worlds.length) {
     const query=new URLSearchParams(location.search);
+    if(workspaceMode&&initialWorkspaceView?.startsWith('world-')){
+      const requested=query.get('world');
+      if(!requested){const url=new URL(location.href);url.searchParams.set('world',worldId());location.replace(url);return;}
+      if(!worlds.some(world=>world.id===requested)){el('workspace').hidden=true;message(l('无权访问此世界。','This world is unavailable.'));return;}
+    }
     if(workspaceMode||query.has('content')||query.has('world')){el<HTMLSelectElement>('filter-kind').value=query.get('kind')??'';el<HTMLInputElement>('filter-query').value=query.get('q')??'';el<HTMLSelectElement>('filter-status').value=query.get('status')??(document.getElementById('new-workspace')?.dataset.view==='world-review'?'submitted':'');listPage=Math.max(1,Number(query.get('page'))||1);}
     await loadWorld(workspaceMode?Math.max(1,Number(query.get('page'))||1):1);
     const id=query.get('content');if(id)await openContent(id);
@@ -418,7 +431,10 @@ async function openContent(id: string) {
   const request=++openRequest;
   const next = await api(`/admin/contents/${id}`);
   if(request!==openRequest)return;
-  if(next.content.world_id!==worldId()&&worlds.some(world=>world.id===next.content.world_id)){el<HTMLSelectElement>('world').value=next.content.world_id;await loadWorld();}
+  if(next.content.world_id!==worldId()&&worlds.some(world=>world.id===next.content.world_id)){
+    if(workspaceMode){const url=new URL(location.href);url.searchParams.set('world',next.content.world_id);location.replace(url);return;}
+    el<HTMLSelectElement>('world').value=next.content.world_id;await loadWorld();
+  }
   resetPreview();
   detail = next;
   const newLink=el<HTMLAnchorElement>('new-workspace-link');if(newLink)newLink.href=`/${locale==='zh-CN'?'zh':'en'}/workspace?${new URLSearchParams({view:'editor',world:detail.content.world_id,content:id})}`;
@@ -432,7 +448,7 @@ async function openContent(id: string) {
   el('editor-title').textContent = detail.revisions[0].source_text.title;
   if(workspaceMode){
     document.getElementById('ws-context')!.textContent=`${el<HTMLSelectElement>('world').selectedOptions[0]?.textContent??''} · ${({stay:l('住宿','Stay'),experience:l('活动','Experience'),service:l('服务','Service'),review:l('手记','Note')} as Record<string,string>)[detail.content.kind]??detail.content.kind}`;
-    if(document.getElementById('new-workspace')?.dataset.view==='editor')document.getElementById('ws-page-title')!.textContent=l('编辑','Edit ')+detail.revisions[0].source_text.title;
+    if(document.getElementById('new-workspace')?.dataset.view==='editor')window.dispatchEvent(new CustomEvent('workspace:editor-context',{detail:{world:worldId(),worldName:el<HTMLSelectElement>('world').selectedOptions[0]?.textContent??'',title:detail.revisions[0].source_text.title}}));
   }
   el('revision-state').textContent = `${l('版本', 'Revision')} ${detail.revisions[0].number} · ${status(detail.revisions[0].status)}`;
   el('editor-panel').hidden = false; el('editor-panel').dataset.existing='true'; el('workflow').hidden = false;
@@ -471,7 +487,7 @@ async function openContent(id: string) {
 }
 el<HTMLFormElement>('login').addEventListener('submit', async event => {
   event.preventDefault(); const data = new FormData(event.currentTarget as HTMLFormElement);
-  try { await api('/auth/login', Object.fromEntries(data)); (event.target as HTMLFormElement).reset(); if(dirty||settingsDirty){({actor}=await api('/auth/me'));el('login').hidden=true;message(l('已重新登录，输入已保留。','Signed in again; your input is preserved.'));}else{await signIn();message('');} }
+  try { await api('/auth/login', Object.fromEntries(data)); (event.target as HTMLFormElement).reset(); if(dirty||settingsDirty){({actor}=await api('/auth/me'));el('login').hidden=true;message(l('已重新登录，输入已保留。','Signed in again; your input is preserved.'));}else{await signIn();message('');} if(workspaceMode)window.dispatchEvent(new Event('workspace:authenticated')); }
   catch (error) { message(errorText(error)); }
 });
 editor.addEventListener('input', () => { dirty = true; refreshActions(); });
@@ -483,9 +499,9 @@ async function saveDraft() {
   const previewButton = el<HTMLButtonElement>('save-preview');
   submit.disabled = true; previewButton.disabled = true;
   try {
-    const payload=formValue();const snapshot=JSON.stringify(payload);
+    const payload=formValue();const snapshot=JSON.stringify([...new FormData(editor)].map(([key,value])=>[key,String(value)]));
     const result = await api(detail ? `/admin/contents/${detail.content.id}/revisions` : '/admin/contents', payload);
-    if(snapshot===JSON.stringify(formValue()))await openContent(result.id);
+    if(snapshot===JSON.stringify([...new FormData(editor)].map(([key,value])=>[key,String(value)])))await openContent(result.id);
     else {detail=await api(`/admin/contents/${result.id}`);selectedRevision=detail.content.head_revision_id;dirty=true;refreshActions();message(l('已保存提交时的输入；保存期间的新修改仍未保存。','The submitted input was saved. Changes made during saving remain unsaved.'));}
     await refreshList();
     if(!dirty)message(l('草稿已保存，公开内容保持原版本。', 'Draft saved. The public version is unchanged.'));
@@ -534,7 +550,18 @@ on('entry-notes',async()=>{if(!detail)return;parentFilter=detail.content.kind===
 on('new-note',async()=>{if(!detail||!confirmDiscard())return;const parent=detail.content.kind==='review'?detail.content.parent_content_id:detail.content.id;detail=null;resetPreview();originalAttributes={images:[]};editor.reset();identity();el<HTMLFieldSetElement>('identity').disabled=false;field('kind').value='review';field('parentContentId').value=parent;refreshCategories();renderTextFields({});dirty=false;selectedRevision=null;el('editor-panel').dataset.existing='false';el('workflow').hidden=true;el('editor-title').textContent=l('新建后台手记','New editorial note');refreshActions();});
 on('preview-draft',async()=>{if(!detail||dirty)throw new Error(l('请先保存草稿。','Save the draft first.'));const rev=detail.content.head_revision_id;const links=el('preview-links');links.replaceChildren(...locales.map(language=>{const a=document.createElement('a');a.href=`/api/admin/preview/${language.pathPrefix}/${detail.content.id}?revisionId=${rev}&token=${detail.content.draft_token}`;a.target='_blank';a.rel='noopener';a.textContent=language.name+' ↗ ';return a;}));});
 on('logout', async () => { if (!confirmDiscard()) return; await api('/auth/logout', {}); location.reload(); });
-el<HTMLSelectElement>('world').addEventListener('change', async () => { if (!confirmDiscard()) { el<HTMLSelectElement>('world').value = loadedWorld; return; } try { await loadWorld(); } catch (error) { message(errorText(error)); } });
+el<HTMLSelectElement>('world').addEventListener('change', async () => {
+  if (!confirmDiscard()) { el<HTMLSelectElement>('world').value = loadedWorld; return; }
+  if(workspaceMode){
+    dirty=false;settingsDirty=false;
+    ++openRequest;++listRequest;++worldLoadRequest;el('workspace').inert=true;
+    const url=new URL(location.href);
+    url.searchParams.set('world',worldId());url.searchParams.delete('content');url.searchParams.delete('page');
+    location.assign(url);
+    return;
+  }
+  try { await loadWorld(); } catch (error) { message(errorText(error)); }
+});
 for (const [id, route, payload] of [
   ['submit-revision', 'submit', () => ({ revisionId: detail.content.head_revision_id, draftToken: detail.content.draft_token })],
   ['publish', 'review', () => ({ revisionId: detail.content.head_revision_id, draftToken: detail.content.draft_token, decision: 'publish', note: el<HTMLTextAreaElement>('moderation-note').value })],
@@ -576,6 +603,7 @@ on('import-apply', async () => {
   const data = await api('/admin/imports/apply', JSON.parse(previewedImport));
   el('import-results').textContent = JSON.stringify(data.results, null, 2); previewedImport = '';
   await refreshList();
+  if(initialWorkspaceView==='world-tools')renderImportHistory((await api(`/admin/worlds/${worldId()}/imports`)).batches);
 });
 window.addEventListener('beforeunload', event => { if (dirty||settingsDirty) event.preventDefault(); });
 if(workspaceMode)window.addEventListener('workspace:leave',event=>{if(!confirmDiscard())event.preventDefault();else {dirty=false;settingsDirty=false;}});
