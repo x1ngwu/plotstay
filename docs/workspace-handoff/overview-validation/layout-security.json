@@ -1,0 +1,87 @@
+[
+  {
+    "path": "/zh",
+    "status": 401,
+    "robots": "noindex, nofollow, noarchive",
+    "cache": "private, no-store",
+    "auth": "Basic realm=\"Plotstay development\""
+  },
+  {
+    "path": "/en",
+    "status": 401,
+    "robots": "noindex, nofollow, noarchive",
+    "cache": "private, no-store",
+    "auth": "Basic realm=\"Plotstay development\""
+  },
+  {
+    "path": "/zh/workspace",
+    "status": 401,
+    "robots": "noindex, nofollow, noarchive",
+    "cache": "private, no-store",
+    "auth": "Basic realm=\"Plotstay development\""
+  },
+  {
+    "path": "/en/workspace",
+    "status": 401,
+    "robots": "noindex, nofollow, noarchive",
+    "cache": "private, no-store",
+    "auth": "Basic realm=\"Plotstay development\""
+  },
+  {
+    "path": "/zh/admin",
+    "status": 401,
+    "robots": "noindex, nofollow, noarchive",
+    "cache": "private, no-store",
+    "auth": "Basic realm=\"Plotstay development\""
+  },
+  {
+    "path": "/api/me/workspace",
+    "status": 401,
+    "robots": "noindex, nofollow, noarchive",
+    "cache": "private, no-store",
+    "auth": "Basic realm=\"Plotstay development\""
+  },
+  {
+    "path": "/api/me/workspace/items?section=attention",
+    "status": 401,
+    "robots": "noindex, nofollow, noarchive",
+    "cache": "private, no-store",
+    "auth": "Basic realm=\"Plotstay development\""
+  },
+  {
+    "path": "/api/me/workspace/worlds?ids=",
+    "status": 401,
+    "robots": "noindex, nofollow, noarchive",
+    "cache": "private, no-store",
+    "auth": "Basic realm=\"Plotstay development\""
+  },
+  {
+    "path": "/_design/overview/?lang=zh",
+    "status": 401,
+    "robots": "noindex, nofollow, noarchive",
+    "cache": "private, no-store",
+    "auth": "Basic realm=\"Plotstay development\""
+  },
+  {
+    "path": "/_design/overview/app.js",
+    "status": 401,
+    "robots": "noindex, nofollow, noarchive",
+    "cache": "private, no-store",
+    "auth": "Basic realm=\"Plotstay development\""
+  },
+  {
+    "path": "/_design/overview/screenshots/live-zh-mine-1440.png",
+    "status": 401,
+    "robots": "noindex, nofollow, noarchive",
+    "cache": "private, no-store",
+    "auth": "Basic realm=\"Plotstay development\""
+  },
+  {
+    "path": "/robots.txt",
+    "status": 200,
+    "robots": "noindex, nofollow, noarchive",
+    "cache": "private, no-store",
+    "auth": null,
+    "body": "User-agent: *\nDisallow: /\n"
+  }
+]

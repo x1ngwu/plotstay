@@ -1,0 +1,650 @@
+{
+  "source": "Deployed renderer with browser-only sample summary; no content/database writes",
+  "layouts": [
+    {
+      "locale": "zh",
+      "width": 1440,
+      "scope": "mine",
+      "overflow": false,
+      "rows": [
+        {
+          "buttonRight": true,
+          "buttonTop": true,
+          "buttonBelow": false,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": true,
+          "buttonBelow": false,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": true,
+          "buttonBelow": false,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": true,
+          "buttonBelow": false,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": true,
+          "buttonBelow": false,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": true,
+          "buttonBelow": false,
+          "savedLast": true,
+          "savedLeft": true
+        }
+      ]
+    },
+    {
+      "locale": "zh",
+      "width": 1440,
+      "scope": "assisted",
+      "overflow": false,
+      "rows": [
+        {
+          "buttonRight": true,
+          "buttonTop": true,
+          "buttonBelow": false,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": true,
+          "buttonBelow": false,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": true,
+          "buttonBelow": false,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": true,
+          "buttonBelow": false,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": true,
+          "buttonBelow": false,
+          "savedLast": true,
+          "savedLeft": true
+        }
+      ]
+    },
+    {
+      "locale": "zh",
+      "width": 1100,
+      "scope": "mine",
+      "overflow": false,
+      "rows": [
+        {
+          "buttonRight": true,
+          "buttonTop": true,
+          "buttonBelow": false,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": true,
+          "buttonBelow": false,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": true,
+          "buttonBelow": false,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": true,
+          "buttonBelow": false,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": true,
+          "buttonBelow": false,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": true,
+          "buttonBelow": false,
+          "savedLast": true,
+          "savedLeft": true
+        }
+      ]
+    },
+    {
+      "locale": "zh",
+      "width": 1100,
+      "scope": "assisted",
+      "overflow": false,
+      "rows": [
+        {
+          "buttonRight": true,
+          "buttonTop": true,
+          "buttonBelow": false,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": true,
+          "buttonBelow": false,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": true,
+          "buttonBelow": false,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": true,
+          "buttonBelow": false,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": true,
+          "buttonBelow": false,
+          "savedLast": true,
+          "savedLeft": true
+        }
+      ]
+    },
+    {
+      "locale": "zh",
+      "width": 390,
+      "scope": "mine",
+      "overflow": false,
+      "rows": [
+        {
+          "buttonRight": true,
+          "buttonTop": false,
+          "buttonBelow": true,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": false,
+          "buttonBelow": true,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": false,
+          "buttonBelow": true,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": false,
+          "buttonBelow": true,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": false,
+          "buttonBelow": true,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": false,
+          "buttonBelow": true,
+          "savedLast": true,
+          "savedLeft": true
+        }
+      ]
+    },
+    {
+      "locale": "zh",
+      "width": 390,
+      "scope": "assisted",
+      "overflow": false,
+      "rows": [
+        {
+          "buttonRight": true,
+          "buttonTop": false,
+          "buttonBelow": true,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": false,
+          "buttonBelow": true,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": false,
+          "buttonBelow": true,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": false,
+          "buttonBelow": true,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": false,
+          "buttonBelow": true,
+          "savedLast": true,
+          "savedLeft": true
+        }
+      ]
+    },
+    {
+      "locale": "en",
+      "width": 1440,
+      "scope": "mine",
+      "overflow": false,
+      "rows": [
+        {
+          "buttonRight": true,
+          "buttonTop": true,
+          "buttonBelow": false,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": true,
+          "buttonBelow": false,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": true,
+          "buttonBelow": false,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": true,
+          "buttonBelow": false,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": true,
+          "buttonBelow": false,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": true,
+          "buttonBelow": false,
+          "savedLast": true,
+          "savedLeft": true
+        }
+      ]
+    },
+    {
+      "locale": "en",
+      "width": 1440,
+      "scope": "assisted",
+      "overflow": false,
+      "rows": [
+        {
+          "buttonRight": true,
+          "buttonTop": true,
+          "buttonBelow": false,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": true,
+          "buttonBelow": false,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": true,
+          "buttonBelow": false,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": true,
+          "buttonBelow": false,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": true,
+          "buttonBelow": false,
+          "savedLast": true,
+          "savedLeft": true
+        }
+      ]
+    },
+    {
+      "locale": "en",
+      "width": 1100,
+      "scope": "mine",
+      "overflow": false,
+      "rows": [
+        {
+          "buttonRight": true,
+          "buttonTop": true,
+          "buttonBelow": false,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": true,
+          "buttonBelow": false,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": true,
+          "buttonBelow": false,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": true,
+          "buttonBelow": false,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": true,
+          "buttonBelow": false,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": true,
+          "buttonBelow": false,
+          "savedLast": true,
+          "savedLeft": true
+        }
+      ]
+    },
+    {
+      "locale": "en",
+      "width": 1100,
+      "scope": "assisted",
+      "overflow": false,
+      "rows": [
+        {
+          "buttonRight": true,
+          "buttonTop": true,
+          "buttonBelow": false,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": true,
+          "buttonBelow": false,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": true,
+          "buttonBelow": false,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": true,
+          "buttonBelow": false,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": true,
+          "buttonBelow": false,
+          "savedLast": true,
+          "savedLeft": true
+        }
+      ]
+    },
+    {
+      "locale": "en",
+      "width": 390,
+      "scope": "mine",
+      "overflow": false,
+      "rows": [
+        {
+          "buttonRight": true,
+          "buttonTop": false,
+          "buttonBelow": true,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": false,
+          "buttonBelow": true,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": false,
+          "buttonBelow": true,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": false,
+          "buttonBelow": true,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": false,
+          "buttonBelow": true,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": false,
+          "buttonBelow": true,
+          "savedLast": true,
+          "savedLeft": true
+        }
+      ]
+    },
+    {
+      "locale": "en",
+      "width": 390,
+      "scope": "assisted",
+      "overflow": false,
+      "rows": [
+        {
+          "buttonRight": true,
+          "buttonTop": false,
+          "buttonBelow": true,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": false,
+          "buttonBelow": true,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": false,
+          "buttonBelow": true,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": false,
+          "buttonBelow": true,
+          "savedLast": true,
+          "savedLeft": true
+        },
+        {
+          "buttonRight": true,
+          "buttonTop": false,
+          "buttonBelow": true,
+          "savedLast": true,
+          "savedLeft": true
+        }
+      ]
+    }
+  ],
+  "readability": [
+    {
+      "locale": "zh",
+      "width": 1440,
+      "mode": "text-200",
+      "overflow": false,
+      "clipped": []
+    },
+    {
+      "locale": "zh",
+      "width": 1440,
+      "mode": "spacing",
+      "overflow": false,
+      "clipped": []
+    },
+    {
+      "locale": "zh",
+      "width": 1100,
+      "mode": "text-200",
+      "overflow": false,
+      "clipped": []
+    },
+    {
+      "locale": "zh",
+      "width": 1100,
+      "mode": "spacing",
+      "overflow": false,
+      "clipped": []
+    },
+    {
+      "locale": "zh",
+      "width": 390,
+      "mode": "text-200",
+      "overflow": false,
+      "clipped": []
+    },
+    {
+      "locale": "zh",
+      "width": 390,
+      "mode": "spacing",
+      "overflow": false,
+      "clipped": []
+    },
+    {
+      "locale": "en",
+      "width": 1440,
+      "mode": "text-200",
+      "overflow": false,
+      "clipped": []
+    },
+    {
+      "locale": "en",
+      "width": 1440,
+      "mode": "spacing",
+      "overflow": false,
+      "clipped": []
+    },
+    {
+      "locale": "en",
+      "width": 1100,
+      "mode": "text-200",
+      "overflow": false,
+      "clipped": []
+    },
+    {
+      "locale": "en",
+      "width": 1100,
+      "mode": "spacing",
+      "overflow": false,
+      "clipped": []
+    },
+    {
+      "locale": "en",
+      "width": 390,
+      "mode": "text-200",
+      "overflow": false,
+      "clipped": []
+    },
+    {
+      "locale": "en",
+      "width": 390,
+      "mode": "spacing",
+      "overflow": false,
+      "clipped": []
+    }
+  ],
+  "errors": []
+}
