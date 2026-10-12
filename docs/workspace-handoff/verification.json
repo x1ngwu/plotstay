@@ -1,0 +1,146 @@
+{
+  "date": "2026-10-12T03:15:48.384Z",
+  "scope": "Standalone prototype and read-only technical spike; not production acceptance",
+  "checks": [
+    {
+      "name": "17 screens at desktop and mobile: no document overflow"
+    },
+    {
+      "name": "world subpages have clickable breadcrumbs and two-level returns on desktop/mobile"
+    },
+    {
+      "name": "world editor returns to its source and cancelling leave preserves input"
+    },
+    {
+      "name": "direct deep link has working ancestor navigation without browser history"
+    },
+    {
+      "name": "mobile preview selection returns to visible editor"
+    },
+    {
+      "name": "site and account settings access states and widths"
+    },
+    {
+      "name": "phase one excludes new admission and creator capabilities"
+    },
+    {
+      "name": "work search survives detail/back navigation"
+    },
+    {
+      "name": "save/preview keeps unsaved edits and public revision separate"
+    },
+    {
+      "name": "preview selection focuses matching editor"
+    },
+    {
+      "name": "editor-to-preview focus and preview keyboard selection"
+    },
+    {
+      "name": "network/session/conflict simulations preserve input and previous preview"
+    },
+    {
+      "name": "language switching preserves local edits"
+    },
+    {
+      "name": "prototype capability and phase states"
+    },
+    {
+      "name": "bridge rejects wrong origin/source/session/revision/section/action"
+    },
+    {
+      "name": "actual structuredFields + textSchema: editing title preserves hidden fields"
+    },
+    {
+      "name": "existing published HTML snapshot supports private preview-to-form selection without content rewrite"
+    },
+    {
+      "name": "existing zh/en stay/experience/service DOM section targets",
+      "pages": 6
+    },
+    {
+      "name": "no prototype browser script errors"
+    },
+    {
+      "name": "source components, schema form and dependency manifests unchanged"
+    }
+  ],
+  "screens": [
+    "overview-1440.png",
+    "works-1440.png",
+    "editor-1440.png",
+    "review-1440.png",
+    "world-settings-1440.png",
+    "overview-390.png",
+    "editor-390.png",
+    "world-settings-390.png"
+  ],
+  "realPages": [
+    {
+      "path": "/zh/worlds/lathe-worlds/stays/dockside-window",
+      "sha256": "d4ae855931ae39f80c9d1422a91e2aba259456301da2dacb16e942c53094fb45",
+      "selectors": [
+        ".detail-heading h1",
+        "#about",
+        "#facilities",
+        "#host",
+        "#rules"
+      ]
+    },
+    {
+      "path": "/zh/worlds/lathe-worlds/experiences/forge-walk",
+      "sha256": "f561d3a81fc5239bdfd23d5e01e6574009bc9795248609f19f01c74c2afb6b23",
+      "selectors": [
+        ".experience-introduction h1",
+        "#about",
+        "#itinerary",
+        "#host",
+        "#rules"
+      ]
+    },
+    {
+      "path": "/zh/worlds/lathe-worlds/services/augmetic-tune-up",
+      "sha256": "8ad343d7e4a8dde386baa8374e675b451d4a7965959fadc244d726565aecf9fc",
+      "selectors": [
+        ".service-introduction h1",
+        "#service-items",
+        "#service-gallery",
+        "#host",
+        "#rules"
+      ]
+    },
+    {
+      "path": "/en/worlds/lathe-worlds/stays/dockside-window",
+      "sha256": "086f06c24866a567db67a8a607f6162941a4c3e52a0afa081a7750016cfc6261",
+      "selectors": [
+        ".detail-heading h1",
+        "#about",
+        "#facilities",
+        "#host",
+        "#rules"
+      ]
+    },
+    {
+      "path": "/en/worlds/lathe-worlds/experiences/forge-walk",
+      "sha256": "8cc24063d31fba6747b9905ad08b0a705b812d25209088c06f1b29fa97913a90",
+      "selectors": [
+        ".experience-introduction h1",
+        "#about",
+        "#itinerary",
+        "#host",
+        "#rules"
+      ]
+    },
+    {
+      "path": "/en/worlds/lathe-worlds/services/augmetic-tune-up",
+      "sha256": "c7a2e8113b192292cb4784ecc1279bb65c7b7903d79552732cb3c76aef64ac1a",
+      "selectors": [
+        ".service-introduction h1",
+        "#service-items",
+        "#service-gallery",
+        "#host",
+        "#rules"
+      ]
+    }
+  ],
+  "liveSpike": true
+}
