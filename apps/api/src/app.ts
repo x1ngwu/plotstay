@@ -138,6 +138,14 @@ export async function createApp(db: Database, options: { logger?: boolean; webOr
   app.put('/api/admin/settings/:id',async request=>{const b=z.object({body:z.unknown(),baseRevisionId:idSchema}).strict().parse(request.body);return saveSetting(db,await actor(request.cookies[SESSION]),idParams.parse(request.params).id,b.body,b.baseRevisionId);});
   app.post('/api/admin/settings/:id/:action',async request=>{const p=z.object({id:idSchema,action:z.enum(['submit','publish','reject','restore'])}).parse(request.params);const b=z.object({revisionId:idSchema,publicationId:idSchema.optional()}).strict().parse(request.body);return settingAction(db,await actor(request.cookies[SESSION]),p.id,p.action,b.revisionId,b.publicationId);});
   app.get('/api/admin/worlds', async request => ({ worlds: await adminWorlds(db, await actor(request.cookies[SESSION])) }));
+  app.get('/api/admin/worlds/:worldId/members', async request => {
+    const user=await actor(request.cookies[SESSION]);
+    const {worldId}=z.object({worldId:idSchema}).parse(request.params);
+    const world=await requireWorld(db,user,worldId,true);
+    const members=(await db.query(`SELECT m.user_id,u.email,m.role FROM world_members m JOIN users u ON u.id=m.user_id WHERE m.world_id=$1 ORDER BY m.role,u.email`,[worldId])).rows;
+    const owner=(await db.query('SELECT id,email FROM users WHERE id=$1',[world.owner_id])).rows[0];
+    return {owner,members:members.filter(m=>m.user_id!==world.owner_id)};
+  });
   app.get('/api/admin/worlds/:worldId/contents', async request => {
     const user = await actor(request.cookies[SESSION]);
     const { worldId } = z.object({ worldId: idSchema }).parse(request.params);

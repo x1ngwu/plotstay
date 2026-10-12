@@ -35,3 +35,4 @@ const unavailableMessage=previewErrorCode==='PARENT_UNPUBLISHED'
  <p class="notice" data-preview-banner>草稿预览 / Draft preview · {Astro.url.searchParams.get('revisionId')} · {locale.name} · {detail?.previewSetting ? `配置预览 / Configuration: ${detail.previewSetting.revisionId}` : ''} · 不可预订 / Booking disabled</p>
  {!detail||!world?<h1>{unavailableMessage}</h1>:detail.content.kind==='review'?<section class="detail-page stay-detail"><h1>{detail.content.text.title}</h1><p class="notice">{locale.code==='zh-CN'?'评价草稿卡片；不计入公开评分。':'Draft review card; it does not count towards public ratings.'}</p><div class="stay-review-grid"><ReviewCard review={detail.content} locale={locale} preview={true}/></div></section>:<div class:list={['detail-page',`${detail.content.kind}-detail`]}><DetailBody detail={detail} locale={locale} world={world} state={state}/></div>}
 </Base>
+<script>import '../../../../../lib/preview-bridge';</script>

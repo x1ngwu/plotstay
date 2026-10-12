@@ -48,6 +48,8 @@ export async function initAccount() {
       '角色资料已退回，请修改角色并再次保存评价后送审。',
       'Edit the returned persona, then save and submit the review again.',
     ),
+    PROFILE_SIGNATURE_STALE:l('角色资料已被新版申请替代；请重新保存评价或回复，核对新署名后再送审。','The profile request was replaced. Save this review or reply with a fresh signature before submitting.'),
+    SUBMISSION_SUPERSEDED:l('这份角色申请已被替代，请重新打开当前申请。','This profile request was replaced. Reopen the current submission.'),
     TARGET_UNAVAILABLE: l(
       '条目暂不可投稿。已保存的草稿仍保留。',
       'This entry is unavailable. Saved drafts are preserved.',
@@ -196,15 +198,12 @@ export async function initAccount() {
       const row = node('article', '', 'panel');
       row.append(
         node('h3', n?.name ?? l('未命名角色', 'Unnamed persona')),
-        node(
-          'p',
-          p.disabled
-            ? l('已停用', 'Disabled')
-            : (labels[p.decision] ?? l('资料待审核', 'Profile not yet approved')),
-        ),
-        node('p', p.note ?? ''),
+        node('p', p.disabled ? l('已停用','Disabled') : p.submitted_revision_id ? (p.head_revision_id===p.submitted_revision_id ? l('资料待审核','Profile pending review') : l('资料待审核 · 有未提交修改','Pending review · unsent changes')) : p.decision==='rejected' ? l('资料已退回','Profile returned') : p.published_revision_id===p.head_revision_id ? l('资料已批准','Profile approved') : l('草稿未提交','Draft not submitted')),
+        node('p', p.submitted_note ?? p.note ?? ''),
         button(l('编辑角色', 'Edit persona'), async () => editPersona(p)),
       );
+      if(!p.disabled && p.head_revision_id!==p.submitted_revision_id && p.published_revision_id!==p.head_revision_id)row.append(button(l('提交当前资料审核','Submit current profile'),async()=>{await api('/me/personas/'+p.id+'/submit',{revisionId:p.head_revision_id});await personas();message.textContent=l('当前资料已提交网站审核。','Current profile was submitted for site review.');}));
+      if(p.submitted && p.submitted_revision_id!==p.head_revision_id){const submitted=p.submitted[root!.dataset.locale!]??Object.values(p.submitted)[0] as any;row.append(node('p',l('当前送审：','Submitted: ')+(submitted?.name??'')));}
       view.append(row);
     }
   }
@@ -248,10 +247,7 @@ export async function initAccount() {
           p ? 'PUT' : 'POST',
         );
         dirty = false;
-        message.textContent = l(
-          '角色已保存，现在可以写评价。首次送审会同时审核资料。',
-          'Persona saved. You can now write a review; profile approval is included in submission.',
-        );
+        message.textContent = l('角色草稿已保存。需要公开资料时请单独提交审核；评价送审也会提交其署名版本。','Persona draft saved. Submit it for profile review, or submit a review with its saved signature.');
         await personas();
         return saved;
       }),
@@ -414,7 +410,7 @@ export async function initAccount() {
     }
     const rating = select(
       form,
-      l('总评分', 'Overall rating'),
+      l('本篇评价评分', 'This review’s rating'),
       'rating',
       [
         ['', l('不评分', 'No rating')],
@@ -422,6 +418,7 @@ export async function initAccount() {
       ],
       String(r.attributes.rating ?? ''),
     );
+    form.append(node('p',l('本篇及分项评分仅在评价发布后计入条目自动汇总；草稿和待审内容不会改变公开均分。','This review and its dimension ratings affect the entry’s calculated score only after publication. Drafts and pending reviews do not change public averages.')));
     const dimensions: Record<string, HTMLSelectElement> = {};
     const dimensionLabels: any = {
       cleanliness: l('清洁度', 'Cleanliness'),
@@ -500,6 +497,15 @@ export async function initAccount() {
   async function moderation(page = 1) {
     view.replaceChildren(node('h2', l('评价与回复审核', 'Review moderation')));
     const data = await api('/moderation/reviews?page=' + page);
+    if(actor.siteRole==='admin'){
+      const profiles=await api('/moderation/personas?page='+page);
+      const section=node('section','','panel');section.append(node('h3',l('角色资料待审','Profiles awaiting review')));
+      if(!profiles.items.length)section.append(node('p',l('当前没有待审角色资料。','No profiles are awaiting review.')));
+      for(const profile of profiles.items){const card=node('article','','panel');const body=profile.body?.[root!.dataset.locale!]??Object.values(profile.body??{})[0] as any;card.append(node('h4',body?.name??profile.email),node('p',profile.email+' · '+new Date(profile.submitted_at).toLocaleString()),node('p',(profile.body?.['zh-CN']?.bio??'')+' / '+(profile.body?.en?.bio??'')));
+        const note=field(card,l('审核说明','Review note'),'profileNote','','textarea');
+        for(const [decision,label] of [['approved',l('批准资料','Approve profile')],['rejected',l('退回资料','Return profile')]] as const)card.append(button(label,async()=>{await api('/moderation/personas/'+profile.revision_id,{decision,note:note.value});await moderation(page);}));section.append(card);}
+      view.append(section);
+    }
     for (const row of data.items) {
       const card = node('article', '', 'panel');
       card.append(
@@ -875,7 +881,7 @@ export async function initAccount() {
     else if (q.has('reply')) await editReply(q.get('reply')!);
     else if (q.get('view') === 'replies') await replies();
     else if (q.get('view') === 'reviews') await reviews();
-    else if (q.get('view') === 'moderation') await moderation();
+    else if (q.get('view') === 'moderation' || q.get('view') === 'site') await moderation();
     else await personas();
   }
   login.onsubmit = (e) => {

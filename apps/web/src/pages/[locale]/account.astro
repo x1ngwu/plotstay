@@ -6,10 +6,12 @@ import '../../styles/account.css';
 const locale=Astro.locals.locale??fallbackLocales[0]!,t=bilingual(locale.code);
 if(Astro.locals.localeFailure||!Astro.locals.locale)Astro.response.status=Astro.locals.localeFailure?503:404;
 Astro.response.headers.set('Cache-Control','private, no-store');
+const newQuery=new URLSearchParams(Astro.url.searchParams);if(!newQuery.has('view'))newQuery.set('view',newQuery.has('reply')?'replies':newQuery.has('review')||newQuery.has('target')?'reviews':'personas');
 ---
 <Base title={t('角色与评价','Personas and reviews')} locale={locale} locales={Astro.locals.locales}>
 {Astro.response.status===200&&<div id="persona-workspace" data-locale={locale.code} data-prefix={locale.pathPrefix}>
 <h1>{t('角色与评价','Personas and reviews')}</h1>
+<p><a href={`/${locale.pathPrefix}/workspace?${newQuery}`}>{t('试用新版工作台 ↗','Try the new workspace ↗')}</a></p>
 <p>{t('用虚构角色记录世界中的旅行。无需预订；角色资料与评价审核通过后公开。','Write fictional journeys in character. No booking is required. Profiles and reviews become public after approval.')}</p>
 <p>{t('草稿可以先填写一种语言；公开发表前需要补齐中文和英文。','Drafts may start in one language; complete Chinese and English before publication.')}</p>
 <p id="persona-message" role="status" aria-live="polite"></p>

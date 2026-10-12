@@ -4,6 +4,8 @@ import { fixture } from './helpers.ts';
 import { createApp } from '../apps/api/src/app.ts';
 import {
   savePersona,
+  submitOwnPersona,
+  personaQueue,
   startReview,
   saveReview,
   submitReview,
@@ -32,6 +34,25 @@ export const body = {
 };
 const rejected = (fn: () => Promise<unknown>, code: string) =>
   assert.rejects(fn, (e: any) => e.code === code);
+test('persona draft and fixed submission remain separate until a newer submission replaces it', async t=>{
+  const f=await fixture();t.after(f.cleanup);const {db,data}=f;
+  const u=await createAccount(db,data.admin,{email:'persona-submit@tests.invalid',password:'test-password-123'});
+  const actor={id:u.id,email:u.email,siteRole:'user' as const};
+  const a=await savePersona(db,actor,profiles);
+  await submitOwnPersona(db,actor,a.id,a.revisionId);
+  await submitOwnPersona(db,actor,a.id,a.revisionId);
+  const b=await savePersona(db,actor,{...profiles,en:{...profiles.en,name:'New draft'}},a.id,a.revisionId);
+  const state=(await myPersonas(db,actor))[0];assert.equal(state.submitted_revision_id,a.revisionId);assert.equal(state.head_revision_id,b.revisionId);
+  assert.equal((await personaQueue(db,data.admin)).items.length,1);
+  await moderatePersona(db,data.admin,a.revisionId,'approved','First profile approved');
+  assert.equal((await myPersonas(db,actor))[0].published.en.name,'Moss');
+  await submitOwnPersona(db,actor,a.id,b.revisionId);
+  const c=await savePersona(db,actor,{...profiles,en:{...profiles.en,name:'Latest draft'}},a.id,b.revisionId);
+  await submitOwnPersona(db,actor,a.id,c.revisionId);
+  await rejected(()=>moderatePersona(db,data.admin,b.revisionId,'approved','Stale'), 'SUBMISSION_SUPERSEDED');
+  await moderatePersona(db,data.admin,c.revisionId,'approved','Current');
+  assert.equal((await myPersonas(db,actor))[0].published.en.name,'Latest draft');
+});
 test('phase 5.6 personas and accommodation review checkpoint', async (t) => {
   const f = await fixture();
   t.after(f.cleanup);
@@ -557,7 +578,7 @@ test('phase 5.6 private review pagination keeps every identity without exposing 
   assert.ok((await myReviews(db, data.owner)).items.every((r: any) => !ids.includes(r.id)));
 });
 
-test('phase 5.6 approving older cross-entry submissions preserves the newer public persona', async (t) => {
+test('superseded cross-entry profile submission cannot publish until signature is refreshed', async (t) => {
   const f = await fixture();
   t.after(f.cleanup);
   const { db, data } = f;
@@ -593,8 +614,11 @@ test('phase 5.6 approving older cross-entry submissions preserves the newer publ
   );
   await submitReview(db, a, newer.id, newVersion.revisionId);
   await reviewRevision(db, data.admin, newer.id, newVersion.revisionId, 'publish', 'Newer first');
-  await reviewRevision(db, data.admin, old.id, oldVersion.revisionId, 'publish', 'Older fixed version later');
+  await rejected(() => reviewRevision(db, data.admin, old.id, oldVersion.revisionId, 'publish', 'Old signature'), 'SUBMISSION_SUPERSEDED');
+  const refreshed = await saveReview(db, a, old.id, oldVersion.revisionId, body);
+  await submitReview(db, a, old.id, refreshed.revisionId);
+  await reviewRevision(db, data.admin, old.id, refreshed.revisionId, 'publish', 'Updated signature');
   assert.equal((await myPersonas(db, a))[0].published.en.name, 'Newer approved name');
-  assert.equal((await getPublished(db, 'en', { id: old.id }))!.signature!.name, 'Moss');
+  assert.equal((await getPublished(db, 'en', { id: old.id }))!.signature!.name, 'Newer approved name');
   assert.equal((await getPublished(db, 'en', { id: newer.id }))!.signature!.name, 'Newer approved name');
 });

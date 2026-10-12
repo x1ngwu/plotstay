@@ -48,7 +48,7 @@ test('phase 5.5 persistent content management',async t=>{
    return '逐字段 '+path+' / field '+index;
   };
   for(const kind of ['stay','experience','service','review'] as const){
-   const text=generate(textSchema,'text');for(const k of ['stay','experience','service','review'])if(k!==kind)delete text[k];text.description+='\n第二行。 English punctuation: “quoted”, commas; newline.';
+   const text=generate(textSchema,'text');delete text.editorListIds;for(const k of ['stay','experience','service','review'])if(k!==kind)delete text[k];text.description+='\n第二行。 English punctuation: “quoted”, commas; newline.';
    const attributes=generate(attributesSchema,'attributes');delete attributes.category;for(const k of ['stay','experience','service','reviewRatings'])if(k!==(kind==='review'?'reviewRatings':kind))delete attributes[k];
    if(kind==='review')delete attributes.price;else attributes.price={amount:0,unit:kind==='stay'?'night':kind==='experience'?'person':'session'};
    const zh=structuredClone(text);zh.title='中文 '+kind;zh.rules.reverse();

@@ -13,6 +13,8 @@ import {
   assert,
   myPersonas,
   savePersona,
+  submitOwnPersona,
+  personaQueue,
   myReviews,
   reviewDetail,
   startReview,
@@ -43,6 +45,11 @@ export function personaRoutes(app: FastifyInstance, db: Database) {
     const b = z.object({ profiles: z.unknown(), baseRevisionId: idSchema }).strict().parse(r.body);
     return savePersona(db, await actor(r), b.profiles, id(r), b.baseRevisionId);
   });
+  app.post('/api/me/personas/:id/submit', async r => {
+    const b = z.object({revisionId: idSchema}).strict().parse(r.body);
+    return submitOwnPersona(db, await actor(r), id(r), b.revisionId);
+  });
+  app.get('/api/moderation/personas', async r => personaQueue(db, await actor(r), page(r)));
   app.get('/api/me/reviews', async (r) => myReviews(db, await actor(r), page(r)));
   app.post('/api/me/reviews', async (r) => {
     const b = z.object({ parentId: idSchema, personaId: idSchema }).strict().parse(r.body);

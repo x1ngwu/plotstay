@@ -96,3 +96,9 @@ npm run db:init:details -- --apply
 提供者绑定在审核页显式指定；角色所属账号才可写回复。将角色设为停用只阻止新发言，若要隐藏已有评价或回复，必须执行相应内容审核操作。历史恢复同时恢复该版署名与头像，既有旅行凭条不会改变。
 
 新 `/api/me/*`、`/api/moderation/*` 以及 `/account` 页面继承全站 Basic Auth、no-store 和 noindex，禁止为其添加公开 Nginx 例外；仍只有 `/robots.txt` 公开。用户页面是私有数据的客户端壳，数据接口逐请求核验账号／世界权限；不要把游客 Cookie 或已过期会话当作账号登录。
+
+## 后台工作台第一阶段
+
+新版独立入口为 `/zh/workspace`、`/en/workspace`；旧 `/account`、`/admin` 及其深链接保持可用。新版 `view`、`world`、`content`、筛选和页码参数用于私有导航，管理能力依旧由相同 API 逐请求校验。实现和世界管理人工体验清单见 [第一阶段记录](workspace-handoff/phase-one-implementation.md)。
+
+必要增量迁移为 `009_persona_current_submission.sql` 与 `010_persona_submission_pointer_guard.sql`，按 `npm run db:migrate` 应用；它们只修正角色当前待审指针，不改不可变历史，不 seed、不重置数据。工作台页面及其私有预览继续继承 Basic Auth、noindex、no-store 和 robots 禁止抓取设置。

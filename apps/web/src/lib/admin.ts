@@ -25,11 +25,15 @@ let originalAttributes: ContentAttributes = {images:[]};
 let formTexts: Record<string,any> = {};
 let previewRevisionId: string | null = null;
 let savingDraft = false;
+const workspaceMode = root.dataset.mode === 'workspace';
+let openRequest=0;
+let previewNonce='';
 const statuses: Record<string, string> = l('zh', 'en') === 'zh' ? { draft: '草稿', submitted: '待审核', approved: '已审核', rejected: '已退回', pending: '等待执行', running: '执行中', completed: '完成', failed: '失败', superseded: '已过期' } : {};
 const status = (value: string) => statuses[value] ?? value;
 const worldId = () => el<HTMLSelectElement>('world').value;
 const message = (text: string) => { el('message').textContent = text; };
 function resetPreview() {
+  previewNonce='';
   previewRevisionId = null;
   el('draft-preview-area').hidden = true;
   el<HTMLIFrameElement>('draft-preview-frame').removeAttribute('src');
@@ -48,7 +52,8 @@ function updatePreviewState() {
 function showPreview() {
   if (!detail) throw new Error(l('请先保存草稿。', 'Save the draft first.'));
   const language = el<HTMLSelectElement>('draft-preview-language').value;
-  const q = new URLSearchParams({revisionId:detail.content.head_revision_id,token:detail.content.draft_token});
+  previewNonce=crypto.randomUUID();
+  const q = new URLSearchParams({revisionId:detail.content.head_revision_id,token:detail.content.draft_token,...workspaceMode?{bridge:previewNonce}:{}});
   const url = `/api/admin/preview/${language}/${detail.content.id}?${q}`;
   const full = el<HTMLAnchorElement>('draft-preview-full');
   full.href = url; full.hidden = false;
@@ -56,7 +61,27 @@ function showPreview() {
   area.dataset.width = el<HTMLSelectElement>('draft-preview-width').value;
   el<HTMLIFrameElement>('draft-preview-frame').src = url;
   previewRevisionId = detail.content.head_revision_id;
+  if(workspaceMode)document.getElementById('new-workspace')!.dataset.stage='preview';
   updatePreviewState();
+}
+if(workspaceMode){
+  const workspace=document.getElementById('new-workspace')!;workspace.dataset.stage='edit';
+  el<HTMLButtonElement>('ws-tab-edit').addEventListener('click',()=>{workspace.dataset.stage='edit';el('editor').scrollIntoView({block:'start'});});
+  el<HTMLButtonElement>('ws-tab-preview').addEventListener('click',()=>{workspace.dataset.stage='preview';el('draft-preview-area').scrollIntoView({block:'start'});});
+  window.addEventListener('message',event=>{
+    const data=event.data;
+    if(event.origin!==location.origin||event.source!==el<HTMLIFrameElement>('draft-preview-frame').contentWindow||data?.type!=='plotstay:preview'||data.nonce!==previewNonce||data.contentId!==detail?.content.id||data.revisionId!==detail?.content.head_revision_id)return;
+    if(data.action!=='select'||typeof data.section!=='string')return;
+    const kind=detail.content.kind;const language=el<HTMLSelectElement>('draft-preview-language').value==='zh'?'zh-CN':'en';
+    const section=data.section;const targetName=section==='about'?`${language}.${kind}.introduction`:section==='host'?`${language}.${kind}.hostIntroduction`:section==='rules'?`${language}.${kind}.cancellation`:section==='location'?`${language}.${kind}.locationNote`:section==='notes'?`${language}.description`:section.includes('gallery')?'attributes.images':section.includes('price')?'amount':`${language}.title`;
+    const target=[...el('editor').querySelectorAll<HTMLInputElement|HTMLTextAreaElement|HTMLSelectElement>('[name]')].find(input=>input.name===targetName)||el('editor').querySelector<HTMLElement>('[name="'+language+'.title"]');
+    if(!target)return;
+    workspace.dataset.stage='edit';
+    target.closest('details')?.setAttribute('open','');
+    target.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'center'});
+    target.focus({preventScroll:true});
+    message(l('已定位到对应栏目。','Focused the matching section.'));
+  });
 }
 const errorText = (error: any) => {
   if (error.code === 'REVISION_CONFLICT' || error.code === 'TRANSLATION_CONFLICT') return l('保存冲突：另一位编辑或翻译任务已更新内容。你的输入仍保留；请先复制或导出，再载入最新版本比较。', 'Save conflict: the draft changed. Your input is preserved. Copy it before loading the latest version.');
@@ -104,8 +129,44 @@ const textFields = [
   ['map', '地图叙事标注（JSON）', 'Map narrative labels (JSON)', false],
   ['review', '手记旅客资料（JSON，可留空）', 'Visitor note profile (JSON, optional)', false],
 ] as const;
+const sharedLists=['tags','facilities','rules','itinerary','highlights','included','serviceItems','stay.sleeping','stay.highlights','stay.amenities','stay.nearby','stay.houseRules','stay.safety','experience.steps','service.qualifications'];
+const atPath=(body:any,path:string,create=false):any[]=>{const parts=path.split('.');let object=body;for(const part of parts.slice(0,-1)){if(!object[part]){if(!create)return [];object[part]={};}object=object[part];}const key=parts.at(-1)!;if(!Array.isArray(object[key])){if(!create)return [];object[key]=[];}return object[key];};
+function prepareListIds(){
+  const known=locales.filter(language=>formTexts[language.code]?.title);
+  const warnings:string[]=[];
+  for(const path of sharedLists){const present=known.filter(language=>atPath(formTexts[language.code],path).length||formTexts[language.code]?.editorListIds?.[path]);if(!present.length)continue;
+    const lengths=present.map(language=>atPath(formTexts[language.code],path).length);
+    if(new Set(lengths).size>1){warnings.push(path);continue;}
+    const existing=present.map(language=>formTexts[language.code].editorListIds?.[path]).find(ids=>Array.isArray(ids)&&ids.length===lengths[0]);
+    const ids=existing??Array.from({length:lengths[0]},()=>crypto.randomUUID());
+    for(const language of present){formTexts[language.code].editorListIds??={};formTexts[language.code].editorListIds[path]=[...ids];}
+  }
+  el('list-alignment-warning').textContent=warnings.length?l('以下双语列表项目数量不同，请先在高级 JSON 模式校订对应关系：','These bilingual lists have different item counts. Reconcile their alignment in advanced JSON mode: ')+warnings.join('、'):'';
+}
+function sharedArrayOperation(path:string,operation:'up'|'down'|'delete'|'add',index:number,newItem?:any){
+  const dot=path.indexOf('.');const relative=path.slice(dot+1);if(!sharedLists.includes(relative))return false;
+  const known=locales.filter(language=>formTexts[language.code]?.title);
+  if(!known.length)return true;
+  const lists=known.map(language=>atPath(formTexts[language.code],relative,true));
+  if(lists.every(items=>items.length===0))for(const language of known){formTexts[language.code].editorListIds??={};formTexts[language.code].editorListIds[relative]??=[];}
+  const ids=known.map(language=>formTexts[language.code].editorListIds?.[relative]);
+  if(new Set(lists.map(items=>items.length)).size>1||ids.some(v=>!Array.isArray(v)||JSON.stringify(v)!==JSON.stringify(ids[0]))){message(l('中英项目对应关系不一致；请先校订，再排序或增删。','The bilingual items need alignment before sorting or changing structure.'));return true;}
+  if(operation==='delete'&&!confirm(l('删除这个共用项目及所有语言的文字？','Delete this shared item and its text in every language?')))return true;
+  for(const [position,language] of known.entries()){
+    const items=lists[position]!,order=ids[position]!;
+    if(operation==='up'&&index>0){[items[index-1],items[index]]=[items[index],items[index-1]];[order[index-1],order[index]]=[order[index],order[index-1]];}
+    if(operation==='down'&&index<items.length-1){[items[index+1],items[index]]=[items[index],items[index+1]];[order[index+1],order[index]]=[order[index],order[index+1]];}
+    if(operation==='delete'){items.splice(index,1);order.splice(index,1);}
+    if(operation==='add'){items.push(structuredClone(newItem));order.push(position===0?crypto.randomUUID():ids[0]!.at(-1)!);}
+    const top=relative.split('.')[0]!;const fieldNode=field(`${language.code}:${top}`);fieldNode.value=Array.isArray(formTexts[language.code][top])?formTexts[language.code][top].join('\n'):JSON.stringify(formTexts[language.code][top]);
+  }
+  dirty=true;refreshActions();renderStructured();
+  requestAnimationFrame(()=>{const target=el('structured-editor').querySelector<HTMLElement>(`[data-field="${path}"] .repeat-row[data-index="${Math.min(index,lists[0]!.length-1)}"] [data-field-input]`);target?.focus({preventScroll:true});});
+  return true;
+}
 function renderTextFields(translations: Record<string, ContentText>) {
   formTexts=structuredClone(translations);
+  prepareListIds();
   const fragment = document.createDocumentFragment();
   for (const language of locales) {
     const section = document.createElement('fieldset'); section.dataset.language = language.code;
@@ -150,7 +211,7 @@ function renderStructured() {
     const existingCleared=el('language-fields').querySelector<HTMLElement>(`[data-language="${language.code}"]`)?.dataset.cleared;
     const cleared = new Set<string>(existingCleared?JSON.parse(existingCleared):detail?.revisions.find((r:any)=>r.id===selectedRevision)?.translations[language.code]?.clearedFields ?? []);
     data.clearedFields=[...cleared];
-    structuredFields(target,textSchema,data,value=>{formTexts[language.code]=structuredClone(value);for(const [key,,,array]of textFields){const v=value[key];field(`${language.code}:${key}`).value=['stay','experience','service','review','map'].includes(key)?(v===undefined?'':JSON.stringify(v)):key==='imageAlts'?JSON.stringify(v??{}):array?(v??[]).join('\n'):v??'';}dirty = true; refreshActions();},{zh:locale==='zh-CN',path:language.code,kind,keys,media:()=>attrs.images.map((i:any)=>i.id),onEdited:(path,v)=>{const key=path.slice(language.code.length+1);if(!/^(?:stay|experience|service|review|map|hostName|hostBio|highlights|facilities|rules|itinerary)(?:\.[a-zA-Z]+)*$/.test(key))return;if(v===undefined){for(const item of cleared)if(item===key||item.startsWith(key+'.'))cleared.delete(item);}if(v===''||Array.isArray(v)&&!v.length)cleared.add(key);else cleared.delete(key);data.clearedFields=[...cleared];el('language-fields').querySelector<HTMLElement>(`[data-language="${language.code}"]`)!.dataset.cleared=JSON.stringify([...cleared]);}});
+    structuredFields(target,textSchema,data,value=>{formTexts[language.code]=structuredClone(value);for(const [key,,,array]of textFields){const v=value[key];field(`${language.code}:${key}`).value=['stay','experience','service','review','map'].includes(key)?(v===undefined?'':JSON.stringify(v)):key==='imageAlts'?JSON.stringify(v??{}):array?(v??[]).join('\n'):v??'';}dirty = true; refreshActions();},{zh:locale==='zh-CN',path:language.code,kind,keys,media:()=>attrs.images.map((i:any)=>i.id),onArrayOperation:sharedArrayOperation,onEdited:(path,v)=>{const key=path.slice(language.code.length+1);if(!/^(?:stay|experience|service|review|map|hostName|hostBio|highlights|facilities|rules|itinerary)(?:\.[a-zA-Z]+)*$/.test(key))return;if(v===undefined){for(const item of cleared)if(item===key||item.startsWith(key+'.'))cleared.delete(item);}if(v===''||Array.isArray(v)&&!v.length)cleared.add(key);else cleared.delete(key);data.clearedFields=[...cleared];el('language-fields').querySelector<HTMLElement>(`[data-language="${language.code}"]`)!.dataset.cleared=JSON.stringify([...cleared]);}});
   }
 }
 on('toggle-mode', async()=>{if(formMode==='structured'){formMode='advanced';}else{const parsed=readTexts();originalAttributes=attributesSchema.parse(formValue().attributes);formTexts=parsed;formMode='structured';}renderStructured();el('toggle-mode').textContent=formMode==='structured'?l('切换到高级 JSON','Switch to advanced JSON'):l('返回栏目表单','Return to section forms');});
@@ -158,6 +219,7 @@ function readTexts() {
   const result: Record<string, ContentText> = {};
   for (const language of locales) {
     const body: Record<string, unknown> = formMode==='structured'?structuredClone(formTexts[language.code]??{}):{};
+    if(formMode!=='structured'&&formTexts[language.code]?.editorListIds)body.editorListIds=structuredClone(formTexts[language.code].editorListIds);
     let any = false;
     for (const [key, , , array] of textFields) {
       const value = field(`${language.code}:${key}`).value.trim();
@@ -176,6 +238,8 @@ function readTexts() {
 }
 function formValue() {
   const texts = readTexts(), sourceLocale = field('sourceLocale').value;
+  const bodies=Object.values(texts);
+  for(const path of sharedLists){const filled=bodies.filter(body=>atPath(body,path).length||body.editorListIds?.[path]);if(filled.length<2)continue;const signatures=filled.map(body=>JSON.stringify(body.editorListIds?.[path]??[]));if(new Set(signatures).size>1||filled.some(body=>(body.editorListIds?.[path]?.length??0)!==atPath(body,path).length))throw new Error(l('双语项目身份或顺序不一致，请校订后保存：','Bilingual item identities or order differ. Reconcile before saving: ')+path);}
   if (!texts[sourceLocale]) throw new Error(l('请填写源语言的名称与完整介绍。', 'Complete the source title and description.'));
   const text = texts[sourceLocale]; delete texts[sourceLocale];
   const kind = detail?.content.kind ?? field('kind').value;
@@ -210,6 +274,7 @@ async function refreshList() {
   if(parentFilter)params.set('parentId',parentFilter);
   const data = await api(`/admin/worlds/${worldId()}/contents?${params}`);
   if(request!==listRequest)return;
+  if(workspaceMode){const url=new URL(location.href);url.searchParams.set('world',worldId());url.searchParams.set('page',String(listPage));for(const [key,id] of [['kind','filter-kind'],['q','filter-query'],['status','filter-status']]){const value=el<HTMLInputElement>(id!).value;if(value)url.searchParams.set(key!,value);else url.searchParams.delete(key!);}history.replaceState(history.state,'',url);}
   el('list-page').textContent=`${data.page} / ${data.pages} · ${data.total}`;
   el<HTMLButtonElement>('list-prev').disabled=listPage<=1;el<HTMLButtonElement>('list-next').disabled=listPage>=data.pages;
   const rows = data.contents.filter((c: any) => !el<HTMLSelectElement>('filter-kind').value || c.kind === el<HTMLSelectElement>('filter-kind').value).map((content: any) => {
@@ -217,7 +282,14 @@ async function refreshList() {
     for (const text of [content.title, `${content.number} · ${status(content.status)}`, content.site_blocked ? l('网站限制', 'Site restricted') : content.published_publication_id ? l('已公开', 'Published') : l('未公开', 'Unpublished')]) {
       const td = document.createElement('td'); td.textContent = text; tr.append(td);
     }
-    const td = document.createElement('td'); td.append(button(l('编辑', 'Edit'), async () => { if (confirmDiscard()) await openContent(content.id); })); tr.append(td);
+    const td = document.createElement('td'); td.append(button(l('编辑', 'Edit'), async () => {
+      if (!confirmDiscard()) return;
+      await openContent(content.id);
+      if(detail?.content.id!==content.id)return;
+      if(workspaceMode){window.dispatchEvent(new CustomEvent('workspace:editor',{detail:{id:content.id,title:content.title,world:worldId()}}));}
+      el('editor-panel').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'start'});
+      el('editor-title').setAttribute('tabindex','-1');el('editor-title').focus({preventScroll:true});
+    })); tr.append(td);
     return tr;
   });
   el('content-list').replaceChildren(...rows);
@@ -245,8 +317,16 @@ async function signIn() {
   el<HTMLSelectElement>('draft-preview-language').value = locale === 'zh-CN' ? 'zh' : 'en';
   el('login').hidden = true; el('workspace').hidden = false;
   el<HTMLSelectElement>('world').replaceChildren(...worlds.map(world => option(world.id, world.translations[locale]?.name ?? world.slug)));
-  if (worlds.length) el<HTMLSelectElement>('world').value = (worlds.find(world => world.slug === 'lathe-worlds') ?? worlds[0]).id;
-  if (worlds.length) await loadWorld(); else { el<HTMLButtonElement>('new').disabled = true; message(l('没有可管理的世界。', 'No worlds are assigned to this account.')); }
+  if (worlds.length) el<HTMLSelectElement>('world').value = worlds.find(world=>world.id===new URLSearchParams(location.search).get('world'))?.id ?? (worlds.find(world => world.slug === 'lathe-worlds') ?? worlds[0]).id;
+  if (worlds.length) {
+    const query=new URLSearchParams(location.search);
+    if(workspaceMode||query.has('content')||query.has('world')){el<HTMLSelectElement>('filter-kind').value=query.get('kind')??'';el<HTMLInputElement>('filter-query').value=query.get('q')??'';el<HTMLSelectElement>('filter-status').value=query.get('status')??(document.getElementById('new-workspace')?.dataset.view==='world-review'?'submitted':'');listPage=Math.max(1,Number(query.get('page'))||1);}
+    await loadWorld();
+    if(workspaceMode||query.has('content')){
+      listPage=Math.max(1,Number(query.get('page'))||1);await refreshList();
+      const id=query.get('content');if(id)await openContent(id);
+    }
+  } else { el<HTMLButtonElement>('new').disabled = true; message(l('没有可管理的世界。', 'No worlds are assigned to this account.')); }
 }
 function fillRevision(revision: any) {
   originalAttributes=structuredClone(revision.attributes);
@@ -296,9 +376,13 @@ function refreshActions() {
   el('release-block').hidden = actor.siteRole !== 'admin' || !detail.content.site_blocked;
 }
 async function openContent(id: string) {
+  const request=++openRequest;
   const next = await api(`/admin/contents/${id}`);
+  if(request!==openRequest)return;
+  if(next.content.world_id!==worldId()&&worlds.some(world=>world.id===next.content.world_id)){el<HTMLSelectElement>('world').value=next.content.world_id;await loadWorld();}
   resetPreview();
   detail = next;
+  const newLink=el<HTMLAnchorElement>('new-workspace-link');if(newLink)newLink.href=`/${locale==='zh-CN'?'zh':'en'}/workspace?${new URLSearchParams({view:'editor',world:detail.content.world_id,content:id})}`;
   identity();
   for (const name of ['kind', 'slug']) field(name).value = detail.content[name];
   field('placeId').value = detail.content.place_id ?? '';
@@ -355,10 +439,12 @@ async function saveDraft() {
   const previewButton = el<HTMLButtonElement>('save-preview');
   submit.disabled = true; previewButton.disabled = true;
   try {
-    const result = await api(detail ? `/admin/contents/${detail.content.id}/revisions` : '/admin/contents', formValue());
-    await openContent(result.id);
+    const payload=formValue();const snapshot=JSON.stringify(payload);
+    const result = await api(detail ? `/admin/contents/${detail.content.id}/revisions` : '/admin/contents', payload);
+    if(snapshot===JSON.stringify(formValue()))await openContent(result.id);
+    else {detail=await api(`/admin/contents/${result.id}`);selectedRevision=detail.content.head_revision_id;dirty=true;refreshActions();message(l('已保存提交时的输入；保存期间的新修改仍未保存。','The submitted input was saved. Changes made during saving remain unsaved.'));}
     await refreshList();
-    message(l('草稿已保存，公开内容保持原版本。', 'Draft saved. The public version is unchanged.'));
+    if(!dirty)message(l('草稿已保存，公开内容保持原版本。', 'Draft saved. The public version is unchanged.'));
   } finally {
     savingDraft = false; submit.disabled = false; previewButton.disabled = false;
   }
@@ -369,6 +455,7 @@ editor.addEventListener('submit', async event => {
 });
 on('save-preview', async () => {
   if (dirty || !detail) await saveDraft();
+  if(dirty)return;
   showPreview();
 });
 el<HTMLSelectElement>('draft-preview-language').addEventListener('change', () => {
@@ -447,6 +534,7 @@ on('import-apply', async () => {
   await refreshList();
 });
 window.addEventListener('beforeunload', event => { if (dirty||settingsDirty) event.preventDefault(); });
+if(workspaceMode)window.addEventListener('workspace:leave',event=>{if(!confirmDiscard())event.preventDefault();else {dirty=false;settingsDirty=false;}});
 signIn().catch(error => { if (error.code !== 'SESSION_REQUIRED') message(errorText(error)); });
 
 }

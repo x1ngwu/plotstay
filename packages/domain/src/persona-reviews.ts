@@ -83,8 +83,17 @@ async function ensureSetting(db: Connection, p: any) {
 export async function myPersonas(db: Connection, actor: Actor) {
   const rows = (
     await db.query(
-      `SELECT p.id,p.disabled,s.id AS setting_id,s.head_revision_id,r.body AS draft,p.profiles AS published,
- d.decision,d.note FROM personas p LEFT JOIN detail_settings s ON s.kind='persona' AND s.entity_id=p.id LEFT JOIN detail_setting_revisions r ON r.id=s.head_revision_id LEFT JOIN persona_revision_decisions d ON d.revision_id=r.id WHERE p.owner_id=$1 ORDER BY p.created_at,p.id`,
+      `SELECT p.id,p.disabled,s.id AS setting_id,s.head_revision_id,s.submitted_revision_id,
+ r.body AS draft,sr.body AS submitted,p.profiles AS published,
+ d.decision,d.note,pd.decision AS submitted_decision,pd.note AS submitted_note,
+ pub.revision_id AS published_revision_id
+ FROM personas p LEFT JOIN detail_settings s ON s.kind='persona' AND s.entity_id=p.id
+ LEFT JOIN detail_setting_revisions r ON r.id=s.head_revision_id
+ LEFT JOIN detail_setting_revisions sr ON sr.id=s.submitted_revision_id
+ LEFT JOIN persona_revision_decisions d ON d.revision_id=r.id
+ LEFT JOIN persona_revision_decisions pd ON pd.revision_id=s.submitted_revision_id
+ LEFT JOIN detail_setting_publications pub ON pub.id=s.published_id
+ WHERE p.owner_id=$1 ORDER BY p.created_at,p.id`,
       [actor.id],
     )
   ).rows;
@@ -119,7 +128,7 @@ export function savePersona(
         [s.id, body, actor.id],
       )
     ).rows[0];
-    await c.query('UPDATE detail_settings SET head_revision_id=$2,submitted_revision_id=NULL WHERE id=$1', [
+    await c.query('UPDATE detail_settings SET head_revision_id=$2 WHERE id=$1', [
       s.id,
       r.id,
     ]);
@@ -295,9 +304,11 @@ export function saveReview(db: Database, actor: Actor, id: string, baseRevisionI
     return { id, revisionId: revision.id };
   });
 }
-async function submitPersona(c: Connection, revisionId: string, actor: Actor) {
+export async function submitPersona(c: Connection, revisionId: string, actor: Actor) {
   const r = (await c.query('SELECT * FROM detail_setting_revisions WHERE id=$1', [revisionId])).rows[0];
   assert(r, 409, 'PROFILE_REQUIRED', 'Save a persona first.');
+  const setting = (await c.query('SELECT * FROM detail_settings WHERE id=$1 FOR UPDATE', [r.setting_id])).rows[0];
+  assert(setting?.kind === 'persona', 409, 'PROFILE_REQUIRED', 'Save a persona first.');
   const d = (
     await c.query('SELECT decision FROM persona_revision_decisions WHERE revision_id=$1', [revisionId])
   ).rows[0];
@@ -307,7 +318,9 @@ async function submitPersona(c: Connection, revisionId: string, actor: Actor) {
     'PERSONA_REJECTED',
     'Edit the returned persona and save the review again.',
   );
-  if (!d) {
+  assert(d?.decision === 'approved' || setting.submitted_revision_id === revisionId || setting.head_revision_id === revisionId,
+    409,'PROFILE_SIGNATURE_STALE','The profile submission changed. Save a new review or reply signature before submitting.');
+  if (!d && setting.submitted_revision_id !== revisionId) {
     await c.query('UPDATE detail_settings SET submitted_revision_id=$2 WHERE id=$1', [
       r.setting_id,
       revisionId,
@@ -317,6 +330,31 @@ async function submitPersona(c: Connection, revisionId: string, actor: Actor) {
       [r.setting_id, actor.id, revisionId],
     );
   }
+}
+export function submitOwnPersona(db: Database, actor: Actor, id: string, revisionId: string) {
+  return transaction(db, async c => {
+    const p = await ownPersona(c, actor, id, true);
+    const s = await ensureSetting(c, p);
+    assert(s.head_revision_id === revisionId, 409, 'REVISION_CONFLICT', 'Submit the saved current profile.');
+    const body = (await c.query('SELECT body FROM detail_setting_revisions WHERE id=$1', [revisionId])).rows[0]?.body;
+    assert(body?.en && body?.['zh-CN'], 409, 'TRANSLATIONS_REQUIRED', 'Complete both profile languages.');
+    const decided=(await c.query('SELECT decision FROM persona_revision_decisions WHERE revision_id=$1',[revisionId])).rows[0];
+    if(decided?.decision==='approved')return {submitted:false,alreadyApproved:true,revisionId};
+    await submitPersona(c, revisionId, actor);
+    return { submitted: true, revisionId };
+  });
+}
+export async function personaQueue(db: Connection, actor: Actor, page = 1) {
+  assert(actor.siteRole === 'admin', 403, 'SITE_ADMIN_REQUIRED', 'A site administrator reviews profiles.');
+  const rows = (await db.query(`SELECT p.id AS persona_id,p.owner_id,u.email,s.submitted_revision_id AS revision_id,
+    r.body,d.decision,d.note,e.created_at AS submitted_at
+    FROM detail_settings s JOIN personas p ON p.id=s.entity_id JOIN users u ON u.id=p.owner_id
+    JOIN detail_setting_revisions r ON r.id=s.submitted_revision_id
+    LEFT JOIN persona_revision_decisions d ON d.revision_id=r.id
+    LEFT JOIN LATERAL (SELECT created_at FROM detail_setting_events WHERE setting_id=s.id AND revision_id=r.id AND action='submitted' ORDER BY created_at DESC LIMIT 1) e ON true
+    WHERE s.kind='persona' AND d.revision_id IS NULL
+    ORDER BY e.created_at DESC,p.id LIMIT 21 OFFSET $1`, [(page-1)*20])).rows;
+  return { items: rows.slice(0,20), page, hasNext: rows.length>20 };
 }
 export function submitReview(db: Database, actor: Actor, id: string, revisionId: string) {
   return transaction(db, async (c) => {
@@ -376,6 +414,7 @@ export async function approvePersonaVersion(
   ).rows[0];
   assert(r, 404, 'NOT_FOUND', 'Profile version not found.');
   await c.query('SELECT id FROM personas WHERE id=$1 FOR UPDATE', [r.entity_id]);
+  const current = (await c.query('SELECT submitted_revision_id FROM detail_settings WHERE id=$1 FOR UPDATE', [r.setting_id])).rows[0];
   const existing = (
     await c.query('SELECT decision FROM persona_revision_decisions WHERE revision_id=$1', [revisionId])
   ).rows[0];
@@ -388,6 +427,7 @@ export async function approvePersonaVersion(
     );
     return;
   }
+  assert(current?.submitted_revision_id === revisionId, 409, 'SUBMISSION_SUPERSEDED', 'This profile submission was replaced. Reopen the current request.');
   assert(
     (
       await c.query("SELECT 1 FROM detail_setting_events WHERE revision_id=$1 AND action='submitted'", [
@@ -412,6 +452,7 @@ export async function approvePersonaVersion(
     'INSERT INTO persona_revision_decisions(revision_id,decision,actor_id,note)VALUES($1,$2,$3,$4)',
     [revisionId, decision, actor.id, note],
   );
+  await c.query('UPDATE detail_settings SET submitted_revision_id=NULL WHERE id=$1', [r.setting_id]);
   if (decision === 'approved') {
     const p = (
       await c.query(

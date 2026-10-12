@@ -1,0 +1,36 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {spawn} from 'node:child_process';
+import {chromium,expect} from '@playwright/test';
+import {detailFixture} from './detail-fixture.ts';
+import {seedStayDetails} from '../scripts/seed-stay-details.ts';
+import {unusedPort,waitFor,stop} from './runtime.ts';
+
+test('workspace checkpoint shares the saved stay draft with the previous admin', {timeout:120000}, async t=>{
+  const f=await detailFixture();t.after(f.cleanup);await seedStayDetails(f.db,f.data.admin,true);
+  const apiPort=await unusedPort(),webPort=await unusedPort(),apiUrl=`http://127.0.0.1:${apiPort}`,webUrl=`http://127.0.0.1:${webPort}`;
+  const env={...process.env,PGOPTIONS:f.options,NODE_ENV:'production',SITE_INDEXABLE:'false',API_PORT:String(apiPort),API_HOST:'127.0.0.1',HOST:'127.0.0.1',PORT:String(webPort),WEB_ORIGIN:webUrl,API_INTERNAL_URL:apiUrl};
+  const launch=(entry:string)=>{const child=spawn(process.execPath,[entry],{env,stdio:['ignore','pipe','pipe']});let logs='';child.stdout!.on('data',d=>logs+=d);child.stderr!.on('data',d=>logs+=d);t.after(()=>stop(child));return {child,logs:()=>logs};};
+  const api=launch('apps/api/dist/server.mjs');await waitFor(apiUrl+'/api/health',api.child,api.logs);const web=launch('apps/web/server.mjs');await waitFor(webUrl+'/en',web.child,web.logs);
+  const browser=await chromium.launch({headless:true});t.after(()=>browser.close());const context=await browser.newContext({viewport:{width:1440,height:900}});const page=await context.newPage();const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
+  await page.goto(webUrl+'/en/workspace?view=works');await expect(page.locator('#login')).toBeVisible();
+  await page.locator('#login [name=email]').fill(f.credentials.email);await page.locator('#login [name=password]').fill(f.credentials.password);await page.locator('#login button').click();await expect(page.locator('#workspace')).toBeVisible();
+  await page.locator('#filter-query').fill('dockside-window');await page.locator('#search-list').click();await expect(page.locator('#content-list tr')).toHaveCount(1);
+  await page.locator('#content-list button').click();await expect(page.locator('#editor-panel')).toBeVisible();assert.equal(new URL(page.url()).searchParams.get('view'),'editor');
+  await page.locator('[name="en.title"]').fill('Workspace checkpoint');await expect(page.locator('#draft-preview-state')).toContainText('Unsaved');
+  const saved=page.waitForResponse(r=>r.request().method()==='POST'&&r.url().endsWith('/revisions'));
+  await page.locator('#save-preview').click();assert.equal((await saved).status(),200);await expect(page.locator('#draft-preview-frame')).toHaveAttribute('src',/\/api\/admin\/preview/);await expect(page.frameLocator('#draft-preview-frame').locator('h1')).toHaveText('Workspace checkpoint');await expect(page.locator('#draft-preview-state')).toContainText('Saved');
+  await page.frameLocator('#draft-preview-frame').locator('#about').click();await expect(page.locator('[name="en.stay.introduction"]')).toBeFocused();
+  const icon=page.locator('[name="en.stay.amenities.0.icon"]');await expect(icon).toHaveValue(/.+/);await icon.locator('..').locator('.icon-chooser summary').click();await expect(icon.locator('..').locator('.icon-grid button[data-icon=bath] svg path')).toHaveAttribute('d',/.+/);
+  const old=await context.newPage();await old.goto(webUrl+'/en/admin');await expect(old.locator('#workspace')).toBeVisible();await old.locator('#filter-query').fill('dockside-window');await old.locator('#search-list').click();await old.locator('#content-list button').click();await expect(old.locator('[name="en.title"]')).toHaveValue('Workspace checkpoint');
+  await old.locator('[name="en.title"]').fill('Saved in old admin');await old.locator('#editor button[type=submit]').click();await expect(old.locator('#message')).toContainText('Draft saved');
+  await page.locator('[name="en.title"]').fill('Unsaved new workspace input');await page.locator('#editor button[type=submit]').click();await expect(page.locator('#message')).toContainText('conflict');await expect(page.locator('[name="en.title"]')).toHaveValue('Unsaved new workspace input');
+  await page.setViewportSize({width:390,height:850});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));assert.deepEqual(errors,[]);
+  const personas=await context.newPage();await personas.goto(webUrl+'/en/workspace?view=personas');await expect(personas.locator('#account-view h2')).toContainText('My personas');
+  await personas.goto(webUrl+'/en/workspace');await expect(personas.locator('#ws-recent')).toContainText('Tasks and recent status');
+  await personas.goto(webUrl+'/en/workspace?view=reviews');await expect(personas.locator('#account-view h2')).toContainText('My reviews');
+  await personas.goto(webUrl+'/en/workspace?view=worlds');await expect(personas.locator('#ws-world-list .ws-card')).not.toHaveCount(0);
+  const worldId=(await f.db.query("SELECT id FROM worlds WHERE slug='lathe-worlds'")).rows[0].id;
+  const owner=(await f.db.query('SELECT u.email FROM worlds w JOIN users u ON u.id=w.owner_id WHERE w.id=$1',[worldId])).rows[0].email;
+  await personas.goto(webUrl+`/en/workspace?view=world-members&world=${worldId}`);await expect(personas.locator('#ws-member-list')).toContainText(owner);
+});

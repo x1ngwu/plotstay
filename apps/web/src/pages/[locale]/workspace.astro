@@ -1,0 +1,61 @@
+---
+import Base from '../../layouts/Base.astro';
+import AdminConsole from '../../components/workspace/AdminConsole.astro';
+import { fallbackLocales } from '@plotstay/contracts';
+import { bilingual, messages } from '../../lib/i18n';
+import '../../styles/account.css';
+import '../../styles/workspace.css';
+const { locales, locale: selectedLocale, localeFailure } = Astro.locals;
+const locale = selectedLocale ?? fallbackLocales[0]!;
+const t = bilingual(locale.code);
+const failed = localeFailure || !selectedLocale;
+if (failed) Astro.response.status = localeFailure ? 503 : 404;
+Astro.response.headers.set('Cache-Control','private, no-store');
+const view = Astro.url.searchParams.get('view') ?? 'overview';
+const adminViews = ['works','editor','world-content','world-settings','world-tools','world-review'];
+const accountViews = ['personas','reviews','replies','moderation','site','settings'];
+const title = ({overview:t('概览','Overview'),works:t('我的作品','My works'),editor:t('作品编辑','Edit work'),personas:t('我的角色','My personas'),reviews:t('评价与回复','Reviews and replies'),replies:t('评价与回复','Reviews and replies'),worlds:t('我管理的世界','Worlds I manage'),'world-content':t('世界内容','World content'),'world-settings':t('世界设定','World settings'),'world-tools':t('管理工具','Management tools'),'world-review':t('世界审核','World moderation'),'world-members':t('成员','Members'),moderation:t('世界审核','World moderation'),site:t('网站审核','Site moderation'),settings:t('账号设置','Account settings')} as Record<string,string>)[view] ?? t('概览','Overview');
+const worldId = Astro.url.searchParams.get('world');
+const oldAccountView = view==='site'?'moderation':view==='settings'?'personas':view;
+const oldQuery=new URLSearchParams();
+for(const key of ['world','content','kind','q','status','page'])if(Astro.url.searchParams.has(key))oldQuery.set(key,Astro.url.searchParams.get(key)!);
+const legacyTarget=accountViews.includes(view)?`/${locale.pathPrefix}/account?view=${oldAccountView}`:`/${locale.pathPrefix}/admin${oldQuery.size?'?'+oldQuery:''}`;
+---
+<Base title={`${title} · Plotstay`} locale={locale} locales={locales}>
+{failed ? <h1>{localeFailure ? messages(locale.code).unavailable : messages(locale.code).notFound}</h1> :
+<div id="new-workspace" data-locale={locale.code} data-prefix={locale.pathPrefix} data-view={view}>
+  <aside class="ws-sidebar">
+    <a class="ws-brand" href={`/${locale.pathPrefix}/workspace`}>PLOTSTAY <span>/ {t('工作台','Workspace')}</span></a>
+    <nav class="ws-nav" aria-label={t('工作台导航','Workspace navigation')}>
+      <a href={`/${locale.pathPrefix}/workspace`}>{t('概览','Overview')}</a>
+      <a href={`/${locale.pathPrefix}/workspace?view=personas`}>{t('我的角色','My personas')}</a>
+      <a href={`/${locale.pathPrefix}/workspace?view=works`}>{t('我的作品','My works')}</a>
+      <a href={`/${locale.pathPrefix}/workspace?view=reviews`}>{t('评价与回复','Reviews and replies')}</a>
+      <a href={`/${locale.pathPrefix}/workspace?view=worlds`}>{t('我管理的世界','Worlds I manage')}</a>
+      <a href={`/${locale.pathPrefix}/workspace?view=settings`}>{t('账号设置','Account settings')}</a>
+      <a class="ws-site-link" hidden href={`/${locale.pathPrefix}/workspace?view=site`}>{t('网站审核','Site moderation')}</a>
+    </nav>
+    <a class="ws-legacy" href={legacyTarget}>{t('返回旧版后台 ↗','Open previous workspace ↗')}</a>
+  </aside>
+  <main class="ws-main">
+    <nav class="ws-crumbs" aria-label={t('面包屑','Breadcrumb')}><a href={`/${locale.pathPrefix}/workspace`}>{t('我的工作台','My workspace')}</a><span id="ws-crumb-tail"></span></nav>
+    <div class="ws-page-head"><a id="ws-back" href={`/${locale.pathPrefix}/workspace`}>← {t('返回工作台','Back to workspace')}</a><h1 id="ws-page-title">{title}</h1><p id="ws-context"></p></div>
+    {worldId && view.startsWith('world-') && <nav class="ws-world-nav" aria-label={t('世界管理','World management')}><a href={`/${locale.pathPrefix}/workspace?view=world-content&world=${worldId}`}>{t('内容','Content')}</a><a href={`/${locale.pathPrefix}/workspace?view=world-review&world=${worldId}`}>{t('审核','Moderation')}</a><a href={`/${locale.pathPrefix}/workspace?view=world-settings&world=${worldId}`}>{t('设定与共享资料','Settings')}</a><a href={`/${locale.pathPrefix}/workspace?view=world-tools&world=${worldId}`}>{t('管理工具','Tools')}</a><a href={`/${locale.pathPrefix}/workspace?view=world-members&world=${worldId}`}>{t('成员','Members')}</a></nav>}
+    <p id="ws-message" role="status" aria-live="polite"></p>
+    <section id="ws-overview" hidden>
+      <div class="ws-card-grid"><article class="ws-card"><h2>{t('继续创作','Continue creating')}</h2><p>{t('查看可编辑的住宿、活动和服务，继续未完成的草稿。','Return to the stays, experiences and services you can edit.')}</p><a href={`/${locale.pathPrefix}/workspace?view=works`}>{t('打开我的作品 →','Open my works →')}</a></article><article class="ws-card"><h2>{t('角色与发言','Personas and conversations')}</h2><p>{t('角色资料与评价使用真实审核状态。','Profiles and reviews show their current moderation state.')}</p><a href={`/${locale.pathPrefix}/workspace?view=personas`}>{t('查看角色 →','View personas →')}</a></article><article class="ws-card"><h2>{t('世界管理','World management')}</h2><p>{t('按世界进入内容、审核、设定和原有工具。','Open content, moderation, settings and established tools by world.')}</p><a href={`/${locale.pathPrefix}/workspace?view=worlds`}>{t('查看世界 →','View worlds →')}</a></article></div>
+      <div id="ws-recent"></div>
+    </section>
+    <section id="ws-worlds" hidden><div id="ws-world-list"></div></section>
+    <section id="ws-members" hidden><div id="ws-member-list"></div></section>
+    <section id="ws-settings" hidden><div id="ws-account"></div></section>
+    {adminViews.includes(view) && <AdminConsole locale={locale} mode="workspace" />}
+    {accountViews.includes(view) && <div id="persona-workspace" data-locale={locale.code} data-prefix={locale.pathPrefix}>
+      <p id="persona-message" role="status" aria-live="polite"></p>
+      <form id="account-login" class="panel" hidden><h2>{t('登录现有账号','Sign in to your account')}</h2><label>{t('邮箱','Email')}<input name="email" type="email" autocomplete="username" required/></label><label>{t('密码','Password')}<input name="password" type="password" autocomplete="current-password" required/></label><button>{t('登录','Sign in')}</button></form>
+      <div id="account-content" hidden><nav class="account-tabs"><a href={`/${locale.pathPrefix}/workspace?view=personas`}>{t('我的角色','My personas')}</a><a href={`/${locale.pathPrefix}/workspace?view=reviews`}>{t('我的评价','My reviews')}</a><a href={`/${locale.pathPrefix}/workspace?view=replies`}>{t('提供者回复','Provider replies')}</a><a data-review-admin hidden href={`/${locale.pathPrefix}/workspace?view=moderation`}>{t('评价与回复审核','Review moderation')}</a></nav><section id="account-view"></section></div>
+    </div>}
+  </main>
+</div>}
+</Base>
+<script>import '../../lib/workspace';import {initAccount} from '../../lib/persona-client';void initAccount();</script>

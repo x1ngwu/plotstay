@@ -53,12 +53,16 @@ export function saveSetting(db:Database,actor:Actor,id:string,raw:unknown,baseRe
  assert(s.head_revision_id===baseRevisionId,409,'REVISION_CONFLICT','Configuration changed. Your input is preserved.');
  const body=await validate(client,s.kind,raw);
  const r=(await client.query('INSERT INTO detail_setting_revisions(setting_id,body,created_by)VALUES($1,$2,$3)RETURNING id',[id,body,actor.id])).rows[0];
- await client.query('UPDATE detail_settings SET head_revision_id=$2,submitted_revision_id=NULL WHERE id=$1',[id,r.id]);await record(client,actor,s,'draft_saved',r.id);return {revisionId:r.id};
+ await client.query(s.kind==='persona'?'UPDATE detail_settings SET head_revision_id=$2 WHERE id=$1':'UPDATE detail_settings SET head_revision_id=$2,submitted_revision_id=NULL WHERE id=$1',[id,r.id]);await record(client,actor,s,'draft_saved',r.id);return {revisionId:r.id};
 });}
 export function settingAction(db:Database,actor:Actor,id:string,action:'submit'|'publish'|'reject'|'restore',revisionId:string,publicationId?:string){return transaction(db,async client=>{
  const s=await lockSetting(client,id);await access(client,actor,s,action!=='submit');
- assert(s.head_revision_id===revisionId,409,'REVISION_CONFLICT','Configuration changed. Reload before reviewing.');
- if(action==='submit'){await client.query('UPDATE detail_settings SET submitted_revision_id=$2 WHERE id=$1',[id,revisionId]);await record(client,actor,s,'submitted',revisionId);return {submitted:true};}
+ assert(s.kind==='persona'&&['publish','reject'].includes(action) || s.head_revision_id===revisionId,409,'REVISION_CONFLICT','Configuration changed. Reload before reviewing.');
+ if(action==='submit'){
+  if(s.kind==='persona')await (await import('./persona-reviews.ts')).submitPersona(client,revisionId,actor);
+  else {await client.query('UPDATE detail_settings SET submitted_revision_id=$2 WHERE id=$1',[id,revisionId]);await record(client,actor,s,'submitted',revisionId);}
+  return {submitted:true};
+ }
  if(s.kind==='persona'&&(action==='publish'||action==='reject')){await (await import('./persona-reviews.ts')).approvePersonaVersion(client,actor,revisionId,action==='publish'?'approved':'rejected');return {published:action==='publish'};}
  if(action==='reject'){assert(s.submitted_revision_id===revisionId,409,'NOT_SUBMITTED','Submit the current revision.');await client.query('UPDATE detail_settings SET submitted_revision_id=NULL WHERE id=$1',[id]);await record(client,actor,s,'rejected',revisionId);return {rejected:true};}
  let target=revisionId;

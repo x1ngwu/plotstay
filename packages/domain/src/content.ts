@@ -20,7 +20,24 @@ async function putTranslation(db: PoolClient, revisionId: string, locale: string
   await db.query(`INSERT INTO revision_locales(revision_id,locale,translation_id) VALUES ($1,$2,$3)
     ON CONFLICT (revision_id,locale) DO UPDATE SET translation_id=excluded.translation_id`, [revisionId, locale, t.id]);
 }
+function listLength(body: ContentText, path: string) {
+  let value: any=body;
+  for(const key of path.split('.'))value=value?.[key];
+  return Array.isArray(value)?value.length:0;
+}
+function checkListIdentity(source: ContentText, translated: ContentText) {
+  for(const [path, ids] of Object.entries(source.editorListIds??{})) {
+    if(!listLength(source,path)&&!listLength(translated,path))continue;
+    assert(ids.length===listLength(source,path) && JSON.stringify(ids)===JSON.stringify(translated.editorListIds?.[path]) && ids.length===listLength(translated,path),
+      409,'LIST_IDENTITY_REQUIRED',`The bilingual list ${path} needs matching item identities. Reopen it in the current editor.`);
+  }
+}
 export async function appendRevision(db: PoolClient, actor: Actor, content: any, input: Omit<EditContentInput, 'baseRevisionId'>, queueTranslations = true) {
+  if(content.head_revision_id){
+    const previous=(await db.query('SELECT source_text FROM content_revisions WHERE id=$1',[content.head_revision_id])).rows[0]?.source_text as ContentText|undefined;
+    for(const [path,ids] of Object.entries(previous?.editorListIds??{}))if(ids.length)assert(input.text.editorListIds?.[path]?.length===listLength(input.text,path),409,'LIST_IDENTITY_REQUIRED',`The list ${path} needs current item identities. Reopen this draft in the current editor.`);
+  }
+  for(const translation of Object.values(input.translations))checkListIdentity(input.text,translation);
   const { rows: locales } = await db.query('SELECT code FROM locales WHERE enabled');
   const allowed = new Set(locales.map(l => l.code));
   assert(allowed.has(input.sourceLocale) && Object.keys(input.translations).every(l => allowed.has(l)), 400, 'INVALID_LOCALE', 'Language is not enabled.');
@@ -91,6 +108,7 @@ export function saveTranslation(db: Database, actor: Actor, id: string, revision
     assert(!(await client.query('SELECT 1 FROM review_signatures s JOIN content_revisions r ON r.id=s.revision_id WHERE r.content_id=$1 AND s.managed',[id])).rowCount,409,'PERSONA_EDITOR_REQUIRED','Use the persona review editor for this entry.');
     assert(content.head_revision_id === revisionId, 409, 'REVISION_CONFLICT', 'This is no longer the current draft.');
     const { rows: [revision] } = await client.query('SELECT * FROM content_revisions WHERE id=$1', [revisionId]);
+    checkListIdentity(revision.source_text,body);
     assert(['draft','rejected'].includes(revision.status), 409, 'REVISION_LOCKED', 'Create a new draft to edit reviewed content.');
     assert(locale !== revision.source_locale, 400, 'SOURCE_EDIT', 'Source changes require a new content revision.');
     const enabled = await client.query('SELECT code FROM locales WHERE code=$1 AND enabled', [locale]);

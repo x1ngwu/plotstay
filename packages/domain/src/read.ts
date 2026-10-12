@@ -74,12 +74,13 @@ export const publicSelect = `SELECT c.id,c.world_id,c.slug,c.kind,w.slug AS worl
   LEFT JOIN personas person ON person.id=c.persona_id AND person.approved
   WHERE ${publicVisibility}`;
 export function mapContent(row: any, requestedLocale: string): PublicContent {
+  const {editorListIds: _editorListIds,...publicText}=row.body;
   const profile=row.signature_profiles?.[row.locale]??Object.values(row.signature_profiles??{})[0] as any;
   const providerProfiles=row.provider_profiles?signatureProfiles(row.provider_profiles):{};
   const provider=providerProfiles[row.locale]??Object.values(providerProfiles)[0] as any;
   return { ...(provider?{provider}:{}), ...(profile?{signature:profile}:{}), id: row.id, worldId: row.world_id, worldSlug: row.world_slug, slug: row.slug,
     kind: row.kind, placeId: row.place_id, placeSlug: row.place_slug, placeName: row.place_name, locale: row.locale, requestedLocale,
-    isFallback: row.locale !== requestedLocale, languageTag: row.language_tag, availableLocales: row.available_locales, text: { tags: [], highlights: [], included: [], serviceItems: [], ...row.body, ...(provider?{hostName:provider.name,hostBio:provider.bio,...(row.body.clearedFields?{clearedFields:row.body.clearedFields.filter((f:string)=>!['hostName','hostBio'].includes(f))}:{})}:{}), ...(row.persona_managed&&profile?{review:{...row.body.review,name:profile.name}}:{}) }, attributes: row.attributes,
+    isFallback: row.locale !== requestedLocale, languageTag: row.language_tag, availableLocales: row.available_locales, text: { tags: [], highlights: [], included: [], serviceItems: [], ...publicText, ...(provider?{hostName:provider.name,hostBio:provider.bio,...(row.body.clearedFields?{clearedFields:row.body.clearedFields.filter((f:string)=>!['hostName','hostBio'].includes(f))}:{})}:{}), ...(row.persona_managed&&profile?{review:{...row.body.review,name:profile.name}}:{}) }, attributes: row.attributes,
     publicationId: row.publication_id, publishedAt: row.published_at.toISOString(), categoryName: row.category_name, personaName: row.persona_name };
 }
 export async function listPublished(db: Connection, locale: string, filters: {

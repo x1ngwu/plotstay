@@ -9,18 +9,19 @@ export const slugSchema = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).max(120
 export const kindSchema = z.enum(['stay', 'experience', 'service', 'review']);
 export type ContentKind = z.infer<typeof kindSchema>;
 
-const lines = z.array(z.string().trim().min(1).max(1000)).max(60).default([]);
+const lines = z.array(z.string().trim().max(1000)).max(60).default([]);
 export const textSchema = z.object({
   title: z.string().trim().min(1).max(180),
   summary: z.string().trim().max(500).default(''),
   description: z.string().trim().min(1).max(20000),
-  tags: z.array(z.string().trim().min(1).max(60)).max(12).default([]),
+  tags: z.array(z.string().trim().max(60)).max(12).default([]),
   facilities: lines,
   rules: lines,
   itinerary: lines,
   hostName: z.string().trim().max(100).default(''),
   hostBio: z.string().trim().max(3000).default(''),
   imageAlts: z.record(z.string().max(80), z.string().max(500)).default({}),
+  editorListIds: z.record(z.string().max(80), z.array(z.uuid()).max(100)).optional(),
   highlights: lines,
   included: lines,
   serviceItems: lines,

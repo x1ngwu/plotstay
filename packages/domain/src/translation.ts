@@ -49,6 +49,13 @@ export async function runTranslationOnce(db: Database, adapter: TranslationAdapt
           controller.abort(); reject(new Error('ADAPTER_TIMEOUT'));
         }, timeoutMs); }),
       ]));
+      if(revision.source_text.editorListIds){
+        for(const [path,ids] of Object.entries(revision.source_text.editorListIds) as [string,string[]][]){
+          let value:any=body;for(const segment of path.split('.'))value=value?.[segment];
+          if((Array.isArray(value)?value.length:0)!==ids.length)throw new Error('LIST_ALIGNMENT');
+        }
+        body.editorListIds=structuredClone(revision.source_text.editorListIds);
+      }
     } catch (error) {
       // Do not persist vendor responses, keys or input text in a task error.
       failure = error instanceof Error && error.message === 'ADAPTER_TIMEOUT' ? 'Translation timed out' : 'Translation failed or returned invalid fields';

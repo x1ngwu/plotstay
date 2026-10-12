@@ -280,7 +280,8 @@ test('phase 4 detail browser acceptance', {timeout:180000}, async t => {
         (SELECT jsonb_object_agg(l.locale,t.body) FROM revision_locales l JOIN translations t ON t.id=l.translation_id WHERE l.revision_id=r.id) AS texts
         FROM contents c JOIN content_revisions r ON r.id=c.head_revision_id WHERE c.id=$1`,[before.id]);
       assert.notEqual(after.head_revision_id,before.head_revision_id);assert.equal(after.published_publication_id,before.published_publication_id);
-      assert.deepEqual(after.attributes,before.attributes);assert.deepEqual(after.texts,before.texts);
+      const withoutEditorIds=(texts:any)=>Object.fromEntries(Object.entries(texts).map(([locale,body])=>{const copy=structuredClone(body as any);delete copy.editorListIds;return [locale,copy];}));
+      assert.deepEqual(after.attributes,before.attributes);assert.deepEqual(withoutEditorIds(after.texts),withoutEditorIds(before.texts));
     }
   });
   assert.deepEqual(errors,[]);
