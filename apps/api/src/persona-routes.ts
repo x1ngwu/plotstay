@@ -49,6 +49,7 @@ export function personaRoutes(app: FastifyInstance, db: Database) {
     const b = z.object({revisionId: idSchema}).strict().parse(r.body);
     return submitOwnPersona(db, await actor(r), id(r), b.revisionId);
   });
+  app.get('/api/moderation/personas/:id',async r=>{const a=await actor(r);assert(a.siteRole==='admin',403,'SITE_ADMIN_REQUIRED','A site administrator reviews profiles.');const revision=id(r);const row=(await db.query(`SELECT r.id,r.body,r.created_at,(s.submitted_revision_id=r.id AND d.revision_id IS NULL) AS current FROM detail_setting_revisions r JOIN detail_settings s ON s.id=r.setting_id LEFT JOIN persona_revision_decisions d ON d.revision_id=r.id WHERE s.kind='persona' AND r.id=$1`,[revision])).rows[0];assert(row,404,'NOT_FOUND','Profile not found.');return row;});
   app.get('/api/moderation/personas', async r => personaQueue(db, await actor(r), page(r)));
   app.get('/api/me/reviews', async (r) => myReviews(db, await actor(r), page(r)));
   app.post('/api/me/reviews', async (r) => {

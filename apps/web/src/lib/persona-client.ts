@@ -1,3 +1,4 @@
+import {workspaceRevision,clearWorkspaceRevision} from './workspace-revision';
 import { reviewRatingKeys } from '@plotstay/contracts';
 export async function initAccount() {
   const root = document.querySelector<HTMLElement>('#persona-workspace');
@@ -84,7 +85,8 @@ export async function initAccount() {
           (zh ? '操作未完成，请重试。代码：' + data.error?.code : (data.error?.message ?? 'Request failed')),
       );
     }
-    return data;
+    if(body!==undefined)clearWorkspaceRevision();
+  return data;
   }
   const node = (tag: string, text = '', className = '') => {
     const n = document.createElement(tag);
@@ -353,6 +355,7 @@ export async function initAccount() {
     const data = await api('/me/reviews/' + id),
       r = data.revisions[0];
     dirty = false;
+    if(workspaceRevision(view,r.id,data.revisions,root!.dataset.locale!))return;
     view.replaceChildren(
       node('h2', l('编辑评价', 'Edit review')),
       link(data.content.target_slug, targetLink(data.content)),
@@ -367,6 +370,8 @@ export async function initAccount() {
       ),
       node('p', r.persona_note ?? ''),
     );
+    const replyEvent=new URLSearchParams(location.search).get('replyEvent');
+    if(replyEvent){const reply=await api('/me/workspace/reply-events/'+encodeURIComponent(replyEvent));if(reply.review_id!==id)throw new Error(l('回复不属于此评价。','This reply belongs to another review.'));const section=node('section','','panel');section.append(node('h3',l('收到的提供者回复','Provider reply received')),node('p',reply.profiles[root!.dataset.locale!]?.name??reply.profiles.en?.name??''),node('p',reply.body[root!.dataset.locale!]??reply.body.en??''),node('time',new Date(reply.created_at).toLocaleString()));view.append(section);}
     for (const e of data.events.filter((e: any) => e.note)) view.append(node('p', `${e.action}: ${e.note}`));
     const form = document.createElement('form');
     form.onsubmit = (e) => e.preventDefault();
@@ -497,6 +502,13 @@ export async function initAccount() {
     );
     view.append(form);
   }
+  async function submission(id:string){
+    const p=await api('/moderation/personas/'+id);view.replaceChildren(node('h2',l('审核角色资料','Review persona profile')));
+    const profile=p.body[root!.dataset.locale!]??p.body.en;view.append(node('h3',profile?.name??''),node('p',profile?.bio??''));
+    if(!p.current){view.append(node('p',l('这份申请已经处理或被替代。','This submission has been decided or replaced.')));return;}
+    const note=field(view,l('审核说明','Review note'),'profileNote','','textarea');
+    for(const [decision,label]of [['approved',l('批准资料','Approve profile')],['rejected',l('退回资料','Return profile')]])view.append(button(label!,async()=>{await api('/moderation/personas/'+id,{decision,note:note.value});await submission(id);}));
+  }
   async function moderation(page = 1) {
     view.replaceChildren(node('h2', l('评价与回复审核', 'Review moderation')));
     const data = await api('/moderation/reviews?page=' + page);
@@ -555,6 +567,7 @@ export async function initAccount() {
   async function moderate(id: string) {
     const data = await api('/moderation/reviews/' + id),
       r = data.revisions[0];
+    if(workspaceRevision(view,r?.id,data.revisions,root!.dataset.locale!))return;
     view.replaceChildren(
       node('h2', l('审核固定版本', 'Review fixed versions')),
       link(data.content.target_slug, targetLink(data.content)),
@@ -735,6 +748,7 @@ export async function initAccount() {
       node('h2', l('提供者回复', 'Provider reply')),
       link(data.target.target_slug, targetLink(data.target)),
     );
+    if(workspaceRevision(view,r?.id,data.revisions,root!.dataset.locale!))return;
     const p = data.target.profiles[root!.dataset.locale!] ?? (Object.values(data.target.profiles)[0] as any);
     view.append(
       node('h3', l('固定提供者身份：', 'Assigned provider: ') + p?.name),
@@ -803,6 +817,7 @@ export async function initAccount() {
   async function moderateReply(id: string) {
     const data = await api('/moderation/replies/' + id),
       r = data.revisions[0];
+    if(workspaceRevision(view,r?.id,data.revisions,root!.dataset.locale!))return;
     view.replaceChildren(node('h2', l('审核提供者回复', 'Moderate provider reply')));
     if (!r) {
       view.append(
@@ -879,7 +894,12 @@ export async function initAccount() {
     if (loaded) return;
     loaded = true;
     const q = new URLSearchParams(location.search);
-    if (q.has('review')) await editReview(q.get('review')!);
+    if(q.has('submission')) await submission(q.get('submission')!);
+    else if(q.has('moderateReply')) await moderateReply(q.get('moderateReply')!);
+    else if(q.has('moderate')) await moderate(q.get('moderate')!);
+    else if(q.has('persona')) {const data=await api('/me/personas');const p=data.personas.find((p:any)=>p.id===q.get('persona'));if(!p)throw new Error(l('该角色不可用。','This persona is unavailable.'));editPersona(p);if(q.has('revision')&&q.get('revision')!==p.head_revision_id){const detail=await api('/admin/settings/'+p.setting_id);workspaceRevision(view,p.head_revision_id,detail.revisions,root!.dataset.locale!);}}
+    else if(q.get('new')==='1'&&q.get('view')==='personas')editPersona();
+    else if (q.has('review')) await editReview(q.get('review')!);
     else if (q.has('target')) await start(q.get('target')!);
     else if (q.has('reply')) await editReply(q.get('reply')!);
     else if (q.get('view') === 'replies') await replies();

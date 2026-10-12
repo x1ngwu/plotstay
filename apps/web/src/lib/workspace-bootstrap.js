@@ -44,11 +44,12 @@
   const account = ['personas', 'reviews', 'replies', 'moderation', 'site'].includes(view);
   start('/auth/me');
   if (admin) start('/locales');
-  const worlds = admin || account || ['overview', 'worlds', 'world-members'].includes(view)
+  const worlds = admin || account || ['worlds', 'world-members'].includes(view)
     ? json(start('/admin/worlds')) : null;
-  if (view === 'overview' || view === 'personas') start('/me/personas');
-  if (view === 'overview' || view === 'reviews') start('/me/reviews?page=1');
-  if (view === 'overview' || view === 'replies') start('/me/provider-reviews?page=1');
+  if (view === 'overview') { const prefix = location.pathname.split('/')[1]; start('/me/workspace' + (query.has('section') ? '/items' : '') + '?' + new URLSearchParams({locale: prefix === 'zh' ? 'zh-CN' : 'en', ...query.has('section') ? Object.fromEntries(['section','scope','group','page'].filter(k=>query.has(k)).map(k=>[k,query.get(k)])) : {}})); }
+  if (view === 'personas') start('/me/personas');
+  if (view === 'reviews') start('/me/reviews?page=1');
+  if (view === 'replies') start('/me/provider-reviews?page=1');
   const loadWorld = world => {
     if (!world || !active) return;
     const base = '/admin/worlds/' + encodeURIComponent(world);
@@ -67,16 +68,13 @@
     if (view === 'world-settings') {
       start(base + '/options');
       void json(start(base + '/settings')).then(data => {
-        if (data?.settings?.length) start('/admin/settings/' + data.settings[0].id);
+        const setting=query.get('setting');
+        if(setting==='home')start(base+'/home');
+        else if(setting&&data?.settings?.some(s=>s.id===setting))start('/admin/settings/'+setting);
+        else if(!setting&&data?.settings?.length)start('/admin/settings/'+data.settings[0].id);
       });
     }
   };
   if (query.get('world')) loadWorld(query.get('world'));
   else if (admin && worlds) void worlds.then(data => loadWorld((data?.worlds?.find(world => world.slug === 'lathe-worlds') || data?.worlds?.[0])?.id));
-  if (view === 'overview' && worlds) void worlds.then(data => {
-    for (const world of data?.worlds || []) {
-      start(`/admin/worlds/${world.id}/contents?status=submitted&page=1`);
-      start(`/admin/worlds/${world.id}/contents?page=1`);
-    }
-  });
 })();

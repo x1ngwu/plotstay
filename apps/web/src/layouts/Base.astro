@@ -30,7 +30,7 @@ if (!seo.canonical) Astro.response.headers.set('X-Robots-Tag', 'noindex, follow'
     {seo.canonical && <link rel="canonical" href={seo.canonical} />}
     {seo.alternates.map(item => <link rel="alternate" hreflang={item.tag} href={item.url} />)}
   </head>
-  <body>
+  <body data-workspace-world={world?.id}>
     <a class="skip-link" href="#main">{t('跳到内容', 'Skip to content')}</a>
     <header class="site-header">
       <div class="header-left">
@@ -59,6 +59,7 @@ if (!seo.canonical) Astro.response.headers.set('X-Robots-Tag', 'noindex, follow'
     <main id="main">{!hasDictionary(locale.code) && <p class="notice">{ui.uiFallback}</p>}<slot /></main>
     <footer><div><a class="brand" href={homePath(locale)}><span class="brand-wordmark">PlotStay</span></a><p>{ui.about}</p></div><nav><a href={homePath(locale, world?.slug) + (world && world.slug !== 'lathe-worlds' ? '&' : '?') + 'view=results'}>{t('浏览全部', 'Browse everything')}</a><a href={`/${locale.pathPrefix}/help`}>{t('帮助中心', 'Help centre')}</a><a href={`/${locale.pathPrefix}/host`}>{t('创作说明', 'For creators')}</a></nav></footer>
     <script>
+      import {recordWorldVisit} from '../lib/workspace-preferences';
       document.addEventListener('keydown', event => {
         if (event.key !== 'Escape') return;
         const menu = document.activeElement?.closest('details[open]') as HTMLDetailsElement | null;
@@ -68,6 +69,7 @@ if (!seo.canonical) Astro.response.headers.set('X-Robots-Tag', 'noindex, follow'
         try {
           const response = await fetch('/api/auth/me');
           if (!response.ok) return;
+          const {actor}=await response.json();const visited=document.body.dataset.workspaceWorld;if(visited&&actor?.id)recordWorldVisit(actor.id,visited);
           document.querySelector<HTMLElement>('[data-sign-in]')!.hidden = true;
           document.querySelector<HTMLElement>('[data-sign-out]')!.hidden = false;
           const worlds = await fetch('/api/admin/worlds');

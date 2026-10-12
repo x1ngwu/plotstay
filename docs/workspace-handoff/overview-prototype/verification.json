@@ -1,0 +1,35 @@
+{
+  "date": "2026-10-12T09:36:59.275Z",
+  "scope": "Isolated visual prototype, not real data acceptance",
+  "checks": [
+    "28 bilingual desktop/mobile scenario renders and assisted tabs without document overflow",
+    "Keyboard tabs, target navigation, unsaved-input guard and return to original tab/item",
+    "Reading keeps task; reply save moves to continue; submission moves to progress",
+    "View all keeps group and scope, reveals entries beyond summary",
+    "Partial failure retries independently; pins, visit and management have distinct behavior",
+    "Author examples exclude management; future project capability explicitly marked planned",
+    "No browser errors, external requests or application API access"
+  ],
+  "screens": [
+    "zh-manager-1440.png",
+    "zh-assisted-1440.png",
+    "zh-author-1440.png",
+    "zh-empty-1440.png",
+    "zh-error-1440.png",
+    "en-manager-1440.png",
+    "en-assisted-1440.png",
+    "en-author-1440.png",
+    "en-empty-1440.png",
+    "en-error-1440.png",
+    "zh-manager-390.png",
+    "zh-assisted-390.png",
+    "zh-author-390.png",
+    "zh-empty-390.png",
+    "zh-error-390.png",
+    "en-manager-390.png",
+    "en-assisted-390.png",
+    "en-author-390.png",
+    "en-empty-390.png",
+    "en-error-390.png"
+  ]
+}

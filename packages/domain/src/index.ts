@@ -11,3 +11,5 @@ export * from './detail.ts';
 export * from './settings.ts';
 
 export * from './persona-reviews.ts';
+
+export * from './workspace.ts';

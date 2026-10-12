@@ -1,3 +1,4 @@
+import {workspaceRevision,clearWorkspaceRevision} from './workspace-revision';
 import { settingsEditor } from './settings-editor';
 import { structuredFields } from './structured-fields';
 import { attributesSchema, textSchema, type ContentText, type ContentAttributes, type Locale } from '@plotstay/contracts';
@@ -113,6 +114,7 @@ async function api(path: string, body?: unknown, method = 'POST'): Promise<any> 
   const data = await response.json();
   if(data.error?.code==='SESSION_REQUIRED')el('login').hidden=false;
   if (!response.ok) throw Object.assign(new Error(data.error?.message ?? l('请求失败', 'Request failed')), data.error);
+  if(body!==undefined)clearWorkspaceRevision();
   return data;
 }
 function on(id: string, fn: () => Promise<void>) {
@@ -495,6 +497,7 @@ async function openContent(id: string) {
   }));
   el('events').replaceChildren(...detail.events.map((event: any) => line(`${new Date(event.created_at).toLocaleString(locale)} · ${event.action} · ${event.note}`)));
   refreshActions();
+  if(workspaceMode&&workspaceRevision(el('editor-panel'),detail.content.head_revision_id,detail.revisions,locale)){el('workflow').hidden=true;return;}
   if(workspaceMode){showPreview();document.getElementById('new-workspace')!.dataset.stage='edit';}
 }
 el<HTMLFormElement>('login').addEventListener('submit', async event => {

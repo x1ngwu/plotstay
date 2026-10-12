@@ -1,3 +1,4 @@
+import {workspaceRevision,clearWorkspaceRevision} from './workspace-revision';
 import {z} from 'zod';
 import {settingsSchema,detailCopyDefaults,completeDetailCopy} from '@plotstay/contracts';
 import {structuredFields} from './structured-fields';
@@ -36,8 +37,10 @@ export function settingsEditor(container:HTMLElement,worldId:string,zh:boolean,a
  async function load(){
   const version=++loadVersion,selection=select.value;setLoading(true);
   try{
-  const [fetched,options]=await Promise.all([api(pathFor(selection)),api(`/admin/worlds/${worldId}/options`)]);if(version!==loadVersion)return;loadedSelection=selection;home=selection==='home';current=fetched;
+  const [fetched,options]=await Promise.all([api(pathFor(selection)),worldId?api(`/admin/worlds/${worldId}/options`):Promise.resolve({parents:[],worldSlug:''})]);if(version!==loadVersion)return;loadedSelection=selection;home=selection==='home';current=fetched;
   if(!current.setting){fields.replaceChildren(node('p',l('此世界尚无首页分类配置。','This world has no home categories.')));return;}
+  if(workspaceRevision(fields,current.setting.head_revision_id,current.revisions,zh?'zh-CN':'en')){actions.hidden=true;previewPanel.hidden=true;previewEntry.hidden=true;previewEntryLabel.hidden=true;return;}
+  actions.hidden=false;previewPanel.hidden=false;previewEntry.hidden=false;previewEntryLabel.hidden=false;
   const revision=current.revisions.find((r:any)=>r.id===current.setting.head_revision_id);
   body=structuredClone(revision.body);if(current.setting.kind==='copy')body=completeDetailCopy(body);setDirty(false);message.textContent='';
   impact.textContent=home?l('影响首页分类入口、列表分类与详情类别名；其他首页配置保留。','Affects home categories, listing filters and detail category names. Other home configuration is preserved.'):current.setting.kind==='copy'?l('影响三类详情与其中的行程控件，不改变首页、计价规则或凭条。','Affects detail pages and their trip controls; home, pricing rules and receipts keep their own copy.'):l('发布后影响首页、列表和以下引用：','Publication affects the home, listings and these references: ')+(current.impacts??[]).map((i:any)=>i.world+'/'+i.slug).join(', ');
@@ -72,7 +75,10 @@ export function settingsEditor(container:HTMLElement,worldId:string,zh:boolean,a
  actions.append(button(l('保存配置草稿','Save configuration draft'),saveDraft));
  actions.append(button(l('预览已保存配置','Preview saved configuration'),async()=>{const links=await Promise.all(['en','zh'].map(async language=>{const a=document.createElement('a');a.href=await previewUrl(language);a.target='_blank';a.rel='noopener';a.textContent=language+' ↗ ';return a;}));previewLinks.replaceChildren(...links);}));
  for(const [action,zhText,en]of [['submit','提交审核','Submit for review'],['publish','审核通过并发布','Approve and publish'],['reject','退回修改','Request changes']])actions.append(button(l(zhText!,en!),async()=>{if(dirty)throw new Error(l('请先保存输入。','Save your input first.'));await api(rootPath()+(home?'/review/':'/')+action,{revisionId:current.setting.head_revision_id});await load();message.textContent=l('操作完成。','Action completed.');}));
- select.addEventListener('change',()=>{if(dirty&&!confirm(l('放弃配置未保存输入？','Discard unsaved configuration?'))){select.value=loadedSelection;return;}void load().catch(e=>message.textContent=e.message);});
- void api(`/admin/worlds/${worldId}/settings`).then(async data=>{for(const s of data.settings){const o=document.createElement('option');o.value=s.id;o.textContent=s.kind+' · '+s.name;select.append(o);}const o=document.createElement('option');o.value='home';o.textContent=l('分类名称（原首页配置）','Category names (home configuration)');select.append(o);await load();}).catch(e=>message.textContent=e.message);
+ select.addEventListener('change',()=>{if(dirty&&!confirm(l('放弃配置未保存输入？','Discard unsaved configuration?'))){select.value=loadedSelection;return;}if(document.getElementById('new-workspace')){clearWorkspaceRevision();const url=new URL(location.href);url.searchParams.set('setting',select.value);window.history.replaceState(null,'',url);}void load().catch(e=>message.textContent=e.message);});
+ const requested=new URLSearchParams(location.search).get('setting');
+ const entries=worldId?api(`/admin/worlds/${worldId}/settings`):requested?api('/admin/settings/'+encodeURIComponent(requested)).then(data=>({settings:[{...data.setting,name:l('共享资料','Shared settings')}]})):Promise.reject(new Error(l('请选择资料。','Choose a setting.')));
+ void entries.then(async data=>{for(const s of data.settings){const o=document.createElement('option');o.value=s.id;o.textContent=s.kind+' · '+s.name;select.append(o);}if(worldId){const o=document.createElement('option');o.value='home';o.textContent=l('分类名称（原首页配置）','Category names (home configuration)');select.append(o);}if(requested){if(![...select.options].some(o=>o.value===requested))throw new Error(l('此资料不属于当前范围。','This setting is not available in this scope.'));select.value=requested;}await load();}).catch(e=>message.textContent=e.message);
+
  return ()=>!dirty||confirm(l('放弃配置未保存输入？','Discard unsaved configuration?'));
 }

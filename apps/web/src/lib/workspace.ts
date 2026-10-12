@@ -1,3 +1,6 @@
+import {clearWorkspaceRevision} from './workspace-revision';
+import {initOverview} from './workspace-overview';
+import {recordWorldVisit} from './workspace-preferences';
 const root = document.querySelector<HTMLElement>('#new-workspace');
 if (root) {
   const zh = root.dataset.locale === 'zh-CN';
@@ -6,13 +9,13 @@ if (root) {
   const base = `/${prefix}/workspace`;
   const view = root.dataset.view ?? 'overview';
   const roles:Record<string,string>={owner:l('所有者','Owner'),admin:l('管理员','Administrator'),editor:l('编辑者','Editor')};
-  const titles:Record<string,string> = {overview:l('今天，从这里继续','Today, pick up where you left off'),works:l('我管理的内容','Content I manage'),editor:l('内容编辑','Edit content'),personas:l('我的角色','My personas'),reviews:l('评价与回复','Reviews and replies'),replies:l('评价与回复','Reviews and replies'),worlds:l('我管理的世界','Worlds I manage'),'world-content':l('世界内容','World content'),'world-settings':l('世界设定','World settings'),'world-tools':l('管理工具','Management tools'),'world-review':l('世界审核','World moderation'),'world-members':l('成员','Members'),moderation:l('世界审核','World moderation'),site:l('网站审核','Site moderation'),settings:l('账号设置','Account settings')};
+  const titles:Record<string,string> = {overview:l('今天，从这里继续','Today, pick up where you left off'),works:l('我管理的内容','Content I manage'),editor:l('内容编辑','Edit content'),personas:l('我的角色','My personas'),reviews:l('评价与回复','Reviews and replies'),replies:l('评价与回复','Reviews and replies'),worlds:l('我管理的世界','Worlds I manage'),'world-content':l('世界内容','World content'),'world-settings':l('世界设定','World settings'),'world-tools':l('管理工具','Management tools'),'world-review':l('世界审核','World moderation'),'shared-settings':l('共享资料','Shared settings'),'world-members':l('成员','Members'),moderation:l('世界审核','World moderation'),site:l('网站审核','Site moderation'),settings:l('账号设置','Account settings')};
   const q = new URLSearchParams(location.search);
   const wsLink = (v:string,world?:string) => base+'?'+new URLSearchParams({view:v,...world?{world}:{} });
   function editorReturn(world?:string){
     const fallback=world?wsLink('world-content',world):wsLink('works');
     const raw=new URLSearchParams(location.search).get('returnTo');if(!raw)return fallback;
-    try{const url=new URL(raw,location.origin);const params=url.searchParams;return url.origin===location.origin&&url.pathname===base&&['works','world-content','world-review'].includes(params.get('view')??'')&&(!params.get('view')?.startsWith('world-')||params.get('world')===world)?url.pathname+url.search:fallback;}catch{return fallback;}
+    try{const url=new URL(raw,location.origin);const params=url.searchParams;return url.origin===location.origin&&url.pathname===base&&['overview','works','world-content','world-review'].includes(params.get('view')??'overview')&&(!params.get('view')?.startsWith('world-')||params.get('world')===world)?url.pathname+url.search:fallback;}catch{return fallback;}
   }
   function anchor(text:string,href:string) {const a=document.createElement('a');a.textContent=text;a.href=href;return a;}
   function route(v:string,world?:string,worldName?:string){
@@ -23,14 +26,16 @@ if (root) {
     const returnView=new URL(returnUrl,location.origin).searchParams.get('view');
     if(v==='editor'){
       if(returnView?.startsWith('world-')&&world)tail.append(anchor(l('我管理的世界','Worlds I manage'),wsLink('worlds')),document.createTextNode(' / '),anchor(worldName??l('世界','World'),wsLink('world-content',world)),document.createTextNode(' / '),anchor(titles[returnView]??returnView,returnUrl));
-      else tail.append(anchor(titles.works!,returnUrl));
+      else tail.append(anchor(returnView==='overview'?titles.overview!:titles.works!,returnUrl));
       tail.append(document.createTextNode(' / '+titles.editor));
     }
     else if(world){tail.append(anchor(l('我管理的世界','Worlds I manage'),wsLink('worlds')),document.createTextNode(' / '));if(v==='world-content')tail.append(document.createTextNode(`${worldName??l('世界','World')} / ${titles[v]??v}`));else tail.append(anchor(worldName??l('世界','World'),wsLink('world-content',world)),document.createTextNode(' / '+(titles[v]??v)));}
     else tail.textContent=titles[v]??v;
     const back=document.getElementById('ws-back') as HTMLAnchorElement;
     back.href=v==='editor'?returnUrl:world?wsLink('worlds'):base;
-    back.textContent='← '+(v==='editor'&&returnView==='world-content'?l('返回世界内容','Back to world content'):v==='editor'&&returnView==='world-review'?l('返回世界审核','Back to world moderation'):v==='editor'?l('返回内容列表','Back to content list'):world?l('返回世界管理','Back to worlds'):l('返回工作台','Back to workspace'));
+    back.textContent='← '+(v==='editor'&&returnView==='overview'?l('返回工作台首页','Back to overview'):v==='editor'&&returnView==='world-content'?l('返回世界内容','Back to world content'):v==='editor'&&returnView==='world-review'?l('返回世界审核','Back to world moderation'):v==='editor'?l('返回内容列表','Back to content list'):world?l('返回世界管理','Back to worlds'):l('返回工作台','Back to workspace'));
+    const requestedReturn=new URLSearchParams(location.search).get('returnTo');
+    if(v!=='overview'&&requestedReturn)try{const url=new URL(requestedReturn,location.origin);if(url.origin===location.origin&&url.pathname===base&&(url.searchParams.get('view')??'overview')==='overview'){back.href=url.pathname+url.search;back.textContent=l('返回工作台首页','Back to overview');}}catch{}
     for(const a of root!.querySelectorAll<HTMLAnchorElement>('.ws-nav a'))a.removeAttribute('aria-current');
     const navView=v==='editor'?(returnView?.startsWith('world-')?'worlds':'works'):v.startsWith('world-')?'worlds':['replies','moderation'].includes(v)?'reviews':v;
     const selected=root!.querySelector<HTMLAnchorElement>(`.ws-nav a[href="${navView==='overview'?base:wsLink(navView)}"]`);
@@ -62,19 +67,30 @@ if (root) {
   async function get(path:string){const response=await (window.__plotstayWorkspace?.request(path,'shell')??fetch('/api'+path,{credentials:'same-origin'}));const data=await response.json();if(!response.ok)throw Object.assign(new Error(data.error?.message??l('无法载入工作台','Could not load workspace')),{code:data.error?.code,status:response.status});return data;}
   async function load(){
     const authRequest=get('/auth/me');
-    const worldRequest=(['overview','worlds','works','editor'].includes(view)||view.startsWith('world-'))?get('/admin/worlds').then(data=>({data,error:null}),(error:Error)=>({data:null,error})):null;
-    const overviewRequests=view==='overview'?Promise.allSettled([get('/me/personas'),get('/me/reviews?page=1'),get('/me/provider-reviews?page=1')]):null;
+    const worldRequest=(['worlds','works','editor'].includes(view)||view.startsWith('world-'))?get('/admin/worlds').then(data=>({data,error:null}),(error:Error)=>({data:null,error})):null;
+
     const auth=await authRequest;
     document.getElementById('ws-account-name')!.textContent=auth.actor.email;
     root!.querySelector<HTMLElement>('.ws-site-link')!.hidden=auth.actor.siteRole!=='admin';
+    if(view==='overview'){await initOverview(root!,auth.actor);return;}
+    if(view==='shared-settings'){
+      const {settingsEditor}=await import('./settings-editor');let dirty=false;
+      const guard=()=>!dirty||confirm(l('放弃配置未保存输入？','Discard unsaved configuration?'));
+      window.addEventListener('workspace:leave',e=>{if(!guard())e.preventDefault();});
+      window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();}});
+      settingsEditor(document.getElementById('ws-shared-settings')!,'',zh,async(path,body,method='POST')=>{
+        if(body===undefined)return get(path);const r=await (window.__plotstayWorkspace?.request(path,'settings',{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})??fetch('/api'+path,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}));const data=await r.json();if(!r.ok)throw new Error(data.error?.message);clearWorkspaceRevision();return data;
+      },v=>dirty=v);return;
+    }
     let world=q.get('world');
     if(view==='works'&&!world){const result=await worldRequest!;if(result.error)throw result.error;world=(result.data.worlds.find((item:any)=>item.slug==='lathe-worlds')??result.data.worlds[0])?.id;}
-    if(world&&(view.startsWith('world-')||view==='works')){
+    if(world&&(view.startsWith('world-')||view==='works'||view==='editor')){
       const result=await worldRequest!;if(result.error)throw result.error;
       const selected=result.data.worlds.find((item:any)=>item.id===world);
       if(!selected)throw Object.assign(new Error(l('无权访问这个世界。','This world is unavailable.')),{code:'WORLD_FORBIDDEN',status:403});
       const worldName=selected.translations?.[root!.dataset.locale!]?.name??selected.slug;
       if(view.startsWith('world-'))document.getElementById('ws-context')!.textContent=worldName;route(root!.dataset.view??view,world,worldName);
+      recordWorldVisit(auth.actor.id,world);
       const canManage=auth.actor.siteRole==='admin'||['owner','admin'].includes(selected.role)||selected.owner_id===auth.actor.id;
       for(const a of root!.querySelectorAll<HTMLAnchorElement>('.ws-world-nav a'))if(['world-review','world-members'].includes(new URL(a.href).searchParams.get('view')??''))a.hidden=!canManage;
       if(['world-review','world-members'].includes(view)&&!canManage){document.getElementById('admin')?.setAttribute('hidden','');document.getElementById('ws-members')!.hidden=true;throw Object.assign(new Error(l('此账号只有内容编辑权限，不能审核或查看成员。','This account can edit content but cannot moderate or view members.')),{code:'WORLD_FORBIDDEN',status:403});}
@@ -101,50 +117,14 @@ if (root) {
       if(!data.worlds.length){const p=document.createElement('p');p.textContent=l('当前账号没有可管理的世界。','This account does not manage a world.');list.append(p);}
       for(const world of data.worlds){const card=document.createElement('article');card.className='ws-card';const h=document.createElement('h2');h.textContent=world.translations?.[root!.dataset.locale!]?.name??world.slug;const status=document.createElement('p');status.textContent=roles[world.role]??l('管理者','Manager');const nav=document.createElement('nav');nav.className='ws-world-actions';for(const [v,label] of [['world-content',l('内容','Content')],['world-review',l('审核','Moderation')],['world-settings',l('设定与共享资料','Settings')],['world-tools',l('导入与翻译','Tools')],['world-members',l('成员','Members')]] as const)nav.append(anchor(label,wsLink(v,world.id)));card.append(h,status,nav);list.append(card);}
     }
-    if(view==='overview'){
-      const todo=document.getElementById('ws-todo')!,continueBox=document.getElementById('ws-continue')!,recent=document.getElementById('ws-recent')!;
-      const [profiles,reviews,inbox]=(await overviewRequests!).map(result=>{if(result.status==='rejected')throw result.reason;return result.value;});
-      todo.replaceChildren();continueBox.replaceChildren();recent.replaceChildren();
-      const row=(titleText:string,description:string,action:string,href:string,attention=false)=>{const item=document.createElement('div');item.className='ws-list-row';if(attention){const dot=document.createElement('i');dot.className='ws-dot';dot.setAttribute('aria-hidden','true');item.append(dot);}const copy=document.createElement('div');copy.className='ws-list-copy';const h=document.createElement('h3');h.textContent=titleText;const p=document.createElement('p');p.textContent=description;copy.append(h,p);const a=anchor(action,href);a.className='ws-row-action';item.append(copy,a);return item;};
-      for(const p of profiles.personas.slice(0,5)){
-        const name=p.draft?.[root!.dataset.locale!]?.name??(Object.values(p.draft??{})[0] as any)?.name??l('未命名角色','Unnamed persona');
-        if(p.decision==='rejected')todo.append(row(name,l('角色资料已退回，请查看意见。','Profile returned; review the feedback.'),l('查看意见','View feedback'),wsLink('personas'),true));
-        else if(p.head_revision_id!==p.submitted_revision_id&&p.head_revision_id!==p.published_revision_id)continueBox.append(row(name,l('角色草稿已保存，尚未提交。','Profile draft saved but not submitted.'),l('编辑资料','Edit profile'),wsLink('personas')));
-        else if(p.published_revision_id)recent.append(row(name,l('角色资料已批准。','Profile approved.'),l('查看角色','View persona'),wsLink('personas')));
-      }
-      for(const r of reviews.items.slice(0,5)){
-        const href=wsLink('reviews')+'&review='+encodeURIComponent(r.id);
-        if(r.status==='rejected')todo.append(row(r.title??l('评价','Review'),l('评价已退回，请查看意见。','Review returned; check the feedback.'),l('查看意见','View feedback'),href,true));
-        else if(r.status==='draft')continueBox.append(row(r.title??l('评价草稿','Review draft'),l('评价草稿尚未提交。','Review draft not yet submitted.'),l('继续编辑','Continue'),href));
-      }
-      for(const r of inbox.items?.slice(0,3)??[])todo.append(row(r.title??r.target_slug,l('作品收到一条评价。','A review arrived for your work.'),l('去回复','Reply'),wsLink('replies')+'&reply='+encodeURIComponent(r.id),true));
-      const todoLoading=document.createElement('p'),workLoading=document.createElement('p');
-      for(const p of [todoLoading,workLoading]){p.className='ws-loading';p.textContent=l('正在载入世界内容…','Loading world content…');}
-      if(data.worlds.length){todo.append(todoLoading);continueBox.append(workLoading);}
-      let failedWorlds=0;
-      await Promise.all(data.worlds.map(async(world:any)=>{
-        const results=await Promise.allSettled([get(`/admin/worlds/${world.id}/contents?status=submitted&page=1`),get(`/admin/worlds/${world.id}/contents?page=1`)]);
-        if(results.some(result=>result.status==='rejected'))failedWorlds++;
-        const [pendingResult,contentsResult]=results;const pending=pendingResult.status==='fulfilled'?pendingResult.value:{total:0};const contents=contentsResult.status==='fulfilled'?contentsResult.value:{contents:[]};
-        const worldName=world.translations?.[root!.dataset.locale!]?.name??world.slug;
-        if(pending.total)todo.append(row(worldName,l(`${pending.total} 条内容待审核`,`${pending.total} ${pending.total===1?'entry awaits':'entries await'} review`),l('去审核','Review'),wsLink('world-review',world.id),true));
-        const kinds:Record<string,string>={stay:l('住宿','Stay'),experience:l('活动','Experience'),service:l('服务','Service'),review:l('手记','Note')};
-        const states:Record<string,string>={draft:l('草稿','Draft'),submitted:l('待审核','Submitted'),approved:l('已审核','Approved'),rejected:l('已退回','Returned')};
-        for(const content of contents.contents.slice(0,2))continueBox.append(row(content.title,`${worldName} · ${kinds[content.kind]??content.kind} · ${states[content.status]??content.status}`,l('打开内容','Open content'),wsLink('editor',world.id)+'&content='+encodeURIComponent(content.id)));
-      }));
-      todoLoading.remove();workLoading.remove();
-      if(failedWorlds){const notice=document.createElement('p');notice.className='ws-empty';notice.textContent=l(`${failedWorlds} 个世界的内容暂未载入，请刷新重试。`,`${failedWorlds} world summaries could not load. Refresh to retry.`);todo.append(notice);}
-      document.getElementById('ws-todo-count')!.textContent=l(`${todo.children.length} 项`,`${todo.children.length} items`);
-      if(!todo.children.length){const p=document.createElement('p');p.className='ws-empty';p.textContent=l('目前没有需要处理的事。','Nothing needs your attention right now.');todo.append(p);}
-      if(!continueBox.children.length){const p=document.createElement('p');p.className='ws-empty';p.textContent=l('暂无最近内容。可以从角色或已有世界开始。','No recent content yet. Start with a persona or an existing world.');continueBox.append(p);}
-      if(!recent.children.length){const p=document.createElement('p');p.className='ws-empty';p.textContent=l('审核和发布状态会显示在这里。','Review and publication updates will appear here.');recent.append(p);}
-    }
+
   }
   const wsLogin=document.getElementById('ws-login') as HTMLFormElement;
   wsLogin.addEventListener('submit',async event=>{event.preventDefault();const body=Object.fromEntries(new FormData(wsLogin));try{const response=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),credentials:'same-origin'});const data=await response.json();if(!response.ok)throw Object.assign(new Error(data.error?.message??''),{code:data.error?.code});(wsLogin.elements.namedItem('password') as HTMLInputElement).value='';location.reload();}catch(error:any){document.getElementById('ws-message')!.textContent=error.code==='INVALID_CREDENTIALS'?l('邮箱或密码不正确。','Email or password is incorrect.'):l('登录未完成，请重试。','Sign in failed. Try again.');}});
   const showLoadError=(error:any)=>{
     const box=document.getElementById('ws-message')!;box.replaceChildren();
     const session=error.code==='SESSION_REQUIRED';
+    if(view==='overview')overview.replaceChildren();
     const forbidden=error.status===403&&!session;
     box.append(document.createTextNode(session?l('请登录现有账号，之后会返回当前页面。','Sign in to continue on this page.'):forbidden?l('当前账号没有此操作的权限。','Your account cannot access this task.'):l('载入失败，请重试。','Could not load this page. Try again.')));
     if(session)wsLogin.hidden=Boolean(document.getElementById('admin')||document.getElementById('persona-workspace'));

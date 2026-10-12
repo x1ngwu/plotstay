@@ -1,0 +1,1240 @@
+{
+  "label": "overview-20261012-baseline",
+  "runs": [
+    {
+      "latency": 0,
+      "view": "overview",
+      "ready": 238,
+      "nav": {
+        "ttfb": 9.299999237060547,
+        "dcl": 84.39999961853027
+      },
+      "resources": [
+        {
+          "path": "/_astro/account.KR7_9Vsr.css",
+          "start": 21,
+          "duration": 10,
+          "ttfb": 2,
+          "bytes": 653
+        },
+        {
+          "path": "/_astro/workspace.BL5x4jCg.css",
+          "start": 22,
+          "duration": 25,
+          "ttfb": 5,
+          "bytes": 4538
+        },
+        {
+          "path": "/_astro/AdminConsole.l6KGK8V6.css",
+          "start": 22,
+          "duration": 17,
+          "ttfb": 2,
+          "bytes": 893
+        },
+        {
+          "path": "/_astro/workspace.astro_astro_type_script_index_0_lang.BqHGyaC0.js",
+          "start": 23,
+          "duration": 32,
+          "ttfb": 3,
+          "bytes": 6277
+        },
+        {
+          "path": "/api/auth/me",
+          "start": 40,
+          "duration": 28,
+          "ttfb": 12,
+          "bytes": 89
+        },
+        {
+          "path": "/api/admin/worlds",
+          "start": 40,
+          "duration": 37,
+          "ttfb": 17,
+          "bytes": 448
+        },
+        {
+          "path": "/api/me/personas",
+          "start": 40,
+          "duration": 43,
+          "ttfb": 22,
+          "bytes": 560
+        },
+        {
+          "path": "/api/me/reviews",
+          "start": 41,
+          "duration": 63,
+          "ttfb": 41,
+          "bytes": 1740
+        },
+        {
+          "path": "/api/me/provider-reviews",
+          "start": 41,
+          "duration": 59,
+          "ttfb": 40,
+          "bytes": 41
+        },
+        {
+          "path": "/api/admin/worlds/09c09945-75bd-408e-b3c1-55508413b769/contents",
+          "start": 169,
+          "duration": 44,
+          "ttfb": 37,
+          "bytes": 59
+        },
+        {
+          "path": "/api/admin/worlds/09c09945-75bd-408e-b3c1-55508413b769/contents",
+          "start": 170,
+          "duration": 47,
+          "ttfb": 37,
+          "bytes": 2655
+        },
+        {
+          "path": "/api/admin/worlds/297595e3-89eb-47f3-8447-676ce56005bb/contents",
+          "start": 170,
+          "duration": 46,
+          "ttfb": 37,
+          "bytes": 59
+        },
+        {
+          "path": "/api/admin/worlds/297595e3-89eb-47f3-8447-676ce56005bb/contents",
+          "start": 170,
+          "duration": 46,
+          "ttfb": 37,
+          "bytes": 822
+        }
+      ],
+      "longTasks": [
+        {
+          "start": 69.5999984741211,
+          "duration": 76
+        }
+      ],
+      "domNodes": 123
+    },
+    {
+      "latency": 0,
+      "view": "works",
+      "ready": 235,
+      "nav": {
+        "ttfb": 9.600000381469727,
+        "dcl": 171.89999961853027
+      },
+      "resources": [
+        {
+          "path": "/_astro/account.KR7_9Vsr.css",
+          "start": 24,
+          "duration": 29,
+          "ttfb": 6,
+          "bytes": 653
+        },
+        {
+          "path": "/_astro/workspace.BL5x4jCg.css",
+          "start": 25,
+          "duration": 56,
+          "ttfb": 10,
+          "bytes": 4538
+        },
+        {
+          "path": "/_astro/AdminConsole.l6KGK8V6.css",
+          "start": 26,
+          "duration": 30,
+          "ttfb": 9,
+          "bytes": 893
+        },
+        {
+          "path": "/_astro/workspace.astro_astro_type_script_index_0_lang.BqHGyaC0.js",
+          "start": 26,
+          "duration": 59,
+          "ttfb": 9,
+          "bytes": 6277
+        },
+        {
+          "path": "/_astro/AdminConsole.astro_astro_type_script_index_0_lang.D70R5qtz.js",
+          "start": 26,
+          "duration": 71,
+          "ttfb": 9,
+          "bytes": 23024
+        },
+        {
+          "path": "/api/auth/me",
+          "start": 35,
+          "duration": 24,
+          "ttfb": 8,
+          "bytes": 89
+        },
+        {
+          "path": "/api/locales",
+          "start": 35,
+          "duration": 45,
+          "ttfb": 5,
+          "bytes": 98
+        },
+        {
+          "path": "/api/admin/worlds",
+          "start": 35,
+          "duration": 55,
+          "ttfb": 6,
+          "bytes": 448
+        },
+        {
+          "path": "/api/admin/worlds/09c09945-75bd-408e-b3c1-55508413b769/contents",
+          "start": 36,
+          "duration": 60,
+          "ttfb": 14,
+          "bytes": 2655
+        },
+        {
+          "path": "/_astro/src.C5aGBjbJ.js",
+          "start": 109,
+          "duration": 30,
+          "ttfb": 5,
+          "bytes": 38264
+        },
+        {
+          "path": "/_astro/i18n.DPkEi1xR.js",
+          "start": 109,
+          "duration": 11,
+          "ttfb": 2,
+          "bytes": 745
+        }
+      ],
+      "longTasks": [],
+      "domNodes": 658
+    },
+    {
+      "latency": 0,
+      "view": "personas",
+      "ready": 174,
+      "nav": {
+        "ttfb": 16.399999618530273,
+        "dcl": 88.5
+      },
+      "resources": [
+        {
+          "path": "/_astro/account.KR7_9Vsr.css",
+          "start": 33,
+          "duration": 27,
+          "ttfb": 4,
+          "bytes": 653
+        },
+        {
+          "path": "/_astro/workspace.BL5x4jCg.css",
+          "start": 33,
+          "duration": 35,
+          "ttfb": 2,
+          "bytes": 4538
+        },
+        {
+          "path": "/_astro/AdminConsole.l6KGK8V6.css",
+          "start": 33,
+          "duration": 24,
+          "ttfb": 2,
+          "bytes": 893
+        },
+        {
+          "path": "/_astro/workspace.astro_astro_type_script_index_0_lang.BqHGyaC0.js",
+          "start": 33,
+          "duration": 42,
+          "ttfb": 2,
+          "bytes": 6277
+        },
+        {
+          "path": "/api/auth/me",
+          "start": 40,
+          "duration": 24,
+          "ttfb": 6,
+          "bytes": 89
+        },
+        {
+          "path": "/api/admin/worlds",
+          "start": 41,
+          "duration": 32,
+          "ttfb": 9,
+          "bytes": 448
+        },
+        {
+          "path": "/api/me/personas",
+          "start": 42,
+          "duration": 60,
+          "ttfb": 25,
+          "bytes": 560
+        },
+        {
+          "path": "/_astro/persona-client.BarcnVxM.js",
+          "start": 87,
+          "duration": 16,
+          "ttfb": 8,
+          "bytes": 74
+        },
+        {
+          "path": "/_astro/persona-client.BdytmjIE.js",
+          "start": 87,
+          "duration": 25,
+          "ttfb": 6,
+          "bytes": 9115
+        },
+        {
+          "path": "/_astro/src.C5aGBjbJ.js",
+          "start": 88,
+          "duration": 47,
+          "ttfb": 15,
+          "bytes": 38264
+        }
+      ],
+      "longTasks": [],
+      "domNodes": 126
+    },
+    {
+      "latency": 0,
+      "view": "reviews",
+      "ready": 190,
+      "nav": {
+        "ttfb": 11.799999237060547,
+        "dcl": 97.79999923706055
+      },
+      "resources": [
+        {
+          "path": "/_astro/account.KR7_9Vsr.css",
+          "start": 23,
+          "duration": 9,
+          "ttfb": 5,
+          "bytes": 653
+        },
+        {
+          "path": "/_astro/workspace.BL5x4jCg.css",
+          "start": 25,
+          "duration": 24,
+          "ttfb": 7,
+          "bytes": 4538
+        },
+        {
+          "path": "/_astro/AdminConsole.l6KGK8V6.css",
+          "start": 25,
+          "duration": 17,
+          "ttfb": 10,
+          "bytes": 893
+        },
+        {
+          "path": "/_astro/workspace.astro_astro_type_script_index_0_lang.BqHGyaC0.js",
+          "start": 26,
+          "duration": 26,
+          "ttfb": 11,
+          "bytes": 6277
+        },
+        {
+          "path": "/api/auth/me",
+          "start": 33,
+          "duration": 43,
+          "ttfb": 32,
+          "bytes": 89
+        },
+        {
+          "path": "/api/admin/worlds",
+          "start": 34,
+          "duration": 56,
+          "ttfb": 39,
+          "bytes": 448
+        },
+        {
+          "path": "/api/me/reviews",
+          "start": 35,
+          "duration": 62,
+          "ttfb": 47,
+          "bytes": 1740
+        },
+        {
+          "path": "/_astro/persona-client.BarcnVxM.js",
+          "start": 93,
+          "duration": 31,
+          "ttfb": 10,
+          "bytes": 74
+        },
+        {
+          "path": "/_astro/persona-client.BdytmjIE.js",
+          "start": 97,
+          "duration": 32,
+          "ttfb": 16,
+          "bytes": 9115
+        },
+        {
+          "path": "/_astro/src.C5aGBjbJ.js",
+          "start": 97,
+          "duration": 46,
+          "ttfb": 16,
+          "bytes": 38264
+        }
+      ],
+      "longTasks": [],
+      "domNodes": 242
+    },
+    {
+      "latency": 0,
+      "view": "world-settings",
+      "ready": 366,
+      "nav": {
+        "ttfb": 12.299999237060547,
+        "dcl": 186.39999961853027
+      },
+      "resources": [
+        {
+          "path": "/_astro/account.KR7_9Vsr.css",
+          "start": 30,
+          "duration": 9,
+          "ttfb": 3,
+          "bytes": 653
+        },
+        {
+          "path": "/_astro/workspace.BL5x4jCg.css",
+          "start": 32,
+          "duration": 23,
+          "ttfb": 9,
+          "bytes": 4538
+        },
+        {
+          "path": "/_astro/AdminConsole.l6KGK8V6.css",
+          "start": 33,
+          "duration": 25,
+          "ttfb": 11,
+          "bytes": 893
+        },
+        {
+          "path": "/_astro/AdminConsole.astro_astro_type_script_index_0_lang.D70R5qtz.js",
+          "start": 34,
+          "duration": 58,
+          "ttfb": 10,
+          "bytes": 23024
+        },
+        {
+          "path": "/_astro/workspace.astro_astro_type_script_index_0_lang.BqHGyaC0.js",
+          "start": 35,
+          "duration": 48,
+          "ttfb": 10,
+          "bytes": 6277
+        },
+        {
+          "path": "/api/auth/me",
+          "start": 46,
+          "duration": 34,
+          "ttfb": 16,
+          "bytes": 89
+        },
+        {
+          "path": "/api/locales",
+          "start": 47,
+          "duration": 40,
+          "ttfb": 32,
+          "bytes": 98
+        },
+        {
+          "path": "/api/admin/worlds",
+          "start": 47,
+          "duration": 34,
+          "ttfb": 5,
+          "bytes": 448
+        },
+        {
+          "path": "/api/admin/worlds/09c09945-75bd-408e-b3c1-55508413b769/options",
+          "start": 48,
+          "duration": 47,
+          "ttfb": 20,
+          "bytes": 1497
+        },
+        {
+          "path": "/api/admin/worlds/09c09945-75bd-408e-b3c1-55508413b769/settings",
+          "start": 49,
+          "duration": 54,
+          "ttfb": 15,
+          "bytes": 1035
+        },
+        {
+          "path": "/_astro/src.C5aGBjbJ.js",
+          "start": 120,
+          "duration": 36,
+          "ttfb": 8,
+          "bytes": 38264
+        },
+        {
+          "path": "/_astro/i18n.DPkEi1xR.js",
+          "start": 120,
+          "duration": 42,
+          "ttfb": 24,
+          "bytes": 745
+        },
+        {
+          "path": "/api/admin/settings/61568604-099f-49d3-8cc2-a8b50eb64792",
+          "start": 121,
+          "duration": 60,
+          "ttfb": 46,
+          "bytes": 9247
+        }
+      ],
+      "longTasks": [],
+      "domNodes": 2074
+    },
+    {
+      "latency": 0,
+      "view": "world-tools",
+      "ready": 218,
+      "nav": {
+        "ttfb": 12.80000114440918,
+        "dcl": 180.10000038146973
+      },
+      "resources": [
+        {
+          "path": "/_astro/account.KR7_9Vsr.css",
+          "start": 51,
+          "duration": 35,
+          "ttfb": 17,
+          "bytes": 653
+        },
+        {
+          "path": "/_astro/workspace.BL5x4jCg.css",
+          "start": 51,
+          "duration": 51,
+          "ttfb": 17,
+          "bytes": 4538
+        },
+        {
+          "path": "/_astro/AdminConsole.l6KGK8V6.css",
+          "start": 51,
+          "duration": 40,
+          "ttfb": 14,
+          "bytes": 893
+        },
+        {
+          "path": "/_astro/AdminConsole.astro_astro_type_script_index_0_lang.D70R5qtz.js",
+          "start": 51,
+          "duration": 68,
+          "ttfb": 14,
+          "bytes": 23024
+        },
+        {
+          "path": "/_astro/workspace.astro_astro_type_script_index_0_lang.BqHGyaC0.js",
+          "start": 51,
+          "duration": 58,
+          "ttfb": 14,
+          "bytes": 6277
+        },
+        {
+          "path": "/api/auth/me",
+          "start": 60,
+          "duration": 35,
+          "ttfb": 17,
+          "bytes": 89
+        },
+        {
+          "path": "/api/locales",
+          "start": 60,
+          "duration": 47,
+          "ttfb": 6,
+          "bytes": 98
+        },
+        {
+          "path": "/api/admin/worlds",
+          "start": 61,
+          "duration": 54,
+          "ttfb": 13,
+          "bytes": 448
+        },
+        {
+          "path": "/api/admin/worlds/09c09945-75bd-408e-b3c1-55508413b769/imports",
+          "start": 61,
+          "duration": 55,
+          "ttfb": 9,
+          "bytes": 18
+        },
+        {
+          "path": "/_astro/src.C5aGBjbJ.js",
+          "start": 127,
+          "duration": 34,
+          "ttfb": 5,
+          "bytes": 38264
+        },
+        {
+          "path": "/_astro/i18n.DPkEi1xR.js",
+          "start": 127,
+          "duration": 13,
+          "ttfb": 4,
+          "bytes": 745
+        }
+      ],
+      "longTasks": [],
+      "domNodes": 290
+    },
+    {
+      "latency": 120,
+      "view": "overview",
+      "ready": 523,
+      "nav": {
+        "ttfb": 8.200000762939453,
+        "dcl": 321.20000076293945
+      },
+      "resources": [
+        {
+          "path": "/_astro/account.KR7_9Vsr.css",
+          "start": 135,
+          "duration": 125,
+          "ttfb": 4,
+          "bytes": 653
+        },
+        {
+          "path": "/_astro/workspace.BL5x4jCg.css",
+          "start": 136,
+          "duration": 131,
+          "ttfb": 5,
+          "bytes": 4538
+        },
+        {
+          "path": "/_astro/AdminConsole.l6KGK8V6.css",
+          "start": 136,
+          "duration": 129,
+          "ttfb": 5,
+          "bytes": 893
+        },
+        {
+          "path": "/_astro/workspace.astro_astro_type_script_index_0_lang.BqHGyaC0.js",
+          "start": 136,
+          "duration": 140,
+          "ttfb": 4,
+          "bytes": 6277
+        },
+        {
+          "path": "/api/auth/me",
+          "start": 147,
+          "duration": 128,
+          "ttfb": 13,
+          "bytes": 89
+        },
+        {
+          "path": "/api/admin/worlds",
+          "start": 149,
+          "duration": 127,
+          "ttfb": 12,
+          "bytes": 448
+        },
+        {
+          "path": "/api/me/personas",
+          "start": 149,
+          "duration": 237,
+          "ttfb": 26,
+          "bytes": 560
+        },
+        {
+          "path": "/api/me/reviews",
+          "start": 150,
+          "duration": 247,
+          "ttfb": 22,
+          "bytes": 1740
+        },
+        {
+          "path": "/api/me/provider-reviews",
+          "start": 151,
+          "duration": 249,
+          "ttfb": 27,
+          "bytes": 41
+        },
+        {
+          "path": "/api/admin/worlds/09c09945-75bd-408e-b3c1-55508413b769/contents",
+          "start": 337,
+          "duration": 136,
+          "ttfb": 29,
+          "bytes": 59
+        },
+        {
+          "path": "/api/admin/worlds/09c09945-75bd-408e-b3c1-55508413b769/contents",
+          "start": 338,
+          "duration": 141,
+          "ttfb": 27,
+          "bytes": 2655
+        },
+        {
+          "path": "/api/admin/worlds/297595e3-89eb-47f3-8447-676ce56005bb/contents",
+          "start": 338,
+          "duration": 138,
+          "ttfb": 27,
+          "bytes": 59
+        },
+        {
+          "path": "/api/admin/worlds/297595e3-89eb-47f3-8447-676ce56005bb/contents",
+          "start": 338,
+          "duration": 176,
+          "ttfb": 11,
+          "bytes": 822
+        }
+      ],
+      "longTasks": [],
+      "domNodes": 123
+    },
+    {
+      "latency": 120,
+      "view": "works",
+      "ready": 552,
+      "nav": {
+        "ttfb": 10.69999885559082,
+        "dcl": 493.6999988555908
+      },
+      "resources": [
+        {
+          "path": "/_astro/account.KR7_9Vsr.css",
+          "start": 137,
+          "duration": 128,
+          "ttfb": 3,
+          "bytes": 653
+        },
+        {
+          "path": "/_astro/workspace.BL5x4jCg.css",
+          "start": 137,
+          "duration": 139,
+          "ttfb": 4,
+          "bytes": 4538
+        },
+        {
+          "path": "/_astro/AdminConsole.l6KGK8V6.css",
+          "start": 139,
+          "duration": 135,
+          "ttfb": 2,
+          "bytes": 893
+        },
+        {
+          "path": "/_astro/AdminConsole.astro_astro_type_script_index_0_lang.D70R5qtz.js",
+          "start": 143,
+          "duration": 143,
+          "ttfb": 2,
+          "bytes": 23024
+        },
+        {
+          "path": "/_astro/workspace.astro_astro_type_script_index_0_lang.BqHGyaC0.js",
+          "start": 145,
+          "duration": 134,
+          "ttfb": 2,
+          "bytes": 6277
+        },
+        {
+          "path": "/api/auth/me",
+          "start": 153,
+          "duration": 128,
+          "ttfb": 19,
+          "bytes": 89
+        },
+        {
+          "path": "/api/locales",
+          "start": 153,
+          "duration": 236,
+          "ttfb": 8,
+          "bytes": 98
+        },
+        {
+          "path": "/api/admin/worlds",
+          "start": 153,
+          "duration": 250,
+          "ttfb": 13,
+          "bytes": 448
+        },
+        {
+          "path": "/api/admin/worlds/09c09945-75bd-408e-b3c1-55508413b769/contents",
+          "start": 154,
+          "duration": 254,
+          "ttfb": 18,
+          "bytes": 2655
+        },
+        {
+          "path": "/_astro/src.C5aGBjbJ.js",
+          "start": 303,
+          "duration": 145,
+          "ttfb": 8,
+          "bytes": 38264
+        },
+        {
+          "path": "/_astro/i18n.DPkEi1xR.js",
+          "start": 304,
+          "duration": 129,
+          "ttfb": 6,
+          "bytes": 745
+        }
+      ],
+      "longTasks": [],
+      "domNodes": 658
+    },
+    {
+      "latency": 120,
+      "view": "personas",
+      "ready": 509,
+      "nav": {
+        "ttfb": 18.5,
+        "dcl": 316.6000003814697
+      },
+      "resources": [
+        {
+          "path": "/_astro/account.KR7_9Vsr.css",
+          "start": 151,
+          "duration": 129,
+          "ttfb": 2,
+          "bytes": 653
+        },
+        {
+          "path": "/_astro/workspace.BL5x4jCg.css",
+          "start": 152,
+          "duration": 143,
+          "ttfb": 5,
+          "bytes": 4538
+        },
+        {
+          "path": "/_astro/AdminConsole.l6KGK8V6.css",
+          "start": 152,
+          "duration": 135,
+          "ttfb": 4,
+          "bytes": 893
+        },
+        {
+          "path": "/_astro/workspace.astro_astro_type_script_index_0_lang.BqHGyaC0.js",
+          "start": 152,
+          "duration": 146,
+          "ttfb": 4,
+          "bytes": 6277
+        },
+        {
+          "path": "/api/auth/me",
+          "start": 162,
+          "duration": 138,
+          "ttfb": 7,
+          "bytes": 89
+        },
+        {
+          "path": "/api/admin/worlds",
+          "start": 163,
+          "duration": 136,
+          "ttfb": 6,
+          "bytes": 448
+        },
+        {
+          "path": "/api/me/personas",
+          "start": 163,
+          "duration": 246,
+          "ttfb": 14,
+          "bytes": 560
+        },
+        {
+          "path": "/_astro/persona-client.BarcnVxM.js",
+          "start": 312,
+          "duration": 126,
+          "ttfb": 5,
+          "bytes": 74
+        },
+        {
+          "path": "/_astro/persona-client.BdytmjIE.js",
+          "start": 313,
+          "duration": 137,
+          "ttfb": 7,
+          "bytes": 9115
+        },
+        {
+          "path": "/_astro/src.C5aGBjbJ.js",
+          "start": 314,
+          "duration": 152,
+          "ttfb": 10,
+          "bytes": 38264
+        }
+      ],
+      "longTasks": [],
+      "domNodes": 126
+    },
+    {
+      "latency": 120,
+      "view": "reviews",
+      "ready": 497,
+      "nav": {
+        "ttfb": 9.399999618530273,
+        "dcl": 296.8000011444092
+      },
+      "resources": [
+        {
+          "path": "/_astro/account.KR7_9Vsr.css",
+          "start": 144,
+          "duration": 126,
+          "ttfb": 3,
+          "bytes": 653
+        },
+        {
+          "path": "/_astro/workspace.BL5x4jCg.css",
+          "start": 144,
+          "duration": 140,
+          "ttfb": 5,
+          "bytes": 4538
+        },
+        {
+          "path": "/_astro/AdminConsole.l6KGK8V6.css",
+          "start": 145,
+          "duration": 128,
+          "ttfb": 5,
+          "bytes": 893
+        },
+        {
+          "path": "/_astro/workspace.astro_astro_type_script_index_0_lang.BqHGyaC0.js",
+          "start": 145,
+          "duration": 141,
+          "ttfb": 5,
+          "bytes": 6277
+        },
+        {
+          "path": "/api/auth/me",
+          "start": 152,
+          "duration": 129,
+          "ttfb": 6,
+          "bytes": 89
+        },
+        {
+          "path": "/api/admin/worlds",
+          "start": 152,
+          "duration": 132,
+          "ttfb": 8,
+          "bytes": 448
+        },
+        {
+          "path": "/api/me/reviews",
+          "start": 154,
+          "duration": 244,
+          "ttfb": 11,
+          "bytes": 1740
+        },
+        {
+          "path": "/_astro/persona-client.BarcnVxM.js",
+          "start": 295,
+          "duration": 132,
+          "ttfb": 1,
+          "bytes": 74
+        },
+        {
+          "path": "/_astro/persona-client.BdytmjIE.js",
+          "start": 296,
+          "duration": 138,
+          "ttfb": 4,
+          "bytes": 9115
+        },
+        {
+          "path": "/_astro/src.C5aGBjbJ.js",
+          "start": 296,
+          "duration": 158,
+          "ttfb": 6,
+          "bytes": 38264
+        }
+      ],
+      "longTasks": [],
+      "domNodes": 242
+    },
+    {
+      "latency": 120,
+      "view": "world-settings",
+      "ready": 592,
+      "nav": {
+        "ttfb": 13.700000762939453,
+        "dcl": 487.4000015258789
+      },
+      "resources": [
+        {
+          "path": "/_astro/account.KR7_9Vsr.css",
+          "start": 142,
+          "duration": 136,
+          "ttfb": 22,
+          "bytes": 653
+        },
+        {
+          "path": "/_astro/workspace.BL5x4jCg.css",
+          "start": 143,
+          "duration": 147,
+          "ttfb": 20,
+          "bytes": 4538
+        },
+        {
+          "path": "/_astro/AdminConsole.l6KGK8V6.css",
+          "start": 143,
+          "duration": 132,
+          "ttfb": 19,
+          "bytes": 893
+        },
+        {
+          "path": "/_astro/AdminConsole.astro_astro_type_script_index_0_lang.D70R5qtz.js",
+          "start": 143,
+          "duration": 155,
+          "ttfb": 21,
+          "bytes": 23024
+        },
+        {
+          "path": "/_astro/workspace.astro_astro_type_script_index_0_lang.BqHGyaC0.js",
+          "start": 143,
+          "duration": 148,
+          "ttfb": 21,
+          "bytes": 6277
+        },
+        {
+          "path": "/api/auth/me",
+          "start": 152,
+          "duration": 136,
+          "ttfb": 12,
+          "bytes": 89
+        },
+        {
+          "path": "/api/locales",
+          "start": 152,
+          "duration": 252,
+          "ttfb": 5,
+          "bytes": 98
+        },
+        {
+          "path": "/api/admin/worlds",
+          "start": 152,
+          "duration": 260,
+          "ttfb": 14,
+          "bytes": 448
+        },
+        {
+          "path": "/api/admin/worlds/09c09945-75bd-408e-b3c1-55508413b769/options",
+          "start": 153,
+          "duration": 271,
+          "ttfb": 38,
+          "bytes": 1497
+        },
+        {
+          "path": "/api/admin/worlds/09c09945-75bd-408e-b3c1-55508413b769/settings",
+          "start": 153,
+          "duration": 267,
+          "ttfb": 31,
+          "bytes": 1035
+        },
+        {
+          "path": "/_astro/src.C5aGBjbJ.js",
+          "start": 313,
+          "duration": 147,
+          "ttfb": 21,
+          "bytes": 38264
+        },
+        {
+          "path": "/_astro/i18n.DPkEi1xR.js",
+          "start": 313,
+          "duration": 129,
+          "ttfb": 17,
+          "bytes": 745
+        },
+        {
+          "path": "/api/admin/settings/61568604-099f-49d3-8cc2-a8b50eb64792",
+          "start": 421,
+          "duration": 130,
+          "ttfb": 20,
+          "bytes": 9247
+        }
+      ],
+      "longTasks": [],
+      "domNodes": 2074
+    },
+    {
+      "latency": 120,
+      "view": "world-tools",
+      "ready": 523,
+      "nav": {
+        "ttfb": 16.799999237060547,
+        "dcl": 484.79999923706055
+      },
+      "resources": [
+        {
+          "path": "/_astro/account.KR7_9Vsr.css",
+          "start": 158,
+          "duration": 129,
+          "ttfb": 3,
+          "bytes": 653
+        },
+        {
+          "path": "/_astro/workspace.BL5x4jCg.css",
+          "start": 158,
+          "duration": 140,
+          "ttfb": 3,
+          "bytes": 4538
+        },
+        {
+          "path": "/_astro/AdminConsole.l6KGK8V6.css",
+          "start": 158,
+          "duration": 134,
+          "ttfb": 6,
+          "bytes": 893
+        },
+        {
+          "path": "/_astro/AdminConsole.astro_astro_type_script_index_0_lang.D70R5qtz.js",
+          "start": 158,
+          "duration": 159,
+          "ttfb": 7,
+          "bytes": 23024
+        },
+        {
+          "path": "/_astro/workspace.astro_astro_type_script_index_0_lang.BqHGyaC0.js",
+          "start": 158,
+          "duration": 143,
+          "ttfb": 5,
+          "bytes": 6277
+        },
+        {
+          "path": "/api/auth/me",
+          "start": 170,
+          "duration": 137,
+          "ttfb": 11,
+          "bytes": 89
+        },
+        {
+          "path": "/api/locales",
+          "start": 170,
+          "duration": 244,
+          "ttfb": 11,
+          "bytes": 98
+        },
+        {
+          "path": "/api/admin/worlds",
+          "start": 171,
+          "duration": 250,
+          "ttfb": 7,
+          "bytes": 448
+        },
+        {
+          "path": "/api/admin/worlds/09c09945-75bd-408e-b3c1-55508413b769/imports",
+          "start": 171,
+          "duration": 254,
+          "ttfb": 8,
+          "bytes": 18
+        },
+        {
+          "path": "/_astro/src.C5aGBjbJ.js",
+          "start": 320,
+          "duration": 147,
+          "ttfb": 6,
+          "bytes": 38264
+        },
+        {
+          "path": "/_astro/i18n.DPkEi1xR.js",
+          "start": 320,
+          "duration": 130,
+          "ttfb": 5,
+          "bytes": 745
+        }
+      ],
+      "longTasks": [],
+      "domNodes": 290
+    }
+  ],
+  "apiConcurrency": [
+    {
+      "concurrency": 1,
+      "elapsed": 49,
+      "durations": [
+        {
+          "ms": 22,
+          "status": 200
+        },
+        {
+          "ms": 14,
+          "status": 200
+        },
+        {
+          "ms": 13,
+          "status": 200
+        }
+      ]
+    },
+    {
+      "concurrency": 8,
+      "elapsed": 157,
+      "durations": [
+        {
+          "ms": 23,
+          "status": 200
+        },
+        {
+          "ms": 44,
+          "status": 200
+        },
+        {
+          "ms": 49,
+          "status": 200
+        },
+        {
+          "ms": 56,
+          "status": 200
+        },
+        {
+          "ms": 64,
+          "status": 200
+        },
+        {
+          "ms": 71,
+          "status": 200
+        },
+        {
+          "ms": 79,
+          "status": 200
+        },
+        {
+          "ms": 83,
+          "status": 200
+        },
+        {
+          "ms": 42,
+          "status": 200
+        },
+        {
+          "ms": 52,
+          "status": 200
+        },
+        {
+          "ms": 43,
+          "status": 200
+        },
+        {
+          "ms": 50,
+          "status": 200
+        },
+        {
+          "ms": 58,
+          "status": 200
+        },
+        {
+          "ms": 104,
+          "status": 200
+        },
+        {
+          "ms": 47,
+          "status": 200
+        },
+        {
+          "ms": 41,
+          "status": 200
+        },
+        {
+          "ms": 36,
+          "status": 200
+        },
+        {
+          "ms": 49,
+          "status": 200
+        },
+        {
+          "ms": 34,
+          "status": 200
+        },
+        {
+          "ms": 29,
+          "status": 200
+        },
+        {
+          "ms": 32,
+          "status": 200
+        },
+        {
+          "ms": 30,
+          "status": 200
+        },
+        {
+          "ms": 30,
+          "status": 200
+        },
+        {
+          "ms": 24,
+          "status": 200
+        }
+      ]
+    }
+  ]
+}

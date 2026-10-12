@@ -1,0 +1,113 @@
+{
+  "pages": [
+    {
+      "path": "/zh",
+      "status": 200,
+      "robots": "noindex, follow",
+      "cache": "no-store"
+    },
+    {
+      "path": "/en",
+      "status": 200,
+      "robots": "noindex, follow",
+      "cache": "no-store"
+    },
+    {
+      "path": "/zh/workspace",
+      "status": 200,
+      "robots": "noindex, follow",
+      "cache": "no-store"
+    },
+    {
+      "path": "/en/workspace",
+      "status": 200,
+      "robots": "noindex, follow",
+      "cache": "no-store"
+    },
+    {
+      "path": "/zh/admin",
+      "status": 200,
+      "robots": "noindex, follow",
+      "cache": "no-store"
+    },
+    {
+      "path": "/en/account",
+      "status": 200,
+      "robots": "noindex, follow",
+      "cache": "no-store"
+    },
+    {
+      "path": "/api/me/workspace?locale=zh-CN",
+      "status": 200,
+      "robots": "noindex, follow",
+      "cache": "no-store"
+    },
+    {
+      "path": "/api/me/workspace?locale=en",
+      "status": 200,
+      "robots": "noindex, follow",
+      "cache": "no-store"
+    }
+  ],
+  "screenshots": [
+    {
+      "locale": "zh",
+      "width": 1440,
+      "scope": "mine"
+    },
+    {
+      "locale": "zh",
+      "width": 1440,
+      "scope": "assisted"
+    },
+    {
+      "locale": "zh",
+      "width": 390,
+      "scope": "mine"
+    },
+    {
+      "locale": "zh",
+      "width": 390,
+      "scope": "assisted"
+    },
+    {
+      "locale": "en",
+      "width": 1440,
+      "scope": "mine"
+    },
+    {
+      "locale": "en",
+      "width": 1440,
+      "scope": "assisted"
+    },
+    {
+      "locale": "en",
+      "width": 390,
+      "scope": "mine"
+    },
+    {
+      "locale": "en",
+      "width": 390,
+      "scope": "assisted"
+    }
+  ],
+  "sidebar": [
+    {
+      "view": "works",
+      "ready": 659
+    },
+    {
+      "view": "personas",
+      "ready": 663
+    },
+    {
+      "view": "reviews",
+      "ready": 650
+    },
+    {
+      "view": "overview",
+      "ready": 486
+    }
+  ],
+  "errors": []
+}
