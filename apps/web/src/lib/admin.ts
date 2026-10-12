@@ -68,6 +68,17 @@ if(workspaceMode){
   const workspace=document.getElementById('new-workspace')!;workspace.dataset.stage='edit';
   el<HTMLButtonElement>('ws-tab-edit').addEventListener('click',()=>{workspace.dataset.stage='edit';el('editor').scrollIntoView({block:'start'});});
   el<HTMLButtonElement>('ws-tab-preview').addEventListener('click',()=>{workspace.dataset.stage='preview';el('draft-preview-area').scrollIntoView({block:'start'});});
+  el('ws-section-nav').addEventListener('click',event=>{
+    const selected=(event.target as HTMLElement).closest<HTMLButtonElement>('button[data-section]');if(!selected)return;
+    const language=el('structured-editor').querySelector<HTMLElement>('.language-pane[data-active=true]')?.dataset.code??field('sourceLocale').value;
+    const kind=detail?.content.kind??field('kind').value;
+    const targetName=({basics:`${language}.title`,details:`${language}.${kind}.introduction`,price:'amount',provider:'personaId',rules:`${language}.${kind}.cancellation`} as Record<string,string>)[selected.dataset.section!];
+    const target=selected.dataset.section==='images'?el('editor').querySelector<HTMLElement>('[data-field="attributes.images"]'):targetName?[...el('editor').querySelectorAll<HTMLElement>('[name]')].find(item=>item.getAttribute('name')===targetName):null;
+    if(!target)return;
+    workspace.dataset.stage='edit';for(let section=target.closest('details');section;section=section.parentElement?.closest('details')??null)section.open=true;
+    for(const tab of el('ws-section-nav').querySelectorAll<HTMLButtonElement>('button'))tab.setAttribute('aria-pressed',String(tab===selected));
+    target.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'start'});target.focus?.({preventScroll:true});
+  });
   window.addEventListener('message',event=>{
     const data=event.data;
     if(event.origin!==location.origin||event.source!==el<HTMLIFrameElement>('draft-preview-frame').contentWindow||data?.type!=='plotstay:preview'||data.nonce!==previewNonce||data.contentId!==detail?.content.id||data.revisionId!==detail?.content.head_revision_id)return;
@@ -77,7 +88,9 @@ if(workspaceMode){
     const target=[...el('editor').querySelectorAll<HTMLInputElement|HTMLTextAreaElement|HTMLSelectElement>('[name]')].find(input=>input.name===targetName)||el('editor').querySelector<HTMLElement>('[name="'+language+'.title"]');
     if(!target)return;
     workspace.dataset.stage='edit';
-    target.closest('details')?.setAttribute('open','');
+    for(const pane of el('structured-editor').querySelectorAll<HTMLElement>('.language-pane'))pane.dataset.active=String(pane.dataset.code===language);
+    const tabs=[...el('structured-editor').querySelectorAll<HTMLButtonElement>('.language-tabs button')];for(const [index,tab] of tabs.entries())tab.setAttribute('aria-selected',String(locales[index]?.code===language));
+    for(let section=target.closest('details');section;section=section.parentElement?.closest('details')??null)section.open=true;
     target.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'center'});
     target.focus({preventScroll:true});
     message(l('已定位到对应栏目。','Focused the matching section.'));
@@ -190,7 +203,7 @@ function renderStructured() {
   const panel = el('structured-editor'); panel.replaceChildren();
   panel.hidden = formMode !== 'structured'; el('advanced-fields').hidden = formMode === 'structured';
   if (formMode !== 'structured') return;
-  const shared = document.createElement('div'); panel.append(shared);
+  const shared = document.createElement('div'); shared.className='ws-shared-fields';
   const attrs = { ...originalAttributes, images: formMode==='structured'?structuredClone(originalAttributes.images):field('images').value.split('\n').filter(Boolean).map(row => { const [id,url]=row.split('|').map(v=>v.trim());return {id,url};}) } as any;
   for(const [key,name] of [['stay','stayAttributes'],['experience','experienceAttributes'],['service','serviceAttributes'],['reviewRatings','reviewRatings']]) {
     const value=field(name!).value; if(value)attrs[key!]=JSON.parse(value);else delete attrs[key!];
@@ -200,19 +213,20 @@ function renderStructured() {
     field('images').value=value.images.map((i:any)=>`${i.id} | ${i.url}`).join('\n');
     for(const [key,name] of [['stay','stayAttributes'],['experience','experienceAttributes'],['service','serviceAttributes'],['reviewRatings','reviewRatings']])field(name!).value=value[key!]?JSON.stringify(value[key!]):'';
     dirty = true; refreshActions();
-  },{zh:locale==='zh-CN',path:'attributes',kind,keys:kind==='review'?['reviewRatings']:['images',kind],media:()=>attrs.images.map((i:any)=>i.id)});
+  },{zh:locale==='zh-CN',path:'attributes',kind,keys:kind==='review'?['reviewRatings']:['images',kind],media:()=>attrs.images.map((i:any)=>i.id),collapseGroups:workspaceMode});
   const tabs=document.createElement('div');tabs.className='language-tabs admin-actions';panel.append(tabs);
   const languages=document.createElement('div');languages.className='bilingual-fields';panel.append(languages);
   for(const language of locales){
-    const section=document.createElement('section');section.className='language-pane';section.dataset.active=String(language.code===(field('sourceLocale').value||'en'));section.dataset.code=language.code;const tab=document.createElement('button');tab.type='button';tab.textContent=language.name;tab.addEventListener('click',()=>{for(const pane of languages.querySelectorAll<HTMLElement>('.language-pane'))pane.dataset.active=String(pane.dataset.code===language.code);});tabs.append(tab);const h=document.createElement('h3');h.textContent=language.name;section.append(h);const target=document.createElement('div');section.append(target);languages.append(section);
+    const section=document.createElement('section');section.className='language-pane';section.dataset.active=String(language.code===(field('sourceLocale').value||'en'));section.dataset.code=language.code;const tab=document.createElement('button');tab.type='button';tab.textContent=language.name;tab.setAttribute('aria-selected',section.dataset.active);tab.addEventListener('click',()=>{for(const pane of languages.querySelectorAll<HTMLElement>('.language-pane'))pane.dataset.active=String(pane.dataset.code===language.code);for(const choice of tabs.querySelectorAll<HTMLButtonElement>('button'))choice.setAttribute('aria-selected',String(choice===tab));});tabs.append(tab);const h=document.createElement('h3');h.textContent=language.name;section.append(h);const target=document.createElement('div');section.append(target);languages.append(section);
     const data:any=structuredClone(formTexts[language.code]??{});
     const keys=kind==='review'?['title','description','tags','review']:['title','summary','description','tags','hostName','hostBio','imageAlts',kind,'map','facilities','rules'];
     if(kind==='stay')keys.push('highlights');if(kind==='experience')keys.push('included','itinerary');if(kind==='service')keys.push('serviceItems','itinerary');
     const existingCleared=el('language-fields').querySelector<HTMLElement>(`[data-language="${language.code}"]`)?.dataset.cleared;
     const cleared = new Set<string>(existingCleared?JSON.parse(existingCleared):detail?.revisions.find((r:any)=>r.id===selectedRevision)?.translations[language.code]?.clearedFields ?? []);
     data.clearedFields=[...cleared];
-    structuredFields(target,textSchema,data,value=>{formTexts[language.code]=structuredClone(value);for(const [key,,,array]of textFields){const v=value[key];field(`${language.code}:${key}`).value=['stay','experience','service','review','map'].includes(key)?(v===undefined?'':JSON.stringify(v)):key==='imageAlts'?JSON.stringify(v??{}):array?(v??[]).join('\n'):v??'';}dirty = true; refreshActions();},{zh:locale==='zh-CN',path:language.code,kind,keys,media:()=>attrs.images.map((i:any)=>i.id),onArrayOperation:sharedArrayOperation,onEdited:(path,v)=>{const key=path.slice(language.code.length+1);if(!/^(?:stay|experience|service|review|map|hostName|hostBio|highlights|facilities|rules|itinerary)(?:\.[a-zA-Z]+)*$/.test(key))return;if(v===undefined){for(const item of cleared)if(item===key||item.startsWith(key+'.'))cleared.delete(item);}if(v===''||Array.isArray(v)&&!v.length)cleared.add(key);else cleared.delete(key);data.clearedFields=[...cleared];el('language-fields').querySelector<HTMLElement>(`[data-language="${language.code}"]`)!.dataset.cleared=JSON.stringify([...cleared]);}});
+    structuredFields(target,textSchema,data,value=>{formTexts[language.code]=structuredClone(value);for(const [key,,,array]of textFields){const v=value[key];field(`${language.code}:${key}`).value=['stay','experience','service','review','map'].includes(key)?(v===undefined?'':JSON.stringify(v)):key==='imageAlts'?JSON.stringify(v??{}):array?(v??[]).join('\n'):v??'';}dirty = true; refreshActions();},{zh:locale==='zh-CN',path:language.code,kind,keys,media:()=>attrs.images.map((i:any)=>i.id),collapseGroups:workspaceMode,onArrayOperation:sharedArrayOperation,onEdited:(path,v)=>{const key=path.slice(language.code.length+1);if(!/^(?:stay|experience|service|review|map|hostName|hostBio|highlights|facilities|rules|itinerary)(?:\.[a-zA-Z]+)*$/.test(key))return;if(v===undefined){for(const item of cleared)if(item===key||item.startsWith(key+'.'))cleared.delete(item);}if(v===''||Array.isArray(v)&&!v.length)cleared.add(key);else cleared.delete(key);data.clearedFields=[...cleared];el('language-fields').querySelector<HTMLElement>(`[data-language="${language.code}"]`)!.dataset.cleared=JSON.stringify([...cleared]);}});
   }
+  panel.append(shared);
 }
 on('toggle-mode', async()=>{if(formMode==='structured'){formMode='advanced';}else{const parsed=readTexts();originalAttributes=attributesSchema.parse(formValue().attributes);formTexts=parsed;formMode='structured';}renderStructured();el('toggle-mode').textContent=formMode==='structured'?l('切换到高级 JSON','Switch to advanced JSON'):l('返回栏目表单','Return to section forms');});
 function readTexts() {
@@ -276,23 +290,42 @@ async function refreshList() {
   if(request!==listRequest)return;
   if(workspaceMode){const url=new URL(location.href);url.searchParams.set('world',worldId());url.searchParams.set('page',String(listPage));for(const [key,id] of [['kind','filter-kind'],['q','filter-query'],['status','filter-status']]){const value=el<HTMLInputElement>(id!).value;if(value)url.searchParams.set(key!,value);else url.searchParams.delete(key!);}history.replaceState(history.state,'',url);}
   el('list-page').textContent=`${data.page} / ${data.pages} · ${data.total}`;
+  if(workspaceMode)el('ws-result-count').textContent=l(`${data.total} 件作品 · ${el<HTMLSelectElement>('world').selectedOptions[0]?.textContent??''}`,`${data.total} works · ${el<HTMLSelectElement>('world').selectedOptions[0]?.textContent??''}`);
   el<HTMLButtonElement>('list-prev').disabled=listPage<=1;el<HTMLButtonElement>('list-next').disabled=listPage>=data.pages;
-  const rows = data.contents.filter((c: any) => !el<HTMLSelectElement>('filter-kind').value || c.kind === el<HTMLSelectElement>('filter-kind').value).map((content: any) => {
+  const visibleContents=data.contents.filter((c: any) => !el<HTMLSelectElement>('filter-kind').value || c.kind === el<HTMLSelectElement>('filter-kind').value);
+  const openFromList=async(content:any)=>{
+    if (!confirmDiscard()) return;
+    await openContent(content.id);
+    if(detail?.content.id!==content.id)return;
+    if(workspaceMode)window.dispatchEvent(new CustomEvent('workspace:editor',{detail:{id:content.id,title:content.title,world:worldId()}}));
+    el('editor-panel').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'start'});
+    const heading=workspaceMode?document.getElementById('ws-page-title')!:el('editor-title');heading.setAttribute('tabindex','-1');heading.focus({preventScroll:true});
+  };
+  const rows = visibleContents.map((content: any) => {
     const tr = document.createElement('tr');
     for (const text of [content.title, `${content.number} · ${status(content.status)}`, content.site_blocked ? l('网站限制', 'Site restricted') : content.published_publication_id ? l('已公开', 'Published') : l('未公开', 'Unpublished')]) {
       const td = document.createElement('td'); td.textContent = text; tr.append(td);
     }
-    const td = document.createElement('td'); td.append(button(l('编辑', 'Edit'), async () => {
-      if (!confirmDiscard()) return;
-      await openContent(content.id);
-      if(detail?.content.id!==content.id)return;
-      if(workspaceMode){window.dispatchEvent(new CustomEvent('workspace:editor',{detail:{id:content.id,title:content.title,world:worldId()}}));}
-      el('editor-panel').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'start'});
-      el('editor-title').setAttribute('tabindex','-1');el('editor-title').focus({preventScroll:true});
-    })); tr.append(td);
+    const td = document.createElement('td'); td.append(button(l('编辑', 'Edit'), () => openFromList(content))); tr.append(td);
     return tr;
   });
   el('content-list').replaceChildren(...rows);
+  if(workspaceMode){
+    const cards=el('work-cards');cards.replaceChildren();
+    for(const content of visibleContents){
+      const card=document.createElement('article');card.className='ws-work-card';
+      const art=document.createElement('div');art.className=`ws-work-art ws-work-art-${content.kind}`;art.setAttribute('aria-hidden','true');art.textContent=({stay:'⌂',experience:'◈',service:'⚒',review:'✎'} as Record<string,string>)[content.kind]??'◇';
+      const body=document.createElement('div');body.className='ws-work-body';
+      const type=document.createElement('p');type.className='ws-work-type';type.textContent=({stay:l('住宿','Stay'),experience:l('活动','Experience'),service:l('服务','Service'),review:l('手记','Note')} as Record<string,string>)[content.kind]??content.kind;
+      const title=document.createElement('h3');title.textContent=content.title;
+      const slug=document.createElement('p');slug.className='ws-work-slug';slug.textContent=content.slug??content.number??'';
+      const state=document.createElement('span');state.className='ws-badge';state.textContent=content.site_blocked?l('网站限制','Site restriction'):content.published_publication_id?l('已公开','Published'):l('未公开','Unpublished');
+      const draft=document.createElement('span');draft.className='ws-badge ws-badge-muted';draft.textContent=status(content.status);
+      const action=button(content.status==='rejected'?l('查看意见并修改','View feedback and edit'):l('编辑作品','Edit work'),()=>openFromList(content));action.className='ws-work-action';
+      body.append(type,title,slug,state,draft,action);card.append(art,body);cards.append(card);
+    }
+    if(!visibleContents.length){const empty=document.createElement('p');empty.className='ws-empty';empty.textContent=l('没有匹配的作品。试着调整筛选。','No matching works. Try another filter.');cards.append(empty);}
+  }
   const { batches } = await api(`/admin/worlds/${worldId()}/imports`);
   el('import-history').replaceChildren(...batches.map((batch: any) => {
     const item = document.createElement('details'); const title = document.createElement('summary'); title.textContent = `${batch.source} · ${new Date(batch.created_at).toLocaleString(locale)}`;
@@ -391,8 +424,12 @@ async function openContent(id: string) {
   el<HTMLFieldSetElement>('identity').disabled = true;
   fillRevision(detail.revisions[0]); dirty = false;
   el('editor-title').textContent = detail.revisions[0].source_text.title;
+  if(workspaceMode){
+    document.getElementById('ws-context')!.textContent=`${el<HTMLSelectElement>('world').selectedOptions[0]?.textContent??''} · ${({stay:l('住宿','Stay'),experience:l('活动','Experience'),service:l('服务','Service'),review:l('手记','Note')} as Record<string,string>)[detail.content.kind]??detail.content.kind}`;
+    if(document.getElementById('new-workspace')?.dataset.view==='editor')document.getElementById('ws-page-title')!.textContent=l('编辑','Edit ')+detail.revisions[0].source_text.title;
+  }
   el('revision-state').textContent = `${l('版本', 'Revision')} ${detail.revisions[0].number} · ${status(detail.revisions[0].status)}`;
-  el('editor-panel').hidden = false; el('workflow').hidden = false;
+  el('editor-panel').hidden = false; el('editor-panel').dataset.existing='true'; el('workflow').hidden = false;
   el('translation-status').textContent = options.translationProvider === 'disabled' ? l('自动翻译暂未启用，可手工填写译文。待处理任务会保留。', 'Automatic translation is disabled. Enter translations manually; pending tasks are preserved.') : options.translationProvider;
   el('history').replaceChildren(...detail.revisions.map((revision: any) => {
     const row = line(`${l('版本', 'Revision')} ${revision.number} · ${status(revision.status)} · ${revision.source_text.title} `);
@@ -424,6 +461,7 @@ async function openContent(id: string) {
   }));
   el('events').replaceChildren(...detail.events.map((event: any) => line(`${new Date(event.created_at).toLocaleString(locale)} · ${event.action} · ${event.note}`)));
   refreshActions();
+  if(workspaceMode){showPreview();document.getElementById('new-workspace')!.dataset.stage='edit';}
 }
 el<HTMLFormElement>('login').addEventListener('submit', async event => {
   event.preventDefault(); const data = new FormData(event.currentTarget as HTMLFormElement);
@@ -469,7 +507,7 @@ on('new', async () => {
   detail = null; resetPreview(); originalAttributes={images:[]}; editor.reset(); identity(); el<HTMLFieldSetElement>('identity').disabled = false;
   renderTextFields({}); selectedRevision = null; dirty = false;
   el('editor-title').textContent = l('新建内容', 'New content'); el('revision-state').textContent = '';
-  el('editor-panel').hidden = false; el('workflow').hidden = true; updatePreviewState();
+  el('editor-panel').hidden = false; el('editor-panel').dataset.existing='false'; el('workflow').hidden = true; updatePreviewState();
 });
 on('export-draft',async()=>{const blob=new Blob([JSON.stringify({contentId:detail?.content.id??null,...formValue()},null,2)],{type:'application/json'});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='plotstay-draft.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);message(l('草稿副本已下载到本机。','A draft copy was downloaded to this device.'));});
 on('refresh-image-fields',async()=>renderStructured());
@@ -487,7 +525,7 @@ on('refresh-list', async()=>{listPage=1;await refreshList();});
 on('list-prev',async()=>{listPage--;await refreshList();});on('list-next',async()=>{listPage++;await refreshList();});
 on('search-list',async()=>{listPage=1;parentFilter='';await refreshList();});
 on('entry-notes',async()=>{if(!detail)return;parentFilter=detail.content.kind==='review'?detail.content.parent_content_id:detail.content.id;el<HTMLSelectElement>('filter-kind').value='review';el<HTMLInputElement>('filter-query').value='';el<HTMLSelectElement>('filter-status').value='';listPage=1;await refreshList();el('content-list').scrollIntoView();});
-on('new-note',async()=>{if(!detail||!confirmDiscard())return;const parent=detail.content.kind==='review'?detail.content.parent_content_id:detail.content.id;detail=null;resetPreview();originalAttributes={images:[]};editor.reset();identity();el<HTMLFieldSetElement>('identity').disabled=false;field('kind').value='review';field('parentContentId').value=parent;refreshCategories();renderTextFields({});dirty=false;selectedRevision=null;el('workflow').hidden=true;el('editor-title').textContent=l('新建后台手记','New editorial note');refreshActions();});
+on('new-note',async()=>{if(!detail||!confirmDiscard())return;const parent=detail.content.kind==='review'?detail.content.parent_content_id:detail.content.id;detail=null;resetPreview();originalAttributes={images:[]};editor.reset();identity();el<HTMLFieldSetElement>('identity').disabled=false;field('kind').value='review';field('parentContentId').value=parent;refreshCategories();renderTextFields({});dirty=false;selectedRevision=null;el('editor-panel').dataset.existing='false';el('workflow').hidden=true;el('editor-title').textContent=l('新建后台手记','New editorial note');refreshActions();});
 on('preview-draft',async()=>{if(!detail||dirty)throw new Error(l('请先保存草稿。','Save the draft first.'));const rev=detail.content.head_revision_id;const links=el('preview-links');links.replaceChildren(...locales.map(language=>{const a=document.createElement('a');a.href=`/api/admin/preview/${language.pathPrefix}/${detail.content.id}?revisionId=${rev}&token=${detail.content.draft_token}`;a.target='_blank';a.rel='noopener';a.textContent=language.name+' ↗ ';return a;}));});
 on('logout', async () => { if (!confirmDiscard()) return; await api('/auth/logout', {}); location.reload(); });
 el<HTMLSelectElement>('world').addEventListener('change', async () => { if (!confirmDiscard()) { el<HTMLSelectElement>('world').value = loadedWorld; return; } try { await loadWorld(); } catch (error) { message(errorText(error)); } });

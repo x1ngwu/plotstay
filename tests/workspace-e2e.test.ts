@@ -15,19 +15,25 @@ test('workspace checkpoint shares the saved stay draft with the previous admin',
   const browser=await chromium.launch({headless:true});t.after(()=>browser.close());const context=await browser.newContext({viewport:{width:1440,height:900}});const page=await context.newPage();const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
   await page.goto(webUrl+'/en/workspace?view=works');await expect(page.locator('#login')).toBeVisible();
   await page.locator('#login [name=email]').fill(f.credentials.email);await page.locator('#login [name=password]').fill(f.credentials.password);await page.locator('#login button').click();await expect(page.locator('#workspace')).toBeVisible();
-  await page.locator('#filter-query').fill('dockside-window');await page.locator('#search-list').click();await expect(page.locator('#content-list tr')).toHaveCount(1);
-  await page.locator('#content-list button').click();await expect(page.locator('#editor-panel')).toBeVisible();assert.equal(new URL(page.url()).searchParams.get('view'),'editor');
+  await expect(page.locator('.site-header')).toHaveCount(0);await expect(page.locator('.ws-sidebar')).toBeVisible();
+  await page.locator('#filter-query').fill('dockside-window');await page.locator('#search-list').click();await expect(page.locator('#work-cards .ws-work-card')).toHaveCount(1);
+  if(process.env.PLOTSTAY_VISUAL_CAPTURE)await page.screenshot({path:'/tmp/plotstay-works-1440.png',fullPage:true});
+  await page.locator('#work-cards .ws-work-action').click();await expect(page.locator('#editor-panel')).toBeVisible();assert.equal(new URL(page.url()).searchParams.get('view'),'editor');
+  await expect(page.frameLocator('#draft-preview-frame').locator('h1')).toHaveText('A window above the docks');
+  if(process.env.PLOTSTAY_VISUAL_CAPTURE){await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:'/tmp/plotstay-editor-top-1440.png'});}
   await page.locator('[name="en.title"]').fill('Workspace checkpoint');await expect(page.locator('#draft-preview-state')).toContainText('Unsaved');
   const saved=page.waitForResponse(r=>r.request().method()==='POST'&&r.url().endsWith('/revisions'));
   await page.locator('#save-preview').click();assert.equal((await saved).status(),200);await expect(page.locator('#draft-preview-frame')).toHaveAttribute('src',/\/api\/admin\/preview/);await expect(page.frameLocator('#draft-preview-frame').locator('h1')).toHaveText('Workspace checkpoint');await expect(page.locator('#draft-preview-state')).toContainText('Saved');
+  if(process.env.PLOTSTAY_VISUAL_CAPTURE)await page.screenshot({path:'/tmp/plotstay-editor-1440.png'});
   await page.frameLocator('#draft-preview-frame').locator('#about').click();await expect(page.locator('[name="en.stay.introduction"]')).toBeFocused();
-  const icon=page.locator('[name="en.stay.amenities.0.icon"]');await expect(icon).toHaveValue(/.+/);await icon.locator('..').locator('.icon-chooser summary').click();await expect(icon.locator('..').locator('.icon-grid button[data-icon=bath] svg path')).toHaveAttribute('d',/.+/);
+  await page.locator('#field-en-stay-amenities > summary').click();const icon=page.locator('[name="en.stay.amenities.0.icon"]');await expect(icon).toHaveValue(/.+/);await icon.locator('..').locator('.icon-chooser summary').click();await expect(icon.locator('..').locator('.icon-grid button[data-icon=bath] svg path')).toHaveAttribute('d',/.+/);
   const old=await context.newPage();await old.goto(webUrl+'/en/admin');await expect(old.locator('#workspace')).toBeVisible();await old.locator('#filter-query').fill('dockside-window');await old.locator('#search-list').click();await old.locator('#content-list button').click();await expect(old.locator('[name="en.title"]')).toHaveValue('Workspace checkpoint');
   await old.locator('[name="en.title"]').fill('Saved in old admin');await old.locator('#editor button[type=submit]').click();await expect(old.locator('#message')).toContainText('Draft saved');
   await page.locator('[name="en.title"]').fill('Unsaved new workspace input');await page.locator('#editor button[type=submit]').click();await expect(page.locator('#message')).toContainText('conflict');await expect(page.locator('[name="en.title"]')).toHaveValue('Unsaved new workspace input');
-  await page.setViewportSize({width:390,height:850});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));assert.deepEqual(errors,[]);
+  await page.setViewportSize({width:390,height:850});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));if(process.env.PLOTSTAY_VISUAL_CAPTURE)await page.screenshot({path:'/tmp/plotstay-editor-390.png'});assert.deepEqual(errors,[]);
   const personas=await context.newPage();await personas.goto(webUrl+'/en/workspace?view=personas');await expect(personas.locator('#account-view h2')).toContainText('My personas');
-  await personas.goto(webUrl+'/en/workspace');await expect(personas.locator('#ws-recent')).toContainText('Tasks and recent status');
+  await personas.goto(webUrl+'/en/workspace');await expect(personas.locator('.ws-overview-columns')).toBeVisible();await expect(personas.locator('#ws-todo-count')).toContainText('items');
+  if(process.env.PLOTSTAY_VISUAL_CAPTURE){await personas.screenshot({path:'/tmp/plotstay-overview-1440.png',fullPage:true});await personas.setViewportSize({width:390,height:850});await personas.screenshot({path:'/tmp/plotstay-overview-390.png'});assert.ok(await personas.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));}
   await personas.goto(webUrl+'/en/workspace?view=reviews');await expect(personas.locator('#account-view h2')).toContainText('My reviews');
   await personas.goto(webUrl+'/en/workspace?view=worlds');await expect(personas.locator('#ws-world-list .ws-card')).not.toHaveCount(0);
   const worldId=(await f.db.query("SELECT id FROM worlds WHERE slug='lathe-worlds'")).rows[0].id;
