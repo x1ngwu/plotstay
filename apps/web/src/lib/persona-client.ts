@@ -67,11 +67,12 @@ export async function initAccount() {
     PROFILE_REQUIRED: l('请先保存角色及评价。', 'Save the persona and review first.'),
   };
   async function api(path: string, body?: unknown, method = 'POST') {
-    const r = await fetch('/api' + path, {
+    const init:RequestInit = {
       ...(body === undefined
         ? {}
         : { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }),
-    });
+    };
+    const r = await (window.__plotstayWorkspace?.request(path, 'account', init) ?? fetch('/api' + path, init));
     const data = await r.json();
     if (!r.ok) {
       if (data.error?.code === 'SESSION_REQUIRED') {

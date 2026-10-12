@@ -22,11 +22,11 @@ if (root) {
     const returnUrl=editorReturn(world);
     const returnView=new URL(returnUrl,location.origin).searchParams.get('view');
     if(v==='editor'){
-      if(returnView?.startsWith('world-')&&world)tail.append(anchor(l('我管理的世界','Worlds I manage'),wsLink('worlds')),document.createTextNode(' / '),anchor(worldName??world,wsLink('world-content',world)),document.createTextNode(' / '),anchor(titles[returnView]??returnView,returnUrl));
+      if(returnView?.startsWith('world-')&&world)tail.append(anchor(l('我管理的世界','Worlds I manage'),wsLink('worlds')),document.createTextNode(' / '),anchor(worldName??l('世界','World'),wsLink('world-content',world)),document.createTextNode(' / '),anchor(titles[returnView]??returnView,returnUrl));
       else tail.append(anchor(titles.works!,returnUrl));
       tail.append(document.createTextNode(' / '+titles.editor));
     }
-    else if(world){tail.append(anchor(l('我管理的世界','Worlds I manage'),wsLink('worlds')),document.createTextNode(' / '));if(v==='world-content')tail.append(document.createTextNode(`${worldName??world} / ${titles[v]??v}`));else tail.append(anchor(worldName??world,wsLink('world-content',world)),document.createTextNode(' / '+(titles[v]??v)));}
+    else if(world){tail.append(anchor(l('我管理的世界','Worlds I manage'),wsLink('worlds')),document.createTextNode(' / '));if(v==='world-content')tail.append(document.createTextNode(`${worldName??l('世界','World')} / ${titles[v]??v}`));else tail.append(anchor(worldName??l('世界','World'),wsLink('world-content',world)),document.createTextNode(' / '+(titles[v]??v)));}
     else tail.textContent=titles[v]??v;
     const back=document.getElementById('ws-back') as HTMLAnchorElement;
     back.href=v==='editor'?returnUrl:world?wsLink('worlds'):base;
@@ -39,6 +39,11 @@ if (root) {
     const listPanel=document.getElementById('content-list-panel');if(listPanel&&v==='editor')listPanel.hidden=true;
   }
   route(view,q.get('world')??undefined);
+  window.addEventListener('workspace:world-context',((event:CustomEvent<{world:string;worldName:string}>)=>{
+    const heading=document.getElementById('ws-page-title')!;const title=heading.textContent;
+    const current=root!.dataset.view??view;route(current,event.detail.world,event.detail.worldName);
+    if(current==='editor'){heading.textContent=title;document.getElementById('ws-context')!.textContent=event.detail.worldName;}
+  }) as EventListener);
   window.addEventListener('workspace:editor',((event:CustomEvent<{id:string;title:string;world?:string;worldName?:string;returnTo?:string;returnY?:number}>)=>{
     const detail=event.detail;const current=new URL(location.href);
     if(root!.dataset.view!=='editor'&&detail.returnTo){current.searchParams.set('returnTo',detail.returnTo);sessionStorage.setItem('plotstay:workspace-scroll',JSON.stringify({href:detail.returnTo,y:detail.returnY??0,id:detail.id}));}
@@ -49,26 +54,27 @@ if (root) {
     route('editor',current.searchParams.get('world')??undefined,detail.worldName);
     document.getElementById('ws-page-title')!.textContent=l('编辑','Edit ')+detail.title;
   }) as EventListener);
-  window.addEventListener('workspace:editor-context',((event:CustomEvent<{world:string;worldName:string;title:string}>)=>{const detail=event.detail;route('editor',detail.world,detail.worldName);document.getElementById('ws-page-title')!.textContent=l('编辑','Edit ')+detail.title;}) as EventListener);
+  window.addEventListener('workspace:editor-context',((event:CustomEvent<{id:string;world:string;worldName:string;title:string}>)=>{const detail=event.detail;const url=new URL(location.href);url.searchParams.set('content',detail.id);url.searchParams.delete('new');url.searchParams.delete('parentId');history.replaceState(history.state,'',url);currentHref=location.href;route('editor',detail.world,detail.worldName);document.getElementById('ws-page-title')!.textContent=l('编辑','Edit ')+detail.title;}) as EventListener);
   let currentHref=location.href;
   window.addEventListener('popstate',()=>{const guard=new Event('workspace:leave',{cancelable:true});window.dispatchEvent(guard);if(guard.defaultPrevented){history.pushState({workspace:true},'',currentHref);return;}location.reload();});
   const overview=document.getElementById('ws-overview')!, worldsPanel=document.getElementById('ws-worlds')!, settings=document.getElementById('ws-settings')!,membersPanel=document.getElementById('ws-members')!;
   overview.hidden=view!=='overview';worldsPanel.hidden=view!=='worlds';settings.hidden=view!=='settings';membersPanel.hidden=view!=='world-members';
-  async function get(path:string){const response=await fetch('/api'+path,{credentials:'same-origin'});const data=await response.json();if(!response.ok)throw Object.assign(new Error(data.error?.message??l('无法载入工作台','Could not load workspace')),{code:data.error?.code,status:response.status});return data;}
+  async function get(path:string){const response=await (window.__plotstayWorkspace?.request(path,'shell')??fetch('/api'+path,{credentials:'same-origin'}));const data=await response.json();if(!response.ok)throw Object.assign(new Error(data.error?.message??l('无法载入工作台','Could not load workspace')),{code:data.error?.code,status:response.status});return data;}
   async function load(){
     const authRequest=get('/auth/me');
-    const worldRequest=(['overview','worlds'].includes(view)||view.startsWith('world-'))?get('/admin/worlds').then(data=>({data,error:null}),(error:Error)=>({data:null,error})):null;
+    const worldRequest=(['overview','worlds','works','editor'].includes(view)||view.startsWith('world-'))?get('/admin/worlds').then(data=>({data,error:null}),(error:Error)=>({data:null,error})):null;
     const overviewRequests=view==='overview'?Promise.allSettled([get('/me/personas'),get('/me/reviews?page=1'),get('/me/provider-reviews?page=1')]):null;
     const auth=await authRequest;
     document.getElementById('ws-account-name')!.textContent=auth.actor.email;
     root!.querySelector<HTMLElement>('.ws-site-link')!.hidden=auth.actor.siteRole!=='admin';
-    const world=q.get('world');
-    if(world&&view.startsWith('world-')){
+    let world=q.get('world');
+    if(view==='works'&&!world){const result=await worldRequest!;if(result.error)throw result.error;world=(result.data.worlds.find((item:any)=>item.slug==='lathe-worlds')??result.data.worlds[0])?.id;}
+    if(world&&(view.startsWith('world-')||view==='works')){
       const result=await worldRequest!;if(result.error)throw result.error;
       const selected=result.data.worlds.find((item:any)=>item.id===world);
       if(!selected)throw Object.assign(new Error(l('无权访问这个世界。','This world is unavailable.')),{code:'WORLD_FORBIDDEN',status:403});
       const worldName=selected.translations?.[root!.dataset.locale!]?.name??selected.slug;
-      document.getElementById('ws-context')!.textContent=worldName;route(view,world,worldName);
+      if(view.startsWith('world-'))document.getElementById('ws-context')!.textContent=worldName;route(root!.dataset.view??view,world,worldName);
       const canManage=auth.actor.siteRole==='admin'||['owner','admin'].includes(selected.role)||selected.owner_id===auth.actor.id;
       for(const a of root!.querySelectorAll<HTMLAnchorElement>('.ws-world-nav a'))if(['world-review','world-members'].includes(new URL(a.href).searchParams.get('view')??''))a.hidden=!canManage;
       if(['world-review','world-members'].includes(view)&&!canManage){document.getElementById('admin')?.setAttribute('hidden','');document.getElementById('ws-members')!.hidden=true;throw Object.assign(new Error(l('此账号只有内容编辑权限，不能审核或查看成员。','This account can edit content but cannot moderate or view members.')),{code:'WORLD_FORBIDDEN',status:403});}

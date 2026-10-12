@@ -1,6 +1,7 @@
 ---
 import '../styles/account.css';
 import '../styles/workspace.css';
+import bootstrap from '../lib/workspace-bootstrap.js?raw';
 const { title, locale } = Astro.props;
 Astro.response.headers.set('Cache-Control', 'private, no-store');
 Astro.response.headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive');
@@ -12,6 +13,7 @@ Astro.response.headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive');
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex, nofollow, noarchive" />
     <title>{title} · Plotstay</title>
+    <script is:inline set:html={bootstrap}></script>
   </head>
   <body>
     <a class="ws-skip" href="#main">{locale.code === 'zh-CN' ? '跳到内容' : 'Skip to content'}</a>

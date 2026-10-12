@@ -30,6 +30,7 @@ const initialWorkspaceView = document.getElementById('new-workspace')?.dataset.v
 const listView = !workspaceMode || ['works','world-content','world-review'].includes(initialWorkspaceView ?? '');
 let openRequest=0;
 let worldLoadRequest=0;
+let optionsWorld='';
 let previewNonce='';
 const statuses: Record<string, string> = l('zh', 'en') === 'zh' ? { draft: '草稿', submitted: '待审核', approved: '已审核', rejected: '已退回', pending: '等待执行', running: '执行中', completed: '完成', failed: '失败', superseded: '已过期' } : {};
 const status = (value: string) => statuses[value] ?? value;
@@ -106,8 +107,9 @@ const errorText = (error: any) => {
   return error.message + (error.details ? '\n' + JSON.stringify(error.details) : '');
 };
 async function api(path: string, body?: unknown, method = 'POST'): Promise<any> {
-  const response = await fetch('/api' + path, { method: body === undefined ? 'GET' : method, credentials: 'same-origin',
-    ...(body === undefined ? {} : { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }) });
+  const init:RequestInit = { method: body === undefined ? 'GET' : method, credentials: 'same-origin',
+    ...(body === undefined ? {} : { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }) };
+  const response = await (window.__plotstayWorkspace?.request(path, 'admin', init) ?? fetch('/api' + path, init));
   const data = await response.json();
   if(data.error?.code==='SESSION_REQUIRED')el('login').hidden=false;
   if (!response.ok) throw Object.assign(new Error(data.error?.message ?? l('请求失败', 'Request failed')), data.error);
@@ -298,9 +300,10 @@ async function refreshList() {
   try{data=await api(`/admin/worlds/${worldId()}/contents?${params}`);}
   catch(error){if(workspaceMode&&request===listRequest){const box=el('work-cards');const retry=document.createElement('button');retry.type='button';retry.textContent=l('重试载入内容','Retry loading content');retry.addEventListener('click',()=>void refreshList().catch(e=>message(errorText(e))));box.replaceChildren(retry);}throw error;}
   if(request!==listRequest)return;
-  if(workspaceMode){const url=new URL(location.href);url.searchParams.set('world',worldId());url.searchParams.set('page',String(listPage));for(const [key,id] of [['kind','filter-kind'],['q','filter-query'],['status','filter-status']]){const value=el<HTMLInputElement>(id!).value;if(value)url.searchParams.set(key!,value);else url.searchParams.delete(key!);}history.replaceState(history.state,'',url);}
+  if(workspaceMode){const url=new URL(location.href);url.searchParams.set('world',worldId());url.searchParams.set('page',String(listPage));for(const [key,id] of [['kind','filter-kind'],['q','filter-query'],['status','filter-status']]){const value=el<HTMLInputElement>(id!).value;if(value)url.searchParams.set(key!,value);else url.searchParams.delete(key!);}if(parentFilter)url.searchParams.set('parentId',parentFilter);else url.searchParams.delete('parentId');history.replaceState(history.state,'',url);}
   el('list-page').textContent=`${data.page} / ${data.pages} · ${data.total}`;
   if(workspaceMode)el('ws-result-count').textContent=l(`${data.total} 条内容 · ${el<HTMLSelectElement>('world').selectedOptions[0]?.textContent??''}`,`${data.total} ${data.total===1?'entry':'entries'} · ${el<HTMLSelectElement>('world').selectedOptions[0]?.textContent??''}`);
+  if(workspaceMode&&parentFilter){const clear=button(l('此作品的手记 · 查看全部手记','Notes for this entry · View all notes'),async()=>{parentFilter='';listPage=1;await refreshList();});el('ws-result-count').append(document.createTextNode(' · '),clear);}
   el<HTMLButtonElement>('list-prev').disabled=listPage<=1;el<HTMLButtonElement>('list-next').disabled=listPage>=data.pages;
   const visibleContents=data.contents.filter((c: any) => !el<HTMLSelectElement>('filter-kind').value || c.kind === el<HTMLSelectElement>('filter-kind').value);
   const openFromList=async(content:any)=>{
@@ -348,16 +351,23 @@ function renderImportHistory(batches:any[]){el('import-history').replaceChildren
 async function loadWorld(page=1) {
   const request=++worldLoadRequest;
   loadedWorld=worldId();
-  listPage=page;parentFilter='';
+  listPage=page;parentFilter=workspaceMode?new URLSearchParams(location.search).get('parentId')??'':'';
+  optionsWorld='';
   el('editor-panel').hidden = true; detail = null; dirty = false;
   resetPreview();
   previewedImport = ''; el<HTMLButtonElement>('import-apply').disabled = true;
   if(!workspaceMode||initialWorkspaceView==='world-settings')settingsEditor(el('settings-panel'),worldId(),locale==='zh-CN',api,v=>settingsDirty=v);
   const tasks:Promise<unknown>[]=[];
-  if(!workspaceMode||listView||initialWorkspaceView==='editor')tasks.push(api(`/admin/worlds/${worldId()}/options`).then(value=>{if(request===worldLoadRequest)options=value;}));
+  if(!workspaceMode||initialWorkspaceView==='editor')tasks.push(ensureOptions());
   if(listView)tasks.push(refreshList());
   if(initialWorkspaceView==='world-tools')tasks.push(api(`/admin/worlds/${worldId()}/imports`).then(({batches})=>{if(request===worldLoadRequest)renderImportHistory(batches);}));
   await Promise.all(tasks);
+}
+async function ensureOptions(){
+  const world=worldId();
+  if(optionsWorld===world)return;
+  const value=await api(`/admin/worlds/${world}/options`);
+  if(world===worldId()){options=value;optionsWorld=world;}
 }
 async function signIn() {
   const [session,languages,managed]=await Promise.all([api('/auth/me'),api('/locales'),api('/admin/worlds')]);
@@ -375,8 +385,10 @@ async function signIn() {
       if(!worlds.some(world=>world.id===requested)){el('workspace').hidden=true;message(l('无权访问此世界。','This world is unavailable.'));return;}
     }
     if(workspaceMode||query.has('content')||query.has('world')){el<HTMLSelectElement>('filter-kind').value=query.get('kind')??'';el<HTMLInputElement>('filter-query').value=query.get('q')??'';el<HTMLSelectElement>('filter-status').value=query.get('status')??(document.getElementById('new-workspace')?.dataset.view==='world-review'?'submitted':'');listPage=Math.max(1,Number(query.get('page'))||1);}
+    if(workspaceMode)window.dispatchEvent(new CustomEvent('workspace:world-context',{detail:{world:worldId(),worldName:el<HTMLSelectElement>('world').selectedOptions[0]?.textContent??''}}));
     await loadWorld(workspaceMode?Math.max(1,Number(query.get('page'))||1):1);
     const id=query.get('content');if(id)await openContent(id);
+    else if(workspaceMode&&initialWorkspaceView==='editor')await startNew(query.get('parentId')??'');
     if(workspaceMode)message('');
   } else { el<HTMLButtonElement>('new').disabled = true; message(l('没有可管理的世界。', 'No worlds are assigned to this account.')); }
 }
@@ -404,7 +416,7 @@ function refreshCategories() {
   for(const [name,visible]of [['amount',kind!=='review'],['duration',kind==='experience'||kind==='service'],['rating',kind==='review'],['category',kind!=='review']] as const)field(name).closest('label')!.hidden=!visible;
 }
 field('kind').addEventListener('change', () => { refreshCategories(); renderStructured(); });
-el('filter-kind').addEventListener('change', () => { listPage=1;parentFilter=''; void refreshList().catch(error => message(errorText(error))); });
+el('filter-kind').addEventListener('change', () => { listPage=1;if(el<HTMLSelectElement>('filter-kind').value!=='review')parentFilter=''; void refreshList().catch(error => message(errorText(error))); });
 function identity() {
   refreshCategories();
   (field('sourceLocale') as HTMLSelectElement).replaceChildren(...locales.map(item => option(item.code, item.name)));
@@ -429,7 +441,7 @@ function refreshActions() {
 }
 async function openContent(id: string) {
   const request=++openRequest;
-  const next = await api(`/admin/contents/${id}`);
+  const [next] = await Promise.all([api(`/admin/contents/${id}`),ensureOptions()]);
   if(request!==openRequest)return;
   if(next.content.world_id!==worldId()&&worlds.some(world=>world.id===next.content.world_id)){
     if(workspaceMode){const url=new URL(location.href);url.searchParams.set('world',next.content.world_id);location.replace(url);return;}
@@ -448,7 +460,7 @@ async function openContent(id: string) {
   el('editor-title').textContent = detail.revisions[0].source_text.title;
   if(workspaceMode){
     document.getElementById('ws-context')!.textContent=`${el<HTMLSelectElement>('world').selectedOptions[0]?.textContent??''} · ${({stay:l('住宿','Stay'),experience:l('活动','Experience'),service:l('服务','Service'),review:l('手记','Note')} as Record<string,string>)[detail.content.kind]??detail.content.kind}`;
-    if(document.getElementById('new-workspace')?.dataset.view==='editor')window.dispatchEvent(new CustomEvent('workspace:editor-context',{detail:{world:worldId(),worldName:el<HTMLSelectElement>('world').selectedOptions[0]?.textContent??'',title:detail.revisions[0].source_text.title}}));
+    if(document.getElementById('new-workspace')?.dataset.view==='editor')window.dispatchEvent(new CustomEvent('workspace:editor-context',{detail:{id:detail.content.id,world:worldId(),worldName:el<HTMLSelectElement>('world').selectedOptions[0]?.textContent??'',title:detail.revisions[0].source_text.title}}));
   }
   el('revision-state').textContent = `${l('版本', 'Revision')} ${detail.revisions[0].number} · ${status(detail.revisions[0].status)}`;
   el('editor-panel').hidden = false; el('editor-panel').dataset.existing='true'; el('workflow').hidden = false;
@@ -524,12 +536,28 @@ el<HTMLSelectElement>('draft-preview-language').addEventListener('change', () =>
 el<HTMLSelectElement>('draft-preview-width').addEventListener('change', () => {
   el('draft-preview-area').dataset.width = el<HTMLSelectElement>('draft-preview-width').value;
 });
+function navigateNew(parent=''){
+  const current=new URL(location.href);
+  const returnTo=current.searchParams.get('view')==='editor'?current.searchParams.get('returnTo')??`/${locale==='zh-CN'?'zh':'en'}/workspace?${new URLSearchParams({view:'world-content',world:worldId(),kind:'review',...parent?{parentId:parent}:{}})}`:current.pathname+current.search;
+  const params=new URLSearchParams({view:'editor',world:worldId(),new:'1',returnTo,...parent?{parentId:parent}:{}});
+  sessionStorage.setItem('plotstay:workspace-scroll',JSON.stringify({href:returnTo,y:scrollY}));
+  dirty=false;settingsDirty=false;
+  location.assign(current.pathname+'?'+params);
+}
+async function startNew(parent=''){
+  await ensureOptions();
+  detail = null; resetPreview(); originalAttributes={images:[]}; editor.reset(); identity(); el<HTMLFieldSetElement>('identity').disabled = false;
+  if(parent){field('kind').value='review';field('parentContentId').value=parent;refreshCategories();}
+  renderTextFields({}); selectedRevision = null; dirty = false;
+  const title=parent?l('新建后台手记','New editorial note'):l('新建内容', 'New content');
+  el('editor-title').textContent = title; el('revision-state').textContent = '';
+  el('editor-panel').hidden = false; el('editor-panel').dataset.existing='false'; el('workflow').hidden = true; updatePreviewState();
+  if(workspaceMode){const heading=el('ws-page-title');heading.textContent=title;heading.tabIndex=-1;heading.focus({preventScroll:true});scrollTo(0,0);}
+}
 on('new', async () => {
   if (!confirmDiscard()) return;
-  detail = null; resetPreview(); originalAttributes={images:[]}; editor.reset(); identity(); el<HTMLFieldSetElement>('identity').disabled = false;
-  renderTextFields({}); selectedRevision = null; dirty = false;
-  el('editor-title').textContent = l('新建内容', 'New content'); el('revision-state').textContent = '';
-  el('editor-panel').hidden = false; el('editor-panel').dataset.existing='false'; el('workflow').hidden = true; updatePreviewState();
+  if(workspaceMode){navigateNew();return;}
+  await startNew();
 });
 on('export-draft',async()=>{const blob=new Blob([JSON.stringify({contentId:detail?.content.id??null,...formValue()},null,2)],{type:'application/json'});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='plotstay-draft.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);message(l('草稿副本已下载到本机。','A draft copy was downloaded to this device.'));});
 on('refresh-image-fields',async()=>renderStructured());
@@ -545,9 +573,14 @@ on('clear-translations', async () => {
 });
 on('refresh-list', async()=>{listPage=1;await refreshList();});
 on('list-prev',async()=>{listPage--;await refreshList();});on('list-next',async()=>{listPage++;await refreshList();});
-on('search-list',async()=>{listPage=1;parentFilter='';await refreshList();});
-on('entry-notes',async()=>{if(!detail)return;parentFilter=detail.content.kind==='review'?detail.content.parent_content_id:detail.content.id;el<HTMLSelectElement>('filter-kind').value='review';el<HTMLInputElement>('filter-query').value='';el<HTMLSelectElement>('filter-status').value='';listPage=1;await refreshList();el('content-list').scrollIntoView();});
-on('new-note',async()=>{if(!detail||!confirmDiscard())return;const parent=detail.content.kind==='review'?detail.content.parent_content_id:detail.content.id;detail=null;resetPreview();originalAttributes={images:[]};editor.reset();identity();el<HTMLFieldSetElement>('identity').disabled=false;field('kind').value='review';field('parentContentId').value=parent;refreshCategories();renderTextFields({});dirty=false;selectedRevision=null;el('editor-panel').dataset.existing='false';el('workflow').hidden=true;el('editor-title').textContent=l('新建后台手记','New editorial note');refreshActions();});
+on('search-list',async()=>{listPage=1;await refreshList();});
+on('entry-notes',async()=>{
+  if(!detail||!confirmDiscard())return;
+  parentFilter=detail.content.kind==='review'?detail.content.parent_content_id:detail.content.id;
+  if(workspaceMode){dirty=false;settingsDirty=false;location.assign(location.pathname+'?'+new URLSearchParams({view:'world-content',world:worldId(),kind:'review',parentId:parentFilter,page:'1'}));return;}
+  el<HTMLSelectElement>('filter-kind').value='review';el<HTMLInputElement>('filter-query').value='';el<HTMLSelectElement>('filter-status').value='';listPage=1;await refreshList();el('content-list').scrollIntoView();
+});
+on('new-note',async()=>{if(!detail||!confirmDiscard())return;const parent=detail.content.kind==='review'?detail.content.parent_content_id:detail.content.id;if(workspaceMode){navigateNew(parent);return;}await startNew(parent);refreshActions();});
 on('preview-draft',async()=>{if(!detail||dirty)throw new Error(l('请先保存草稿。','Save the draft first.'));const rev=detail.content.head_revision_id;const links=el('preview-links');links.replaceChildren(...locales.map(language=>{const a=document.createElement('a');a.href=`/api/admin/preview/${language.pathPrefix}/${detail.content.id}?revisionId=${rev}&token=${detail.content.draft_token}`;a.target='_blank';a.rel='noopener';a.textContent=language.name+' ↗ ';return a;}));});
 on('logout', async () => { if (!confirmDiscard()) return; await api('/auth/logout', {}); location.reload(); });
 el<HTMLSelectElement>('world').addEventListener('change', async () => {
@@ -557,6 +590,8 @@ el<HTMLSelectElement>('world').addEventListener('change', async () => {
     ++openRequest;++listRequest;++worldLoadRequest;el('workspace').inert=true;
     const url=new URL(location.href);
     url.searchParams.set('world',worldId());url.searchParams.delete('content');url.searchParams.delete('page');
+    url.searchParams.delete('parentId');url.searchParams.delete('returnTo');url.searchParams.delete('new');
+    if(document.getElementById('new-workspace')?.dataset.view==='editor')url.searchParams.set('view','world-content');
     location.assign(url);
     return;
   }

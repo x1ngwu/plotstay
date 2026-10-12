@@ -7,7 +7,7 @@ import {createContent,submitRevision} from '@plotstay/domain';
 import {seedStayDetails} from '../scripts/seed-stay-details.ts';
 import {unusedPort,waitFor,stop} from './runtime.ts';
 
-test('workspace checkpoint shares the saved stay draft with the previous admin', {timeout:120000}, async t=>{
+test('workspace checkpoint shares the saved stay draft with the previous admin', {timeout:180000}, async t=>{
   const f=await detailFixture();t.after(f.cleanup);await seedStayDetails(f.db,f.data.admin,true);
   const longParent=await createContent(f.db,f.data.admin,{...f.entries[0]!.input,slug:'long-parent-identifier-'+'section-'.repeat(8)});await submitRevision(f.db,f.data.admin,longParent.id,longParent.revisionId);
   const apiPort=await unusedPort(),webPort=await unusedPort(),apiUrl=`http://127.0.0.1:${apiPort}`,webUrl=`http://127.0.0.1:${webPort}`;
@@ -47,6 +47,50 @@ test('workspace checkpoint shares the saved stay draft with the previous admin',
   await personas.goto(webUrl+'/en/workspace?view=replies');await expect(personas.locator('.ws-nav a[aria-current=page]')).toContainText('Reviews and replies');
   await personas.goto(webUrl+'/en/workspace?view=worlds');await expect(personas.locator('#ws-world-list .ws-card')).not.toHaveCount(0);
   const worldId=(await f.db.query("SELECT id FROM worlds WHERE slug='lathe-worlds'")).rows[0].id;
+  // Account settings has its own visible sign-in recovery, in both languages.
+  const signedOut=await browser.newContext();const settingsGuest=await signedOut.newPage();
+  for(const language of ['zh','en']){await settingsGuest.goto(webUrl+`/${language}/workspace?view=settings`);await expect(settingsGuest.locator('#ws-login')).toBeVisible();await expect(settingsGuest.locator('#persona-workspace')).toHaveCount(0);}
+  await settingsGuest.locator('#ws-login [name=email]').fill(f.credentials.email);await settingsGuest.locator('#ws-login [name=password]').fill(f.credentials.password);await settingsGuest.locator('#ws-login button').click();await expect(settingsGuest.locator('#ws-account')).toContainText(f.credentials.email);assert.equal(new URL(settingsGuest.url()).searchParams.get('view'),'settings');await signedOut.close();
+
+  const fixes=await context.newPage();const initialRequests:string[]=[];
+  fixes.on('request',request=>{if(new URL(request.url()).pathname.startsWith('/api/'))initialRequests.push(request.url());});
+  // A delayed identity/world response must not serialize the known world's list request.
+  let identityReady=false,contentStartedEarly=false;
+  await fixes.route('**/api/auth/me',async route=>{await new Promise(resolve=>setTimeout(resolve,500));identityReady=true;await route.continue();});
+  fixes.on('request',request=>{if(request.url().includes('/contents?')&&!identityReady)contentStartedEarly=true;});
+  await fixes.goto(webUrl+`/en/workspace?view=works&world=${worldId}`);await expect(fixes.locator('#work-cards .ws-work-card')).not.toHaveCount(0);
+  assert.ok(contentStartedEarly,'content should start while identity is still pending');
+  assert.equal(initialRequests.filter(url=>url.endsWith('/auth/me')).length,1);
+  assert.equal(initialRequests.filter(url=>url.endsWith('/admin/worlds')).length,1);
+  assert.equal(initialRequests.filter(url=>url.endsWith('/options')).length,0,'list must not fetch editor options');
+  await expect(fixes.locator('#ws-crumb-tail')).toContainText('Lathe Worlds');await expect(fixes.locator('#ws-crumb-tail')).not.toContainText(worldId);
+  await fixes.unroute('**/api/auth/me');
+  await fixes.locator('#filter-query').fill('dockside-window');await fixes.locator('#search-list').click();await expect(fixes.locator('#work-cards .ws-work-card')).toHaveCount(1);
+  await fixes.locator('#new').click();await expect(fixes.locator('#editor-panel')).toBeVisible();await expect(fixes.locator('#content-list-panel')).toBeHidden();await expect(fixes.locator('#ws-page-title')).toHaveText('New content');
+  assert.equal(new URL(fixes.url()).searchParams.get('new'),'1');assert.ok(new URL(fixes.url()).searchParams.get('returnTo')?.includes('q=dockside-window'));assert.equal(await fixes.evaluate(()=>scrollY),0);
+  await fixes.reload();await expect(fixes.locator('#editor-panel')).toBeVisible();await expect(fixes.locator('#ws-page-title')).toHaveText('New content');
+  await fixes.locator('[name=slug]').fill('workspace-created-work');
+  fixes.once('dialog',dialog=>dialog.dismiss());await fixes.locator('#ws-back').click();await expect(fixes.locator('[name=slug]')).toHaveValue('workspace-created-work');
+  // The advanced editor uses the same validated payload as the visible structured fields.
+  await fixes.locator('#toggle-mode').click();await fixes.locator('[name=sourceLocale]').selectOption('en');await fixes.locator('[name=amount]').fill('88');
+  await fixes.locator('[name="en:title"]').fill('New workspace work');await fixes.locator('[name="en:summary"]').fill('Created during isolated browser verification.');await fixes.locator('[name="en:description"]').fill('A draft used to verify creation and the return route.');
+  await fixes.locator('#editor button[type=submit]').click();await expect(fixes.locator('#message')).toContainText('Draft saved');
+  assert.ok(new URL(fixes.url()).searchParams.get('content'));assert.equal(new URL(fixes.url()).searchParams.has('new'),false);
+  await fixes.reload();await expect(fixes.locator('#ws-page-title')).toHaveText('Edit New workspace work');
+  await fixes.locator('#ws-back').click();await expect(fixes.locator('#filter-query')).toHaveValue('dockside-window');await expect(fixes.locator('#work-cards .ws-work-card')).toHaveCount(1);
+  await fixes.locator('#work-cards .ws-work-action').click();await expect(fixes.locator('#editor-panel')).toBeVisible();
+  const parentId=new URL(fixes.url()).searchParams.get('content')!;
+  await fixes.reload();await expect(fixes.locator('#entry-notes')).toBeVisible();await fixes.locator('#entry-notes').click();
+  await expect(fixes.locator('#content-list-panel')).toBeVisible();await expect(fixes.locator('#filter-kind')).toHaveValue('review');
+  assert.equal(new URL(fixes.url()).searchParams.get('parentId'),parentId);
+  const expectedNotes=await context.request.get(webUrl+`/api/admin/worlds/${worldId}/contents?page=1&kind=review&parentId=${parentId}`);
+  const noteIds=(await expectedNotes.json()).contents.map((content:any)=>content.id).sort();assert.ok(noteIds.length>0);
+  await expect(fixes.locator('#work-cards .ws-work-card')).toHaveCount(noteIds.length);assert.deepEqual((await fixes.locator('#work-cards .ws-work-card').evaluateAll(cards=>cards.map(card=>(card as HTMLElement).dataset.contentId))).sort(),noteIds);
+  await fixes.locator('#search-list').click();await expect(fixes.locator('#search-list')).toBeEnabled();assert.equal(new URL(fixes.url()).searchParams.get('parentId'),parentId);
+  await fixes.locator('#work-cards .ws-work-action').first().click();await expect(fixes.locator('#editor-panel')).toBeVisible();await fixes.locator('#ws-back').click();await expect(fixes.locator('#work-cards .ws-work-card')).toHaveCount(noteIds.length);assert.equal(new URL(fixes.url()).searchParams.get('parentId'),parentId);
+  await fixes.locator('#work-cards .ws-work-action').first().click();await expect(fixes.locator('#editor-panel')).toBeVisible();await fixes.locator('#new-note').click();await expect(fixes.locator('#ws-page-title')).toHaveText('New editorial note');await expect(fixes.locator('[name=parentContentId]')).toHaveValue(parentId);await expect(fixes.locator('[name=kind]')).toHaveValue('review');await fixes.reload();await expect(fixes.locator('[name=parentContentId]')).toHaveValue(parentId);
+  await fixes.locator('#ws-back').click();await expect(fixes.locator('#content-list-panel')).toBeVisible();await fixes.locator('#world').selectOption(f.data.harbourId);await expect(fixes.locator('#ws-context')).toHaveText('Test Harbour');assert.equal(new URL(fixes.url()).searchParams.get('view'),'world-content');assert.equal(new URL(fixes.url()).searchParams.has('parentId'),false);assert.equal(new URL(fixes.url()).searchParams.has('returnTo'),false);
+  await fixes.close();
   const owner=(await f.db.query('SELECT u.email FROM worlds w JOIN users u ON u.id=w.owner_id WHERE w.id=$1',[worldId])).rows[0].email;
   await personas.goto(webUrl+`/en/workspace?view=world-members&world=${worldId}`);await expect(personas.locator('#ws-member-list')).toContainText(owner);
   const harbourId=f.data.harbourId;
