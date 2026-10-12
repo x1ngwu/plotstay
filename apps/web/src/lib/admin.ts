@@ -283,10 +283,15 @@ function formValue() {
 }
 async function refreshList() {
   const request=++listRequest;el('content-list').replaceChildren();
+  if(workspaceMode){const loading=document.createElement('p');loading.className='ws-loading';loading.textContent=l('正在载入作品…','Loading works…');el('work-cards').replaceChildren(loading);}
+  const importRequest=(!workspaceMode||document.getElementById('new-workspace')?.dataset.view==='world-tools')
+    ?api(`/admin/worlds/${worldId()}/imports`).then(value=>({value,error:null}),(error:unknown)=>({value:null,error})):null;
   const params=new URLSearchParams({page:String(listPage)});
   for(const [key,id]of [['kind','filter-kind'],['q','filter-query'],['status','filter-status']]){const value=el<HTMLInputElement>(id!).value;if(value)params.set(key!,value);}
   if(parentFilter)params.set('parentId',parentFilter);
-  const data = await api(`/admin/worlds/${worldId()}/contents?${params}`);
+  let data:any;
+  try{data=await api(`/admin/worlds/${worldId()}/contents?${params}`);}
+  catch(error){if(workspaceMode&&request===listRequest){const box=el('work-cards');const retry=document.createElement('button');retry.type='button';retry.textContent=l('重试载入作品','Retry loading works');retry.addEventListener('click',()=>void refreshList().catch(e=>message(errorText(e))));box.replaceChildren(retry);}throw error;}
   if(request!==listRequest)return;
   if(workspaceMode){const url=new URL(location.href);url.searchParams.set('world',worldId());url.searchParams.set('page',String(listPage));for(const [key,id] of [['kind','filter-kind'],['q','filter-query'],['status','filter-status']]){const value=el<HTMLInputElement>(id!).value;if(value)url.searchParams.set(key!,value);else url.searchParams.delete(key!);}history.replaceState(history.state,'',url);}
   el('list-page').textContent=`${data.page} / ${data.pages} · ${data.total}`;
@@ -326,26 +331,29 @@ async function refreshList() {
     }
     if(!visibleContents.length){const empty=document.createElement('p');empty.className='ws-empty';empty.textContent=l('没有匹配的作品。试着调整筛选。','No matching works. Try another filter.');cards.append(empty);}
   }
-  const { batches } = await api(`/admin/worlds/${worldId()}/imports`);
-  el('import-history').replaceChildren(...batches.map((batch: any) => {
-    const item = document.createElement('details'); const title = document.createElement('summary'); title.textContent = `${batch.source} · ${new Date(batch.created_at).toLocaleString(locale)}`;
-    const result = document.createElement('pre'); result.textContent = JSON.stringify(batch.results, null, 2); item.append(title, result); return item;
-  }));
+  if(importRequest){
+    const result=await importRequest;
+    if(result.error)throw result.error;
+    const { batches } = result.value;
+    el('import-history').replaceChildren(...batches.map((batch: any) => {
+      const item = document.createElement('details'); const title = document.createElement('summary'); title.textContent = `${batch.source} · ${new Date(batch.created_at).toLocaleString(locale)}`;
+      const result = document.createElement('pre'); result.textContent = JSON.stringify(batch.results, null, 2); item.append(title, result); return item;
+    }));
+  }
 }
-async function loadWorld() {
+async function loadWorld(page=1) {
   loadedWorld=worldId();
-  listPage=1;parentFilter='';
-  options = await api(`/admin/worlds/${worldId()}/options`);
+  listPage=page;parentFilter='';
   el('editor-panel').hidden = true; detail = null; dirty = false;
   resetPreview();
   previewedImport = ''; el<HTMLButtonElement>('import-apply').disabled = true;
-  await refreshList();
-  settingsEditor(el('settings-panel'),worldId(),locale==='zh-CN',api,v=>settingsDirty=v);
+  if(!workspaceMode||document.getElementById('new-workspace')?.dataset.view==='world-settings')settingsEditor(el('settings-panel'),worldId(),locale==='zh-CN',api,v=>settingsDirty=v);
+  const [nextOptions]=await Promise.all([api(`/admin/worlds/${worldId()}/options`),refreshList()]);
+  options=nextOptions;
 }
 async function signIn() {
-  ({ actor } = await api('/auth/me'));
-  ({ locales } = await api('/locales'));
-  ({ worlds } = await api('/admin/worlds'));
+  const [session,languages,managed]=await Promise.all([api('/auth/me'),api('/locales'),api('/admin/worlds')]);
+  actor=session.actor;locales=languages.locales;worlds=managed.worlds;
   el('account').textContent = actor.email;
   el<HTMLSelectElement>('draft-preview-language').value = locale === 'zh-CN' ? 'zh' : 'en';
   el('login').hidden = true; el('workspace').hidden = false;
@@ -354,11 +362,9 @@ async function signIn() {
   if (worlds.length) {
     const query=new URLSearchParams(location.search);
     if(workspaceMode||query.has('content')||query.has('world')){el<HTMLSelectElement>('filter-kind').value=query.get('kind')??'';el<HTMLInputElement>('filter-query').value=query.get('q')??'';el<HTMLSelectElement>('filter-status').value=query.get('status')??(document.getElementById('new-workspace')?.dataset.view==='world-review'?'submitted':'');listPage=Math.max(1,Number(query.get('page'))||1);}
-    await loadWorld();
-    if(workspaceMode||query.has('content')){
-      listPage=Math.max(1,Number(query.get('page'))||1);await refreshList();
-      const id=query.get('content');if(id)await openContent(id);
-    }
+    await loadWorld(workspaceMode?Math.max(1,Number(query.get('page'))||1):1);
+    const id=query.get('content');if(id)await openContent(id);
+    if(workspaceMode)message('');
   } else { el<HTMLButtonElement>('new').disabled = true; message(l('没有可管理的世界。', 'No worlds are assigned to this account.')); }
 }
 function fillRevision(revision: any) {

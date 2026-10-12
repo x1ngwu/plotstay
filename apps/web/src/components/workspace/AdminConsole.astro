@@ -5,7 +5,7 @@ const label = bilingual(locale.code);
 ---
 <div id="admin" data-locale={locale.code} data-mode={mode}>
     <h1>{label('内容管理', 'Content management')}</h1><p><a href={`/${locale.pathPrefix}/account?view=moderation`}>{label('角色评价与回复审核／创建账号','Persona review moderation / create account')}</a> · <a id="new-workspace-link" href={`/${locale.pathPrefix}/workspace?view=works`}>{label('试用新版后台 ↗','Try the new workspace ↗')}</a></p>
-    <p id="message" role="status" aria-live="polite"></p>
+    <p id="message" role="status" aria-live="polite">{mode==='workspace'?label('正在载入工作台…','Loading workspace…'):''}</p>
     <form id="login" class="panel">
       <label>{label('邮箱', 'Email')}<input name="email" type="email" autocomplete="username" required /></label>
       <label>{label('密码', 'Password')}<input name="password" type="password" autocomplete="current-password" required /></label>
@@ -16,7 +16,7 @@ const label = bilingual(locale.code);
       <div class="ws-list-context"><label>{label('管理世界', 'World')}<select id="world"></select></label><div class="admin-actions"><button id="new">＋ {label('创建作品', 'Create work')}</button><button id="refresh-list">{label('刷新列表', 'Refresh list')}</button></div></div>
       <div class="ws-list-filters"><label>{label('名称或网址标识','Title or slug')}<input id="filter-query" type="search" placeholder={label('搜索作品名称','Search work title')} /></label><label>{label('筛选类型', 'Filter type')}<select id="filter-kind"><option value="">{label('全部类型', 'All types')}</option><option value="stay">{label('住宿', 'Homes')}</option><option value="experience">{label('活动', 'Experiences')}</option><option value="service">{label('服务', 'Services')}</option><option value="review">{label('手记', 'Notes')}</option></select></label><label>{label('发布状态','Publication status')}<select id="filter-status"><option value="">{label('全部状态','All statuses')}</option><option value="published">{label('已公开','Published')}</option><option value="unpublished">{label('未公开','Unpublished')}</option><option value="submitted">{label('待审核','Submitted')}</option><option value="draft">{label('草稿','Draft')}</option></select></label><button id="search-list">{label('筛选','Filter')}</button></div>
       <div class="ws-list-meta"><span id="ws-result-count"></span><div class="admin-actions"><button id="list-prev" aria-label={label('上一页','Previous page')}>←</button><span id="list-page"></span><button id="list-next" aria-label={label('下一页','Next page')}>→</button></div></div>
-      {mode==='workspace' && <div id="work-cards" class="ws-work-grid"></div>}
+      {mode==='workspace' && <div id="work-cards" class="ws-work-grid"><p class="ws-loading" role="status">{label('正在载入作品…','Loading works…')}</p></div>}
       <div class="admin-table"><table><thead><tr><th>{label('内容', 'Content')}</th><th>{label('草稿状态', 'Draft status')}</th><th>{label('公开状态', 'Visibility')}</th><th>{label('操作', 'Action')}</th></tr></thead><tbody id="content-list"></tbody></table></div>
       <details class="panel" id="shared-settings-panel"><summary>{label('共用详情文案与关联资料','Detail copy and shared references')}</summary><section id="settings-panel"></section></details>
       <details class="panel" id="import-panel">

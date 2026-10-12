@@ -92,9 +92,11 @@ export async function initAccount() {
     return n;
   };
   const run = async (fn: () => Promise<unknown>) => {
-    message.textContent = '';
+    const loading=root.closest('#new-workspace')?l('正在载入…','Loading…'):'';
+    message.textContent = loading;
     try {
       await fn();
+      if(message.textContent===loading)message.textContent='';
     } catch (e) {
       message.textContent = (e as Error).message;
     }
@@ -857,7 +859,8 @@ export async function initAccount() {
     view.append(button(l('返回评价', 'Back to review'), () => moderate(id)));
   }
   async function initialize() {
-    const nextActor = (await api('/auth/me')).actor;
+    const [session,worlds]=await Promise.all([api('/auth/me'),api('/admin/worlds')]);
+    const nextActor=session.actor;
     if (actor && actor.id !== nextActor.id) {
       dirty = false;
       loaded = false;
@@ -865,7 +868,6 @@ export async function initAccount() {
       history.replaceState(null, '', `/${prefix}/account?view=personas`);
     }
     actor = nextActor;
-    const worlds = await api('/admin/worlds');
     document.querySelector<HTMLElement>('[data-review-admin]')!.hidden = !worlds.worlds.some(
       (w: any) =>
         actor.siteRole === 'admin' || ['owner', 'admin'].includes(w.role) || w.owner_id === actor.id,

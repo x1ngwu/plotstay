@@ -113,6 +113,7 @@ button,a,input,select,textarea { touch-action:manipulation; }
 #new-workspace .ws-shortcuts a { padding:10px 12px; border:1px solid #a3ad9e; border-radius:6px; text-decoration:none; }
 #new-workspace .ws-shortcuts a:hover { background:#f0f3e9; }
 #new-workspace .ws-empty { padding:1rem 0; color:#687067; }
+#new-workspace .ws-loading { width:100%; min-height:4rem; display:flex; align-items:center; margin:0; padding:1rem; color:#687067; background:#f2f4eb; border:1px solid #e2e7d9; border-radius:6px; }
 #new-workspace .ws-world-nav { gap:8px; margin:0 0 22px; padding:0 0 14px; }
 #new-workspace .ws-world-nav a { background:#fffef9; border:1px solid #a3ad9e; }
 #new-workspace .ws-world-nav a[aria-current=true] { background:var(--accent); }

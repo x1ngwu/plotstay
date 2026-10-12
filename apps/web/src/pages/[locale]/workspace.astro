@@ -44,11 +44,11 @@ const legacyTarget=accountViews.includes(view)?`/${locale.pathPrefix}/account?vi
     {worldId && view.startsWith('world-') && <nav class="ws-world-nav" aria-label={t('世界管理','World management')}><a href={`/${locale.pathPrefix}/workspace?view=world-content&world=${worldId}`}>{t('内容','Content')}</a><a href={`/${locale.pathPrefix}/workspace?view=world-review&world=${worldId}`}>{t('审核','Moderation')}</a><a href={`/${locale.pathPrefix}/workspace?view=world-settings&world=${worldId}`}>{t('设定与共享资料','Settings')}</a><a href={`/${locale.pathPrefix}/workspace?view=world-tools&world=${worldId}`}>{t('管理工具','Tools')}</a><a href={`/${locale.pathPrefix}/workspace?view=world-members&world=${worldId}`}>{t('成员','Members')}</a></nav>}
     <p id="ws-message" role="status" aria-live="polite"></p>
     <section id="ws-overview" hidden><div class="ws-overview-columns"><div>
-      <section class="ws-panel ws-task-panel"><div class="ws-panel-bar"><strong>{t('需要你处理','Needs your attention')}</strong><span id="ws-todo-count"></span></div><div id="ws-todo" class="ws-panel-body"></div></section>
-      <section class="ws-panel"><h2>{t('继续创作','Continue creating')}</h2><div id="ws-continue"></div></section>
+      <section class="ws-panel ws-task-panel"><div class="ws-panel-bar"><strong>{t('需要你处理','Needs your attention')}</strong><span id="ws-todo-count"></span></div><div id="ws-todo" class="ws-panel-body"><p class="ws-loading" role="status">{t('正在载入待办…','Loading tasks…')}</p></div></section>
+      <section class="ws-panel"><h2>{t('继续创作','Continue creating')}</h2><div id="ws-continue"><p class="ws-loading" role="status">{t('正在载入最近的创作…','Loading recent work…')}</p></div></section>
     </div><div>
       <section class="ws-panel"><h2>{t('快捷开始','Quick start')}</h2><div class="ws-shortcuts"><a href={`/${locale.pathPrefix}/workspace?view=personas`}>＋ {t('创建或管理角色','Create or manage a persona')}</a><a href={`/${locale.pathPrefix}/workspace?view=works`}>＋ {t('创建或管理作品','Create or manage a work')}</a><a href={`/${locale.pathPrefix}/workspace?view=worlds`}>{t('查看可管理的世界','View managed worlds')}</a></div></section>
-      <section class="ws-panel"><h2>{t('最近的进展','Recent progress')}</h2><div id="ws-recent"></div></section>
+      <section class="ws-panel"><h2>{t('最近的进展','Recent progress')}</h2><div id="ws-recent"><p class="ws-loading" role="status">{t('正在载入状态…','Loading updates…')}</p></div></section>
     </div></div></section>
     <section id="ws-worlds" hidden><div id="ws-world-list"></div></section>
     <section id="ws-members" hidden><div id="ws-member-list"></div></section>
@@ -62,4 +62,4 @@ const legacyTarget=accountViews.includes(view)?`/${locale.pathPrefix}/account?vi
   </main></div>
 </div>}
 </WorkspaceLayout>
-<script>import '../../lib/workspace';import {initAccount} from '../../lib/persona-client';void initAccount();</script>
+<script>import '../../lib/workspace';if(document.querySelector('#persona-workspace'))void import('../../lib/persona-client').then(({initAccount})=>initAccount());</script>
