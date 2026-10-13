@@ -1,0 +1,204 @@
+TAP version 13
+# Subtest: persona workspace async races
+    # Subtest: refresh cannot silently adopt another window’s public version
+    ok 1 - refresh cannot silently adopt another window’s public version
+      ---
+      duration_ms: 831.278172
+      type: 'test'
+      ...
+    # Subtest: old notes success cannot block or finish the next persona’s load
+    ok 2 - old notes success cannot block or finish the next persona’s load
+      ---
+      duration_ms: 590.612917
+      type: 'test'
+      ...
+    # Subtest: old notes failure cannot block or finish the next persona’s load
+    ok 3 - old notes failure cannot block or finish the next persona’s load
+      ---
+      duration_ms: 546.578047
+      type: 'test'
+      ...
+    # Subtest: new public input during navigation requires confirmation
+    ok 4 - new public input during navigation requires confirmation
+      ---
+      duration_ms: 348.023286
+      type: 'test'
+      ...
+    # Subtest: new notes input during navigation requires confirmation
+    ok 5 - new notes input during navigation requires confirmation
+      ---
+      duration_ms: 451.254681
+      type: 'test'
+      ...
+    # Subtest: failed navigation preserves the editor URL and both unsaved buffers
+    ok 6 - failed navigation preserves the editor URL and both unsaved buffers
+      ---
+      duration_ms: 395.75463
+      type: 'test'
+      ...
+    # Subtest: conflict recovery for user: retained input is different
+    ok 7 - conflict recovery for user: retained input is different
+      ---
+      duration_ms: 1052.524573
+      type: 'test'
+      ...
+    # Subtest: conflict recovery for user: retained input is identical
+    ok 8 - conflict recovery for user: retained input is identical
+      ---
+      duration_ms: 785.876369
+      type: 'test'
+      ...
+    # Subtest: conflict recovery for admin: retained input is different
+    ok 9 - conflict recovery for admin: retained input is different
+      ---
+      duration_ms: 1006.809047
+      type: 'test'
+      ...
+    # Subtest: conflict recovery for admin: retained input is identical
+    ok 10 - conflict recovery for admin: retained input is identical
+      ---
+      duration_ms: 898.462807
+      type: 'test'
+      ...
+    1..10
+ok 1 - persona workspace async races
+  ---
+  duration_ms: 8925.582666
+  type: 'test'
+  ...
+# Subtest: real reviews workspace: approved layout, live APIs, isolated data, input races and browser evidence
+    # Subtest: 16 real browser screenshots: bilingual desktop/mobile, lists and edit contexts
+    ok 1 - 16 real browser screenshots: bilingual desktop/mobile, lists and edit contexts
+      ---
+      duration_ms: 5407.786706
+      type: 'test'
+      ...
+    # Subtest: read-only history, new entry, role focus, full reading and return filters
+    ok 2 - read-only history, new entry, role focus, full reading and return filters
+      ---
+      duration_ms: 1667.853427
+      type: 'test'
+      ...
+    # Subtest: bilingual fields, source language and optional values survive; conflict comparison preserves dirty input
+    ok 3 - bilingual fields, source language and optional values survive; conflict comparison preserves dirty input
+      ---
+      duration_ms: 1226.873997
+      type: 'test'
+      ...
+    # Subtest: typing during slow save is preserved; response loss reuses the committed request
+    ok 4 - typing during slow save is preserved; response loss reuses the committed request
+      ---
+      duration_ms: 353.652656
+      type: 'test'
+      ...
+    # Subtest: navigation waits recheck new input and failure leaves the editor intact
+    ok 5 - navigation waits recheck new input and failure leaves the editor intact
+      ---
+      duration_ms: 311.459481
+      type: 'test'
+      ...
+    # Subtest: same-account reauthentication preserves input; switching accounts clears it
+    ok 6 - same-account reauthentication preserves input; switching accounts clears it
+      ---
+      duration_ms: 601.870096
+      type: 'test'
+      ...
+    # Subtest: 1100/360, 200 percent text, long content, empty/error/loading and keyboard controls
+    ok 7 - 1100/360, 200 percent text, long content, empty/error/loading and keyboard controls
+      ---
+      duration_ms: 2457.513706
+      type: 'test'
+      ...
+    # Subtest: save and submit freeze input before a slow identity check for reviews and replies
+    ok 8 - save and submit freeze input before a slow identity check for reviews and replies
+      ---
+      duration_ms: 2353.008819
+      type: 'test'
+      ...
+    # Subtest: matching conflict adoption previews the adopted review and reply revision
+    ok 9 - matching conflict adoption previews the adopted review and reply revision
+      ---
+      duration_ms: 1402.22551
+      type: 'test'
+      ...
+    # Subtest: reply previews use own readable revision after provider changes and baseline adoption
+    not ok 10 - reply previews use own readable revision after provider changes and baseline adoption
+      ---
+      duration_ms: 6289.088468
+      type: 'test'
+      location: '/tmp/plotstay-reviews-b-build/tests/reviews-workspace-e2e.test.ts:907:13'
+      failureType: 'testCodeFailure'
+      error: |-
+        expect(locator).toHaveText(expected) failed
+
+        Locator:  locator('#dirty-state')
+        Expected: "Input matches the loaded version"
+        Received: "Input saved"
+        Timeout:  5000ms
+
+        Call log:
+          - Expect "toHaveText" locator('#dirty-state') with timeout 5000ms
+          - waiting for locator('#dirty-state')
+            2 × locator resolved to <span id="dirty-state" class="rv-small">Unsaved changes</span>
+              - unexpected value "Unsaved changes"
+            12 × locator resolved to <span id="dirty-state" class="rv-small">Input saved</span>
+               - unexpected value "Input saved"
+
+      code: 'ERR_TEST_FAILURE'
+      stack: |-
+        captureRawStack (/data/apps/plotstay/node_modules/playwright-core/lib/coreBundle.js:8588:17)
+        callMatcherAsStep (/data/apps/plotstay/node_modules/playwright/lib/matchers/expect.js:13310:57)
+        Object.toHaveText (/data/apps/plotstay/node_modules/playwright/lib/matchers/expect.js:13302:23)
+        TestContext.<anonymous> (/tmp/plotstay-reviews-b-build/tests/reviews-workspace-e2e.test.ts:950:52)
+        async TestContext.<anonymous> (/tmp/plotstay-reviews-b-build/tests/reviews-workspace-e2e.test.ts:907:5)
+      ...
+    # Subtest: late previous-account detail response preserves the new account editor and save
+    not ok 11 - late previous-account detail response preserves the new account editor and save
+      ---
+      duration_ms: 6251.691812
+      type: 'test'
+      location: '/tmp/plotstay-reviews-b-build/tests/reviews-workspace-e2e.test.ts:957:13'
+      failureType: 'testCodeFailure'
+      error: |-
+        expect(locator).toHaveText(expected) failed
+
+        Locator:  locator('#dirty-state')
+        Expected: "Input matches the loaded version"
+        Received: "Input saved"
+        Timeout:  5000ms
+
+        Call log:
+          - Expect "toHaveText" locator('#dirty-state') with timeout 5000ms
+          - waiting for locator('#dirty-state')
+            2 × locator resolved to <span id="dirty-state" class="rv-small">Unsaved changes</span>
+              - unexpected value "Unsaved changes"
+            12 × locator resolved to <span id="dirty-state" class="rv-small">Input saved</span>
+               - unexpected value "Input saved"
+
+      code: 'ERR_TEST_FAILURE'
+      stack: |-
+        captureRawStack (/data/apps/plotstay/node_modules/playwright-core/lib/coreBundle.js:8588:17)
+        callMatcherAsStep (/data/apps/plotstay/node_modules/playwright/lib/matchers/expect.js:13310:57)
+        Object.toHaveText (/data/apps/plotstay/node_modules/playwright/lib/matchers/expect.js:13302:23)
+        TestContext.<anonymous> (/tmp/plotstay-reviews-b-build/tests/reviews-workspace-e2e.test.ts:1000:54)
+        async TestContext.<anonymous> (/tmp/plotstay-reviews-b-build/tests/reviews-workspace-e2e.test.ts:957:5)
+      ...
+    1..11
+not ok 2 - real reviews workspace: approved layout, live APIs, isolated data, input races and browser evidence
+  ---
+  duration_ms: 31130.156605
+  type: 'test'
+  location: '/tmp/plotstay-reviews-b-build/tests/reviews-workspace-e2e.test.ts:79:1'
+  failureType: 'subtestsFailed'
+  error: '2 subtests failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+1..2
+# tests 23
+# suites 0
+# pass 20
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 42515.500722

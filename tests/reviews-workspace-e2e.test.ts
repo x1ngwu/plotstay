@@ -904,6 +904,109 @@ test(
         }
       },
     );
+    await t.test(
+      "reply previews use own readable revision after provider changes and baseline adoption",
+      async () => {
+        const id = received[2]!.id;
+        await bindProvider(db, data.admin, entryIds[2]!, host.id);
+        await page.goto(route("en", "replies", id, true));
+        await expect(page.locator("#editor")).toBeVisible();
+        const ownBefore = await replyDetail(db, owner, id);
+        await bindProvider(db, data.admin, entryIds[2]!, nextHost.id);
+        const foreign = await saveReply(db, other, id, {
+          sourceLocale: "en",
+          texts: { en: "Foreign private draft sentinel", "zh-CN": "对方私稿" },
+        }, ownBefore.baseRevisionId);
+        await bindProvider(db, data.admin, entryIds[2]!, host.id);
+        await page.locator("[data-action=save]").first().click();
+        await expect(page.locator("[data-action=compare]")).toBeVisible();
+        await page.locator("[data-action=compare]").click();
+        await page.locator("[data-action=adopt]").click();
+        await expect(page.locator("#dirty-state")).toHaveText("Input matches the loaded version");
+        await expect(page.locator("#field-description")).toHaveValue(replyBody.texts.en);
+
+        // Both conflict adoption and a fresh load must ignore the opaque head.
+        for (const fresh of [false, true]) {
+          if (fresh) {
+            await page.goto(route("en", "replies", id, true));
+            await expect(page.locator("#editor")).toBeVisible();
+          }
+          await page.locator("[data-action=preview]").click();
+          await expect(page.locator("#editor")).toHaveCount(0);
+          assert.equal(new URL(page.url()).searchParams.get("revision"), ownBefore.editRevisionId);
+          assert.notEqual(ownBefore.editRevisionId, foreign.revisionId);
+          const rendered = (await page.locator(".rv-prose").allTextContents()).join(" ");
+          assert.ok(rendered.includes(replyBody.texts.en));
+          assert.ok(!(await page.content()).includes("Foreign private draft sentinel"));
+        }
+        await page.screenshot({
+          path: new URL("fix-readable-reply-preview-en.png", artifactDir).pathname,
+          fullPage: true,
+        });
+        // Preview selection must not replace the concurrency token for saving.
+        await page.goto(route("en", "replies", id, true));
+        await page.locator("#field-description").fill("Own reply after provider return");
+        await page.locator("[data-action=save]").first().click();
+        await expect(page.locator("#dirty-state")).toHaveText("Input saved");
+        const saved = await replyDetail(db, owner, id);
+        assert.notEqual(saved.baseRevisionId, foreign.revisionId);
+        assert.equal(saved.revisions.find((r: any) => r.id === saved.editRevisionId)?.body.en,
+          "Own reply after provider return");
+      },
+    );
+    await t.test(
+      "late previous-account detail response preserves the new account editor and save",
+      async () => {
+        await page.goto(route("en", "reviews"));
+        await expect(page.locator(".rv-interaction-card").first()).toBeVisible();
+        let arrived!: () => void, release!: () => void;
+        const seen = new Promise<void>((resolve) => { arrived = resolve; });
+        const gate = new Promise<void>((resolve) => { release = resolve; });
+        await page.route(`**/api/me/review-workspace/${own.id}?*`, async (r) => {
+          const response = await r.fetch();
+          arrived();
+          await gate;
+          await r.fulfill({ response });
+        }, { times: 1 });
+        try {
+          await page.locator(`[data-action=open][data-id="${own.id}"]`).click();
+          await seen;
+          assert.equal((await ctx.request.post(webUrl + "/api/auth/login", {
+            headers: { Origin: webUrl },
+            data: { email: other.email, password: "reviews-test-456" },
+          })).status(), 200);
+          await page.evaluate(() => window.dispatchEvent(new Event("focus")));
+          const card = page.locator(`[data-action=open][data-id="${received[0]!.id}"]`);
+          await expect(card).toBeVisible();
+          await card.click();
+          await page.locator("[data-action=edit]").click();
+          const marker = "New account input must survive old response";
+          await page.locator("#field-description").fill(marker);
+          const late = page.waitForResponse((r) => r.url().includes(`/review-workspace/${own.id}?`));
+          release();
+          await (await late).finished();
+          // Let the delivered response handler finish before checking absence of damage.
+          await page.evaluate(() => new Promise<void>((resolve) =>
+            requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+          await expect(page.locator("#account-content")).toBeVisible();
+          await expect(page.locator("#field-description")).toHaveValue(marker);
+          await expect(page.locator("#dirty-state")).toHaveText("Unsaved changes");
+          assert.equal(new URL(page.url()).searchParams.get("review"), received[0]!.id);
+          await page.screenshot({
+            path: new URL("fix-late-account-response-en.png", artifactDir).pathname,
+            fullPage: true,
+          });
+          await page.locator("[data-action=save]").first().click();
+          await expect(page.locator("#dirty-state")).toHaveText("Input saved");
+          const saved = await reviewDetail(db, other, received[0]!.id);
+          assert.equal(saved.revisions.find((r: any) => r.id === saved.content.head_revision_id)?.texts.en.description, marker);
+          const original = await reviewDetail(db, owner, own.id);
+          assert.ok(!original.revisions.some((r: any) => r.texts.en?.description === marker));
+        } finally {
+          release();
+        }
+      },
+    );
     assert.deepEqual(errors, []);
     await writeFile(
       new URL(

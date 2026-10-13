@@ -1,0 +1,83 @@
+TAP version 13
+# Subtest: real reviews workspace: approved layout, live APIs, isolated data, input races and browser evidence
+    # Subtest: 16 real browser screenshots: bilingual desktop/mobile, lists and edit contexts
+    ok 1 - 16 real browser screenshots: bilingual desktop/mobile, lists and edit contexts
+      ---
+      duration_ms: 5498.694837
+      type: 'test'
+      ...
+    # Subtest: read-only history, new entry, role focus, full reading and return filters
+    ok 2 - read-only history, new entry, role focus, full reading and return filters
+      ---
+      duration_ms: 1574.262627
+      type: 'test'
+      ...
+    # Subtest: bilingual fields, source language and optional values survive; conflict comparison preserves dirty input
+    ok 3 - bilingual fields, source language and optional values survive; conflict comparison preserves dirty input
+      ---
+      duration_ms: 1220.870136
+      type: 'test'
+      ...
+    # Subtest: typing during slow save is preserved; response loss reuses the committed request
+    ok 4 - typing during slow save is preserved; response loss reuses the committed request
+      ---
+      duration_ms: 383.879401
+      type: 'test'
+      ...
+    # Subtest: navigation waits recheck new input and failure leaves the editor intact
+    ok 5 - navigation waits recheck new input and failure leaves the editor intact
+      ---
+      duration_ms: 316.07644
+      type: 'test'
+      ...
+    # Subtest: same-account reauthentication preserves input; switching accounts clears it
+    ok 6 - same-account reauthentication preserves input; switching accounts clears it
+      ---
+      duration_ms: 556.026406
+      type: 'test'
+      ...
+    # Subtest: 1100/360, 200 percent text, long content, empty/error/loading and keyboard controls
+    ok 7 - 1100/360, 200 percent text, long content, empty/error/loading and keyboard controls
+      ---
+      duration_ms: 2392.399114
+      type: 'test'
+      ...
+    # Subtest: save and submit freeze input before a slow identity check for reviews and replies
+    ok 8 - save and submit freeze input before a slow identity check for reviews and replies
+      ---
+      duration_ms: 2450.848831
+      type: 'test'
+      ...
+    # Subtest: matching conflict adoption previews the adopted review and reply revision
+    ok 9 - matching conflict adoption previews the adopted review and reply revision
+      ---
+      duration_ms: 1523.454135
+      type: 'test'
+      ...
+    # Subtest: reply previews use own readable revision after provider changes and baseline adoption
+    ok 10 - reply previews use own readable revision after provider changes and baseline adoption
+      ---
+      duration_ms: 1346.192005
+      type: 'test'
+      ...
+    # Subtest: late previous-account detail response preserves the new account editor and save
+    ok 11 - late previous-account detail response preserves the new account editor and save
+      ---
+      duration_ms: 884.322873
+      type: 'test'
+      ...
+    1..11
+ok 1 - real reviews workspace: approved layout, live APIs, isolated data, input races and browser evidence
+  ---
+  duration_ms: 20831.552111
+  type: 'test'
+  ...
+1..1
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 22052.159726

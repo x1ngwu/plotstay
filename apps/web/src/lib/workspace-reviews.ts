@@ -208,6 +208,8 @@ export async function initWorkspaceReviews(root: HTMLElement) {
         cache: "no-store",
       }));
     const data = await response.json();
+    // An earlier page/account request cannot invalidate the current editor.
+    if (requestSeq !== seq) throw { code: "STALE_RESPONSE" };
     if (!response.ok) {
       if (data.error?.code === "SESSION_REQUIRED" && requestSeq === seq) {
         seq++;
@@ -681,7 +683,7 @@ export async function initWorkspaceReviews(root: HTMLElement) {
       setHistory(u, push);
       zh = lang === "zh-CN";
       detail = id ? next : null;
-      lastSavedRevisionId = detail?.baseRevisionId ?? null;
+      lastSavedRevisionId = detail ? (editableRevision()?.id ?? null) : null;
       list = !id && !u.searchParams.has("new") ? next : null;
       entries = u.searchParams.has("new") ? next : null;
       if (detail && u.searchParams.get("mode") === "edit") beginEdit();
@@ -961,7 +963,8 @@ export async function initWorkspaceReviews(root: HTMLElement) {
     if (action === "adopt" && conflict) {
       baseline = snapshot(bodyFrom(conflict));
       detail = conflict;
-      lastSavedRevisionId = detail.baseRevisionId;
+      // The reply head can be another author's private concurrency token.
+      lastSavedRevisionId = editableRevision()?.id ?? null;
       conflict = null;
       lastCommand = null;
       renderDetail();
