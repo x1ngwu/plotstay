@@ -45,6 +45,7 @@ export async function initWorkspacePersonas(root: HTMLElement) {
     let actor: any, personas: Persona[] = [], current: Persona | undefined, editing = false, historical: any = null, historyData: any = null;
     let profiles = emptyProfiles(), savedProfiles = JSON.stringify(profiles), note: Note = { body: '', version: null, updatedAt: null }, noteText = '', notesReady = false;
     let publicBusy = false, notesBusy = false, notesLoading = false, publicStatus = '', notesStatus = '', notesError = false, publicError = false;
+    let notesLoadRequest = 0, navigationRequest = 0;
     let lastPublic: {
         key: string;
         body: any;
@@ -71,7 +72,7 @@ export async function initWorkspacePersonas(root: HTMLElement) {
         const messages: Record<string, string> = { SESSION_REQUIRED: l('会话已过期。请重新登录；私人笔记已从当前页面清除。', 'Session expired. Sign in again; private notes have been cleared from this page.'), INVALID_CREDENTIALS: l('邮箱或密码不正确。', 'Email or password is incorrect.'), REVISION_CONFLICT: l('已有更新版本。输入仍保留，请核对最新资料后重试。', 'A newer version exists. Your input is preserved. Compare the latest profile before retrying.'), SUBMISSION_CONFLICT: l('待审版本已变化。输入仍保留，请核对当前待审稿。', 'The pending version changed. Your input is preserved; check the current submission.'), NOTES_CONFLICT: l('笔记已在另一个窗口更新。输入仍保留，请核对最新笔记。', 'Notes changed in another window. Your input is preserved; compare the latest notes.'), PERSONA_FORBIDDEN: l('只能访问本人角色。', 'You can only access your own personas.'), PERSONA_DISABLED: l('角色已停用，对外资料不能保存；仍可保存自己的笔记。', 'This persona is disabled. Public changes are unavailable; you can still save your notes.'), TRANSLATIONS_REQUIRED: l('请填写中文和英文名字；也可先暂存草稿。', 'Complete the Chinese and English names, or save a draft first.'), INVALID_INPUT: l('资料不符合现有长度或格式要求，请检查输入。', 'Check the existing field length and format requirements.'), REQUEST_CONFLICT: l('重试请求与原操作不同，请重新保存。', 'The retry differs from the original request. Save again.') };
         return messages[error.code] ?? l('操作未完成。输入仍保留，请重试。', 'The operation did not complete. Your input is preserved; try again.');
     }
-    function clearPrivate() { note = { body: '', version: null, updatedAt: null }; noteText = ''; notesReady = false; lastNotes = undefined; const input = view.querySelector<HTMLTextAreaElement>('#wp-notes'); if (input)
+    function clearPrivate() { notesLoadRequest++; notesLoading = false; note = { body: '', version: null, updatedAt: null }; noteText = ''; notesReady = false; lastNotes = undefined; const input = view.querySelector<HTMLTextAreaElement>('#wp-notes'); if (input)
         input.value = ''; view.querySelector('#wp-notes-conflict')?.replaceChildren(); document.querySelectorAll('.wp-compare').forEach(el => el.remove()); }
     async function api(path: string, body?: unknown, method = 'POST') {
         const init = body === undefined ? {} : { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) };
@@ -218,9 +219,11 @@ export async function initWorkspacePersonas(root: HTMLElement) {
             void loadNotes();
     }
     async function loadNotes() { if (!current || notesLoading)
-        return; notesLoading = true; notesStatus = l('正在载入笔记…', 'Loading notes…'); states(); const id = current.id, seq = sequence; try {
+        return; notesLoading = true; notesStatus = l('正在载入笔记…', 'Loading notes…'); states(); const id = current.id, seq = sequence, request = ++notesLoadRequest;
+        const isCurrent = () => current?.id === id && seq === sequence && request === notesLoadRequest;
+        try {
         const data = await api('/me/personas/' + id + '/notes');
-        if (current?.id !== id || seq !== sequence)
+        if (!isCurrent())
             return;
         note = data;
         noteText = data.body;
@@ -229,13 +232,16 @@ export async function initWorkspacePersonas(root: HTMLElement) {
         notesStatus = '';
     }
     catch (error) {
-        notesStatus = fail(error);
-        notesError = true;
+        if (isCurrent()) {
+            notesStatus = fail(error);
+            notesError = true;
+        }
     }
     finally {
-        notesLoading = false;
-        if (tab === 'notes' && current?.id === id && seq === sequence)
-            notesForm();
+        if (isCurrent()) {
+            notesLoading = false;
+            if (tab === 'notes') notesForm();
+        }
     } }
     function states() {
         const publicBox = view.querySelector('#wp-public-state');
@@ -296,6 +302,7 @@ export async function initWorkspacePersonas(root: HTMLElement) {
         if (lastPublic?.key !== key)
             lastPublic = { key, body: { ...input, requestId: crypto.randomUUID() } };
         publicBusy = true;
+        navigationRequest++;
         publicError = false;
         publicForm();
         const saveSequence = sequence;
@@ -324,7 +331,15 @@ export async function initWorkspacePersonas(root: HTMLElement) {
                 const refreshed = (await api('/me/personas')).personas;
                 if (saveSequence !== sequence) return;
                 personas = refreshed;
-                current = personas.find(p => p.id === result.id) ?? current;
+                const fresh = personas.find(p => p.id === result.id);
+                // The form still represents the version this request saved. Do not
+                // silently rebase its next write onto another window's changes.
+                if (fresh?.head_revision_id === result.revisionId) current = fresh;
+                else if (fresh) {
+                    publicError = true;
+                    publicStatus += ' ' + fail({ code: 'REVISION_CONFLICT' });
+                    message.textContent = publicStatus;
+                }
             }
             catch {
                 publicStatus += ' ' + l('状态刷新失败，可返回列表重试。', 'Status refresh failed. Return to the list to retry.');
@@ -372,6 +387,7 @@ export async function initWorkspacePersonas(root: HTMLElement) {
         if (lastNotes?.key !== key)
             lastNotes = { key, body: { body, baseVersion: note.version, requestId: crypto.randomUUID() } };
         notesBusy = true;
+        navigationRequest++;
         notesError = false;
         notesForm();
         const saveSequence = sequence;
@@ -458,19 +474,32 @@ export async function initWorkspacePersonas(root: HTMLElement) {
         form();
         scrollTo(0, 0);
     }
-    async function navigate(url: URL, replace = false) { if (!guard())
-        return; history.replaceState({ ...history.state, ...!editing ? { listY: scrollY } : {} }, '', location.href); if (replace)
-        history.replaceState({ ...history.state, personaIndex: index }, '', url);
-    else {
-        index++;
-        history.pushState({ personaIndex: index, listY: editing ? (history.state?.returnY ?? 0) : 0, returnY: editing ? history.state?.returnY : scrollY }, '', url);
-    } href = location.href; message.textContent = ''; try {
-        personas = (await api('/me/personas')).personas;
-        await route();
+    async function navigate(url: URL, replace = false) {
+        if (!guard()) return;
+        const request = ++navigationRequest, seq = sequence, from = location.href;
+        const inputs = JSON.stringify([profiles, noteText]);
+        const isCurrent = () => request === navigationRequest && seq === sequence && from === location.href;
+        message.textContent = '';
+        try {
+            const refreshed = (await api('/me/personas')).personas;
+            if (!isCurrent() || publicBusy || notesBusy) return;
+            // The editor remains usable during the read. Confirm any new input
+            // before changing the URL or clearing either independent buffer.
+            if (inputs !== JSON.stringify([profiles, noteText]) && !guard()) return;
+            history.replaceState({ ...history.state, ...!editing ? { listY: scrollY } : {} }, '', location.href);
+            if (replace) history.replaceState({ ...history.state, personaIndex: index }, '', url);
+            else {
+                index++;
+                history.pushState({ personaIndex: index, listY: editing ? (history.state?.returnY ?? 0) : 0, returnY: editing ? history.state?.returnY : scrollY }, '', url);
+            }
+            href = location.href;
+            personas = refreshed;
+            await route();
+        }
+        catch (error) {
+            if (request === navigationRequest) message.textContent = fail(error);
+        }
     }
-    catch (error) {
-        message.textContent = fail(error);
-    } }
     function switchLanguage(next: boolean) {
         zh = next;
         if (!publicError)
