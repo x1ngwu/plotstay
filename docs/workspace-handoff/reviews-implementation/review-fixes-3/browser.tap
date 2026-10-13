@@ -1,0 +1,193 @@
+TAP version 13
+# Subtest: phase 5.6 ordinary account accommodation journey
+    # Subtest: normal login, bilingual persona, stay draft and private preview
+    ok 1 - normal login, bilingual persona, stay draft and private preview
+      ---
+      duration_ms: 2390.751994
+      type: 'test'
+      ...
+    # Subtest: joint moderation publishes signature and score without world access for author
+    ok 2 - joint moderation publishes signature and score without world access for author
+      ---
+      duration_ms: 1297.982042
+      type: 'test'
+      ...
+    # Subtest: experience and service reviews, explicit provider binding and bilingual reply moderation
+    ok 3 - experience and service reviews, explicit provider binding and bilingual reply moderation
+      ---
+      duration_ms: 12305.080867
+      type: 'test'
+      ...
+    # Subtest: expired session preserves input, bilingual mobile and no horizontal overflow
+    ok 4 - expired session preserves input, bilingual mobile and no horizontal overflow
+      ---
+      duration_ms: 2383.818813
+      type: 'test'
+      ...
+    1..4
+ok 1 - phase 5.6 ordinary account accommodation journey
+  ---
+  duration_ms: 20675.633013
+  type: 'test'
+  ...
+# Subtest: persona workspace async races
+    # Subtest: refresh cannot silently adopt another window’s public version
+    ok 1 - refresh cannot silently adopt another window’s public version
+      ---
+      duration_ms: 1013.526174
+      type: 'test'
+      ...
+    # Subtest: old notes success cannot block or finish the next persona’s load
+    ok 2 - old notes success cannot block or finish the next persona’s load
+      ---
+      duration_ms: 580.736519
+      type: 'test'
+      ...
+    # Subtest: old notes failure cannot block or finish the next persona’s load
+    ok 3 - old notes failure cannot block or finish the next persona’s load
+      ---
+      duration_ms: 580.263235
+      type: 'test'
+      ...
+    # Subtest: new public input during navigation requires confirmation
+    ok 4 - new public input during navigation requires confirmation
+      ---
+      duration_ms: 433.109378
+      type: 'test'
+      ...
+    # Subtest: new notes input during navigation requires confirmation
+    ok 5 - new notes input during navigation requires confirmation
+      ---
+      duration_ms: 461.628909
+      type: 'test'
+      ...
+    # Subtest: failed navigation preserves the editor URL and both unsaved buffers
+    ok 6 - failed navigation preserves the editor URL and both unsaved buffers
+      ---
+      duration_ms: 388.919909
+      type: 'test'
+      ...
+    # Subtest: conflict recovery for user: retained input is different
+    ok 7 - conflict recovery for user: retained input is different
+      ---
+      duration_ms: 990.612612
+      type: 'test'
+      ...
+    # Subtest: conflict recovery for user: retained input is identical
+    ok 8 - conflict recovery for user: retained input is identical
+      ---
+      duration_ms: 797.460549
+      type: 'test'
+      ...
+    # Subtest: conflict recovery for admin: retained input is different
+    ok 9 - conflict recovery for admin: retained input is different
+      ---
+      duration_ms: 1014.193379
+      type: 'test'
+      ...
+    # Subtest: conflict recovery for admin: retained input is identical
+    ok 10 - conflict recovery for admin: retained input is identical
+      ---
+      duration_ms: 769.242941
+      type: 'test'
+      ...
+    1..10
+ok 2 - persona workspace async races
+  ---
+  duration_ms: 9117.490486
+  type: 'test'
+  ...
+# Subtest: real reviews workspace: approved layout, live APIs, isolated data, input races and browser evidence
+    # Subtest: 16 real browser screenshots: bilingual desktop/mobile, lists and edit contexts
+    ok 1 - 16 real browser screenshots: bilingual desktop/mobile, lists and edit contexts
+      ---
+      duration_ms: 5595.866284
+      type: 'test'
+      ...
+    # Subtest: read-only history, new entry, role focus, full reading and return filters
+    ok 2 - read-only history, new entry, role focus, full reading and return filters
+      ---
+      duration_ms: 1737.151872
+      type: 'test'
+      ...
+    # Subtest: bilingual fields, source language and optional values survive; conflict comparison preserves dirty input
+    ok 3 - bilingual fields, source language and optional values survive; conflict comparison preserves dirty input
+      ---
+      duration_ms: 1223.054661
+      type: 'test'
+      ...
+    # Subtest: typing during slow save is preserved; response loss reuses the committed request
+    ok 4 - typing during slow save is preserved; response loss reuses the committed request
+      ---
+      duration_ms: 381.308721
+      type: 'test'
+      ...
+    # Subtest: navigation waits recheck new input and failure leaves the editor intact
+    ok 5 - navigation waits recheck new input and failure leaves the editor intact
+      ---
+      duration_ms: 375.051866
+      type: 'test'
+      ...
+    # Subtest: same-account reauthentication preserves input; switching accounts clears it
+    ok 6 - same-account reauthentication preserves input; switching accounts clears it
+      ---
+      duration_ms: 613.894251
+      type: 'test'
+      ...
+    # Subtest: 1100/360, 200 percent text, long content, empty/error/loading and keyboard controls
+    ok 7 - 1100/360, 200 percent text, long content, empty/error/loading and keyboard controls
+      ---
+      duration_ms: 2416.221097
+      type: 'test'
+      ...
+    # Subtest: save and submit freeze input before a slow identity check for reviews and replies
+    ok 8 - save and submit freeze input before a slow identity check for reviews and replies
+      ---
+      duration_ms: 2417.494908
+      type: 'test'
+      ...
+    # Subtest: matching conflict adoption previews the adopted review and reply revision
+    ok 9 - matching conflict adoption previews the adopted review and reply revision
+      ---
+      duration_ms: 1473.425267
+      type: 'test'
+      ...
+    # Subtest: reply previews use own readable revision after provider changes and baseline adoption
+    ok 10 - reply previews use own readable revision after provider changes and baseline adoption
+      ---
+      duration_ms: 1414.460507
+      type: 'test'
+      ...
+    # Subtest: current provider editable reply survives multiple history pages and persona changes
+    ok 11 - current provider editable reply survives multiple history pages and persona changes
+      ---
+      duration_ms: 1016.763642
+      type: 'test'
+      ...
+    # Subtest: first reply save and submit immediately enable preview of the persisted version
+    ok 12 - first reply save and submit immediately enable preview of the persisted version
+      ---
+      duration_ms: 983.282387
+      type: 'test'
+      ...
+    # Subtest: late previous-account detail response preserves the new account editor and save
+    ok 13 - late previous-account detail response preserves the new account editor and save
+      ---
+      duration_ms: 860.355463
+      type: 'test'
+      ...
+    1..13
+ok 3 - real reviews workspace: approved layout, live APIs, isolated data, input races and browser evidence
+  ---
+  duration_ms: 23242.863067
+  type: 'test'
+  ...
+1..3
+# tests 30
+# suites 0
+# pass 30
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 56413.5765

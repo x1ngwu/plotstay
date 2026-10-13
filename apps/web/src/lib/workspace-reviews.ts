@@ -898,6 +898,7 @@ export async function initWorkspaceReviews(root: HTMLElement) {
         ? l("有未保存输入", "Unsaved changes")
         : l("输入已保存", "Input saved");
       document.getElementById("rv-conflict")!.replaceChildren();
+      view.querySelector<HTMLButtonElement>("[data-action=preview]")!.disabled = false;
     } catch (e: any) {
       if (e.code === "ACCOUNT_CHANGED") {
         message.textContent = errorText(e);

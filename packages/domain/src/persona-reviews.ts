@@ -667,6 +667,8 @@ export async function replyDetail(db: Connection, actor: Actor, reviewId: string
     assert(contextAvailable||authored,409,'TARGET_UNAVAILABLE','This review context is not available.');
   }
   const publicRevision=reply&&!reply.hidden&&contextAvailable?(await db.query('SELECT revision_id FROM reply_publications WHERE id=$1',[reply.published_id])).rows[0]?.revision_id:null;
+  // Pin the current persona's own editable version independently of history pagination.
+  const editRevisionId=reply?(await db.query('SELECT id FROM reply_revisions WHERE reply_id=$1 AND created_by=$2 AND persona_id=$3 ORDER BY created_at DESC,id DESC LIMIT 1',[reply.id,actor.id,target.provider_id])).rows[0]?.id??null:null;
   const revisions=reply?(await db.query(`SELECT r.*,
     coalesce((SELECT action FROM reply_events e WHERE e.revision_id=r.id AND e.action IN ('draft','submit','publish','reject') ORDER BY created_at DESC,id DESC LIMIT 1),'draft') AS status,
     CASE WHEN $2 OR r.created_by=$3 THEN d.decision END AS persona_decision,
@@ -674,7 +676,7 @@ export async function replyDetail(db: Connection, actor: Actor, reviewId: string
     FROM reply_revisions r LEFT JOIN persona_revision_decisions d ON d.revision_id=r.persona_revision_id
     WHERE reply_id=$1 AND ($2 OR r.created_by=$3 OR r.id=$4)
     AND ($5::int IS NULL OR r.id=ANY($6::uuid[]) OR r.id IN(SELECT id FROM reply_revisions WHERE reply_id=$1 AND created_by=$3 ORDER BY created_at DESC,id DESC LIMIT 20 OFFSET $5))
-    ORDER BY created_at DESC,id DESC`,[reply.id,moderate,actor.id,publicRevision??null,history?(history.page-1)*20:null,[reply.head_revision_id,reply.submitted_revision_id,publicRevision,history?.revision].filter(Boolean)])).rows:[];
+    ORDER BY created_at DESC,id DESC`,[reply.id,moderate,actor.id,publicRevision??null,history?(history.page-1)*20:null,[reply.head_revision_id,reply.submitted_revision_id,publicRevision,history?.revision,editRevisionId].filter(Boolean)])).rows:[];
   const ownIds=revisions.filter((r:any)=>moderate||r.created_by===actor.id).map((r:any)=>r.id);
   const publications=reply?(await db.query('SELECT * FROM reply_publications WHERE reply_id=$1 AND ($2 OR revision_id=ANY($3::uuid[]) OR id=$4) ORDER BY published_at DESC,id DESC LIMIT $5',[reply.id,moderate,ownIds,reply.hidden||!contextAvailable?null:reply.published_id,history?100:null])).rows:[];
   const events=reply?(await db.query(`SELECT * FROM reply_events WHERE reply_id=$1 AND ($2 OR revision_id=ANY($3::uuid[])) ORDER BY created_at DESC,id DESC LIMIT $4`,[reply.id,moderate,ownIds,history?100:null])).rows:[];
@@ -685,7 +687,7 @@ export async function replyDetail(db: Connection, actor: Actor, reviewId: string
   return {historyTotal,target:{id:target.id,world_id:target.world_id,provider_id:target.provider_id,
     profiles:contextAvailable?signatureProfiles(target.provider_profiles??{}):{},target_slug:contextAvailable?target.target_slug:null,target_kind:contextAvailable?target.target_kind:null,world_slug:contextAvailable?target.world_slug:null},
     reply:safeReply,revisions,publications,events,canEdit,contextAvailable,
-    editRevisionId:revisions.find((r:any)=>r.created_by===actor.id&&r.persona_id===target.provider_id)?.id??null,
+    editRevisionId,
     submissionGuard:canEdit?reply?.submitted_revision_id??null:null,
     baseRevisionId:reply?.head_revision_id??null};
 }

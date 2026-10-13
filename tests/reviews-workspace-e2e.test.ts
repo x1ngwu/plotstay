@@ -955,6 +955,68 @@ test(
       },
     );
     await t.test(
+      "current provider editable reply survives multiple history pages and persona changes",
+      async () => {
+        const id = received[2]!.id;
+        const before = await replyDetail(db, owner, id);
+        const editable = before.revisions.find((r: any) => r.id === before.editRevisionId);
+        await bindProvider(db, data.admin, entryIds[2]!, mine.id);
+        let base = before.baseRevisionId;
+        for (let i = 0; i < 21; i++) {
+          base = (await saveReply(db, owner, id, {
+            sourceLocale: "en", texts: { en: `Alternate persona draft ${i}` },
+          }, base, mine.id)).revisionId;
+        }
+        await bindProvider(db, data.admin, entryIds[2]!, host.id);
+        for (const historyPage of [1, 2]) {
+          const paged = await replyDetail(db, owner, id, false, { page: historyPage });
+          assert.equal(paged.editRevisionId, before.editRevisionId);
+          assert.equal(paged.baseRevisionId, base);
+          assert.equal(paged.revisions.find((r: any) => r.id === paged.editRevisionId)?.body.en, editable.body.en);
+          assert.ok(!paged.revisions.some((r: any) => r.created_by === other.id));
+          await page.goto(route("en", "replies", id, true) + `&historyPage=${historyPage}`);
+          await expect(page.locator("#field-description")).toHaveValue(editable.body.en);
+          await page.locator("[data-action=preview]").click();
+          await expect(page.locator("#editor")).toHaveCount(0);
+          assert.equal(new URL(page.url()).searchParams.get("revision"), before.editRevisionId);
+          assert.ok((await page.locator(".rv-prose").allTextContents()).join(" ").includes(editable.body.en));
+        }
+        await page.screenshot({
+          path: new URL("fix-paginated-reply-preview-en.png", artifactDir).pathname,
+          fullPage: true,
+        });
+        // A different account's former provider retains only its own private history.
+        const former = await replyDetail(db, other, id, false, { page: 1 });
+        assert.equal(former.canEdit, false);
+        assert.equal(former.editRevisionId, null);
+        assert.ok(former.revisions.every((r: any) => r.created_by === other.id));
+      },
+    );
+    await t.test(
+      "first reply save and submit immediately enable preview of the persisted version",
+      async () => {
+        for (const action of ["save", "submit"]) {
+          const id = action === "save" ? received[1]!.id : mineReviews[1]!.id;
+          await page.goto(route("en", "replies", id, true));
+          await expect(page.locator("[data-action=preview]")).toBeDisabled();
+          const marker = `First reply ${action} is immediately previewable`;
+          await page.locator("#field-description").fill(marker);
+          await page.locator(`[data-action=${action}]`).first().click();
+          await expect(page.locator("#dirty-state")).toHaveText("Input saved");
+          await expect(page.locator("[data-action=preview]")).toBeEnabled();
+          const saved = await replyDetail(db, owner, id);
+          await page.locator("[data-action=preview]").click();
+          await expect(page.locator("#editor")).toHaveCount(0);
+          assert.equal(new URL(page.url()).searchParams.get("revision"), saved.editRevisionId);
+          assert.ok((await page.locator(".rv-prose").allTextContents()).join(" ").includes(marker));
+        }
+        await page.screenshot({
+          path: new URL("fix-first-reply-preview-en.png", artifactDir).pathname,
+          fullPage: true,
+        });
+      },
+    );
+    await t.test(
       "late previous-account detail response preserves the new account editor and save",
       async () => {
         await page.goto(route("en", "reviews"));
