@@ -38,13 +38,13 @@ test('workspace checkpoint shares the saved stay draft with the previous admin',
   await page.locator('[name="en.title"]').fill('Unsaved new workspace input');await page.locator('#editor button[type=submit]').click();await expect(page.locator('#message')).toContainText('conflict');await expect(page.locator('[name="en.title"]')).toHaveValue('Unsaved new workspace input');
   page.once('dialog',dialog=>dialog.dismiss());await page.locator('#ws-back').click();assert.equal(new URL(page.url()).searchParams.get('view'),'editor');await expect(page.locator('[name="en.title"]')).toHaveValue('Unsaved new workspace input');
   await page.setViewportSize({width:390,height:850});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));if(process.env.PLOTSTAY_VISUAL_CAPTURE)await page.screenshot({path:'/tmp/plotstay-editor-390.png'});assert.deepEqual(errors,[]);
-  const personas=await context.newPage();await personas.goto(webUrl+'/en/workspace?view=personas');await expect(personas.locator('#account-view h2')).toContainText('My personas');
+  const personas=await context.newPage();await personas.goto(webUrl+'/en/workspace?view=personas');await expect(personas.locator('#ws-page-title')).toHaveText('My personas');
   await personas.goto(webUrl+'/en/workspace');await expect(personas.locator('.ov-columns')).toBeVisible();await expect(personas.locator('#ws-todo-count')).toContainText('items');
   await expect(personas.locator('.ws-nav a[aria-current=page]')).toContainText('Overview');
   if(process.env.PLOTSTAY_VISUAL_CAPTURE){await personas.screenshot({path:'/tmp/plotstay-overview-1440.png',fullPage:true});await personas.setViewportSize({width:390,height:850});await personas.screenshot({path:'/tmp/plotstay-overview-390.png'});assert.ok(await personas.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));}
   await personas.goto(webUrl+'/zh/workspace');await expect(personas.locator('#ws-continue')).not.toContainText('手记 · 已审核');await expect(personas.locator('[data-scope=mine]')).toHaveAttribute('aria-selected','true');
   await personas.goto(webUrl+'/en/workspace?view=reviews');await expect(personas.locator('#account-view h2')).toContainText('My reviews');
-  await personas.goto(webUrl+'/en/workspace?view=replies');await expect(personas.locator('.ws-nav a[aria-current=page]')).toContainText('Reviews and replies');
+  await personas.goto(webUrl+'/en/workspace?view=replies');await expect(personas.locator('.ws-nav a[aria-current=page]')).toContainText('Received reviews');
   await personas.goto(webUrl+'/en/workspace?view=worlds');await expect(personas.locator('#ws-world-list .ws-card')).not.toHaveCount(0);
   const worldId=(await f.db.query("SELECT id FROM worlds WHERE slug='lathe-worlds'")).rows[0].id;
   // Account settings has its own visible sign-in recovery, in both languages.

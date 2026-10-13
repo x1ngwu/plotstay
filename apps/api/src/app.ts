@@ -43,7 +43,9 @@ export async function createApp(db: Database, options: { logger?: boolean; webOr
     if ((error as { code?: string }).code === '23505') return reply.code(409).send({ error: { code: 'ALREADY_EXISTS', message: 'This identifier already exists.' } });
     const status = (error as { statusCode?: number }).statusCode;
     if (status && status >= 400 && status < 500) return reply.code(status).send({ error: { code: 'BAD_REQUEST', message: status === 429 ? 'Too many requests.' : 'Invalid request.' } });
-    request.log.error({ err: error }, 'API request failed');
+    // Database diagnostics can contain row values: never log them for private notes.
+    if (/^\/api\/me\/personas\/[^/]+\/notes(?:\?|$)/.test(request.url)) request.log.error({ requestId: request.id }, 'Private notes request failed');
+    else request.log.error({ err: error }, 'API request failed');
     return reply.code(500).send({ error: { code: 'INTERNAL_ERROR', message: 'The request could not be completed.' } });
   });
   app.setNotFoundHandler((_request, reply) => reply.code(404).send({ error: { code: 'NOT_FOUND', message: 'Route not found.' } }));
@@ -106,7 +108,14 @@ export async function createApp(db: Database, options: { logger?: boolean; webOr
     reply.clearCookie(SESSION, cookieOptions);
     return { signedOut: true };
   });
-  app.get('/api/auth/me', async request => ({ actor: await actor(request.cookies[SESSION]) }));
+  app.get('/api/auth/me', async request => {
+    const current = await actor(request.cookies[SESSION]);
+    const canModerate = current.siteRole === 'admin' || (await db.query(`SELECT EXISTS(
+      SELECT 1 FROM worlds w WHERE w.owner_id=$1 OR EXISTS(
+        SELECT 1 FROM world_members m WHERE m.world_id=w.id AND m.user_id=$1 AND m.role IN ('owner','admin'))
+    ) AS allowed`, [current.id])).rows[0].allowed;
+    return { actor: current, capabilities: { canModerate } };
+  });
   // Guest credentials never share the administrator session or appear in JSON/URLs.
   app.post('/api/guest', { config: { rateLimit: { max: 30, timeWindow: '1 minute' } } }, async (request, reply) => {
     z.object({}).strict().parse(request.body);

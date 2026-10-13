@@ -3,6 +3,10 @@ import { reviewRatingKeys } from '@plotstay/contracts';
 export async function initAccount() {
   const root = document.querySelector<HTMLElement>('#persona-workspace');
   if (!root) return;
+  if(document.querySelector('#new-workspace[data-view="personas"]')&&!new URLSearchParams(location.search).has('submission')) {
+    const {initWorkspacePersonas}=await import('./workspace-personas');
+    await initWorkspacePersonas(root);return;
+  }
   const zh = root.dataset.locale === 'zh-CN',
     l = (a: string, b: string) => (zh ? a : b),
     prefix = root.dataset.prefix!;
@@ -884,7 +888,8 @@ export async function initAccount() {
       history.replaceState(null, '', `/${prefix}/account?view=personas`);
     }
     actor = nextActor;
-    document.querySelector<HTMLElement>('[data-review-admin]')!.hidden = !worlds.worlds.some(
+    const reviewNav=document.querySelector<HTMLElement>('[data-review-admin]');
+    if(reviewNav)reviewNav.hidden = actor.siteRole!=='admin' && !worlds.worlds.some(
       (w: any) =>
         actor.siteRole === 'admin' || ['owner', 'admin'].includes(w.role) || w.owner_id === actor.id,
     );

@@ -1,7 +1,7 @@
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { transaction, type Database, type Connection } from '@plotstay/database';
-import { sharedPersonaSchema, textSchema, reviewRatingsSchema, idSchema } from '@plotstay/contracts';
+import { sharedPersonaSchema, personaSaveSchema, personaNotesSchema, textSchema, reviewRatingsSchema, idSchema } from '@plotstay/contracts';
 import { type Actor, requireWorld, hashPassword } from './auth.ts';
 import { assert } from './errors.ts';
 import { appendRevision } from './content.ts';
@@ -83,10 +83,13 @@ async function ensureSetting(db: Connection, p: any) {
 export async function myPersonas(db: Connection, actor: Actor) {
   const rows = (
     await db.query(
-      `SELECT p.id,p.disabled,s.id AS setting_id,s.head_revision_id,s.submitted_revision_id,
+      `SELECT p.id,p.disabled,p.approved,p.created_at,coalesce(r.created_at,p.created_at) AS updated_at,s.id AS setting_id,s.head_revision_id,s.submitted_revision_id,
  r.body AS draft,sr.body AS submitted,p.profiles AS published,
  d.decision,d.note,pd.decision AS submitted_decision,pd.note AS submitted_note,
- pub.revision_id AS published_revision_id
+ pub.revision_id AS published_revision_id,
+ (SELECT jsonb_build_object('revisionId',rr.id,'note',rd.note,'createdAt',rd.created_at)
+ FROM detail_setting_revisions rr JOIN persona_revision_decisions rd ON rd.revision_id=rr.id
+ WHERE rr.setting_id=s.id AND rd.decision='rejected' ORDER BY rd.created_at DESC,rr.id LIMIT 1) AS last_rejection
  FROM personas p LEFT JOIN detail_settings s ON s.kind='persona' AND s.entity_id=p.id
  LEFT JOIN detail_setting_revisions r ON r.id=s.head_revision_id
  LEFT JOIN detail_setting_revisions sr ON sr.id=s.submitted_revision_id
@@ -106,7 +109,9 @@ export function savePersona(
   id?: string,
   baseRevisionId?: string | null,
 ) {
-  return transaction(db, async (c) => {
+  return transaction(db, c => savePersonaInTransaction(c,actor,raw,id,baseRevisionId));
+}
+async function savePersonaInTransaction(c: Connection,actor: Actor,raw: unknown,id?: string,baseRevisionId?: string|null) {
     const body = profilesSchema.parse(raw);
     validateLanguages(body);
     let p;
@@ -115,9 +120,10 @@ export function savePersona(
     } else
       p = (await c.query('INSERT INTO personas(owner_id,profiles)VALUES($1,$2)RETURNING *', [actor.id, {}]))
         .rows[0];
+    const previous=id?(await c.query("SELECT head_revision_id FROM detail_settings WHERE kind='persona' AND entity_id=$1",[id])).rows[0]:null;
     const s = await ensureSetting(c, p);
     assert(
-      !id || s.head_revision_id === baseRevisionId,
+      !id || (previous?.head_revision_id??null) === (baseRevisionId??null),
       409,
       'REVISION_CONFLICT',
       'Persona changed. Your input is preserved; reload before saving.',
@@ -137,8 +143,8 @@ export function savePersona(
       [s.id, actor.id, r.id],
     );
     return { id: p.id, revisionId: r.id };
-  });
 }
+
 async function personaSnapshot(c: Connection, actor: Actor, id: string) {
   const p = await ownPersona(c, actor, id, true),
     s = await ensureSetting(c, p);
@@ -332,7 +338,9 @@ export async function submitPersona(c: Connection, revisionId: string, actor: Ac
   }
 }
 export function submitOwnPersona(db: Database, actor: Actor, id: string, revisionId: string) {
-  return transaction(db, async c => {
+  return transaction(db,c=>submitOwnPersonaInTransaction(c,actor,id,revisionId));
+}
+async function submitOwnPersonaInTransaction(c: Connection,actor: Actor,id: string,revisionId: string) {
     const p = await ownPersona(c, actor, id, true);
     const s = await ensureSetting(c, p);
     assert(s.head_revision_id === revisionId, 409, 'REVISION_CONFLICT', 'Submit the saved current profile.');
@@ -342,8 +350,8 @@ export function submitOwnPersona(db: Database, actor: Actor, id: string, revisio
     if(decided?.decision==='approved')return {submitted:false,alreadyApproved:true,revisionId};
     await submitPersona(c, revisionId, actor);
     return { submitted: true, revisionId };
-  });
 }
+
 export async function personaQueue(db: Connection, actor: Actor, page = 1) {
   assert(actor.siteRole === 'admin', 403, 'SITE_ADMIN_REQUIRED', 'A site administrator reviews profiles.');
   const rows = (await db.query(`SELECT p.id AS persona_id,p.owner_id,u.email,s.submitted_revision_id AS revision_id,
@@ -885,4 +893,63 @@ export async function readReplies(db: Connection, locale: string, reviewIds: str
       ];
     }),
   );
+}
+
+// Stable fingerprints contain no body text. The private-note fingerprint is never logged.
+function commandHash(value: unknown): string {
+  const canonical=(v:any):any=>Array.isArray(v)?v.map(canonical):v&&typeof v==='object'?Object.fromEntries(Object.keys(v).sort().map(k=>[k,canonical(v[k])])):v;
+  return createHash('sha256').update(JSON.stringify(canonical(value))).digest('hex');
+}
+export function saveOwnPersona(db: Database,actor: Actor,raw: unknown) {
+ const input=personaSaveSchema.parse(raw),hash=commandHash(input);
+ return transaction(db,async c=>{
+  // Same actor/request serializes even before a new persona has an ID.
+  await c.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))',[actor.id+':persona:'+input.requestId]);
+  if(input.personaId)await ownPersona(c,actor,input.personaId,true);
+  const cached=(await c.query('SELECT request_hash,result FROM persona_profile_commands WHERE actor_id=$1 AND request_id=$2',[actor.id,input.requestId])).rows[0];
+  if(cached){assert(cached.request_hash===hash,409,'REQUEST_CONFLICT','This request ID belongs to a different save.');return cached.result;}
+  assert(input.personaId||input.baseRevisionId===null,409,'REVISION_CONFLICT','A saved persona requires its current revision.');
+  if(input.action==='complete'){
+   const current=input.personaId?(await c.query("SELECT submitted_revision_id FROM detail_settings WHERE kind='persona' AND entity_id=$1",[input.personaId])).rows[0]?.submitted_revision_id:null;
+   assert((current??null)===input.expectedSubmittedRevisionId,409,'SUBMISSION_CONFLICT','The pending profile changed. Review the current submission before replacing it.');
+   assert(input.profiles.en&&input.profiles['zh-CN'],409,'TRANSLATIONS_REQUIRED','Complete Chinese and English profiles.');
+  }
+  const saved=await savePersonaInTransaction(c,actor,input.profiles,input.personaId,input.baseRevisionId);
+  let outcome='draft';
+  if(input.action==='complete'){
+   await submitOwnPersonaInTransaction(c,actor,saved.id,saved.revisionId);
+   outcome='submitted';
+   if(actor.siteRole==='admin'){
+    await approvePersonaVersion(c,actor,saved.revisionId,'approved','Owner site administrator completed profile');
+    outcome='published';
+   }
+  }
+  const metadata=(await c.query(`SELECT r.setting_id,r.created_at AS updated_at,p.created_at
+    FROM detail_setting_revisions r JOIN personas p ON p.id=$2 WHERE r.id=$1`,[saved.revisionId,saved.id])).rows[0];
+  const result={...saved,outcome,settingId:metadata.setting_id,updatedAt:metadata.updated_at.toISOString(),createdAt:metadata.created_at.toISOString()};
+  await c.query('INSERT INTO persona_profile_commands(actor_id,request_id,request_hash,result)VALUES($1,$2,$3,$4)',[actor.id,input.requestId,hash,result]);
+  return result;
+ });
+}
+async function ownNotesPersona(c:Connection,actor:Actor,id:string,lock=false){
+ // Disabled personas keep access to their owner's private notes. No admin override.
+ const p=(await c.query(`SELECT owner_id FROM personas WHERE id=$1${lock?' FOR UPDATE':''}`,[id])).rows[0];
+ assert(p&&p.owner_id===actor.id,403,'PERSONA_FORBIDDEN','Choose your own persona.');
+}
+export async function readPersonaNotes(db:Connection,actor:Actor,id:string){
+ await ownNotesPersona(db,actor,id);
+ const row=(await db.query('SELECT body,version,updated_at FROM persona_private_notes WHERE persona_id=$1',[id])).rows[0];
+ return row?{body:row.body,version:row.version,updatedAt:row.updated_at}:{body:'',version:null,updatedAt:null};
+}
+export function savePersonaNotes(db:Database,actor:Actor,id:string,raw:unknown){
+ const input=personaNotesSchema.parse(raw),hash=commandHash(input);
+ return transaction(db,async c=>{
+  await ownNotesPersona(c,actor,id,true);
+  const row=(await c.query('SELECT version,request_id,request_hash FROM persona_private_notes WHERE persona_id=$1 FOR UPDATE',[id])).rows[0];
+  if(row?.request_id===input.requestId){assert(row.request_hash===hash,409,'REQUEST_CONFLICT','This request ID belongs to another save.');return readPersonaNotes(c,actor,id);}
+  assert((row?.version??null)===input.baseVersion,409,'NOTES_CONFLICT','Notes changed. Your input has not overwritten them.');
+  await c.query(`INSERT INTO persona_private_notes(persona_id,body,request_id,request_hash)VALUES($1,$2,$3,$4)
+   ON CONFLICT(persona_id)DO UPDATE SET body=excluded.body,version=gen_random_uuid(),updated_at=clock_timestamp(),request_id=excluded.request_id,request_hash=excluded.request_hash`,[id,input.body,input.requestId,hash]);
+  return readPersonaNotes(c,actor,id);
+ });
 }

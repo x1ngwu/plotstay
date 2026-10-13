@@ -1,0 +1,121 @@
+/* Shared navigation additions; persona layout stays inside its own controller. */
+#new-workspace .ws-menu {display:none}
+#new-workspace .ws-nav-group {font-size:12px;color:#687067;margin:20px 12px 3px}
+#new-workspace[data-moderator=false] .ws-nav-group:last-of-type {display:none!important}
+#new-workspace[data-view=personas] .ws-eyebrow {display:none}
+#new-workspace[data-view=personas] .ws-page-head {flex-wrap:wrap;align-items:center}
+#new-workspace[data-view=personas] .ws-page-head>div {flex:1;min-width:200px}
+#new-workspace[data-view=personas] #ws-head-action {display:inline-flex;align-items:center;min-height:42px;background:#293f30;color:#fff;border-color:#293f30;font-size:14px;font-weight:600}
+#new-workspace #persona-message:empty {display:none}
+#new-workspace #persona-workspace .wp-personas {font:inherit;line-height:1.5;min-width:0}
+#new-workspace #persona-workspace .wp-personas :is(button,a,input,select,textarea) {font:inherit}
+#new-workspace #persona-workspace .wp-personas button {min-height:42px;cursor:pointer;margin:0}
+#new-workspace #persona-workspace .wp-personas button:disabled {opacity:.55;cursor:default}
+#new-workspace #persona-workspace .wp-personas .wp-primary {background:#293f30;color:#fff;border-color:#293f30}
+#new-workspace #persona-workspace .wp-personas .wp-primary:hover {background:#37543f}
+#new-workspace #persona-workspace .wp-personas :is(input,textarea,select) {min-height:44px;width:100%;font-size:16px;line-height:1.5}
+#new-workspace #persona-workspace .wp-personas textarea {resize:vertical}
+#new-workspace #persona-workspace .wp-personas label {display:grid;gap:8px;min-width:0;margin:0 0 20px}
+#new-workspace #persona-workspace .wp-personas small {font-size:13px;line-height:1.5;color:#687067}
+#persona-workspace .wp-personas .wp-sr {position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+#persona-workspace .wp-personas .wp-toolbar {display:flex;flex-wrap:wrap;align-items:end;gap:18px;margin-bottom:18px}
+#persona-workspace .wp-personas .wp-filters {display:flex;flex:1;min-width:0;max-width:100%;overflow-x:auto;gap:4px;padding-bottom:4px}
+#new-workspace #persona-workspace .wp-personas .wp-filters button {border:0;background:transparent;border-radius:0;white-space:nowrap;padding:8px 10px;font-size:14px}
+#new-workspace #persona-workspace .wp-personas .wp-filters button[aria-pressed=true] {border-bottom:2px solid #293f30;font-weight:700}
+#persona-workspace .wp-personas .wp-filters span {margin-left:3px;font-size:12px;color:#657064}
+#persona-workspace .wp-personas .wp-tools {display:flex;gap:10px;flex:0 1 350px}
+#new-workspace #persona-workspace .wp-personas .wp-tools label {margin:0;flex:1;min-width:0}
+#new-workspace #persona-workspace .wp-personas .wp-tools label:first-child {flex:1.6}
+#new-workspace #persona-workspace .wp-personas .wp-tools :is(select,input) {font-size:14px}
+#persona-workspace .wp-personas .wp-grid {display:grid;grid-template-columns:repeat(auto-fill,minmax(min(218px,100%),1fr));gap:18px}
+#persona-workspace .wp-personas .wp-card {background:#fffef9;border:1px solid var(--line);border-radius:8px;padding:20px;min-width:0;display:flex;flex-direction:column;gap:14px}
+#persona-workspace .wp-personas .wp-avatar {width:80px;height:80px;border-radius:7px;overflow:hidden;flex:none;margin:auto}
+#persona-workspace .wp-personas .wp-avatar svg {display:block;width:100%;height:100%}
+#persona-workspace .wp-personas .wp-card-copy {display:flex;flex-direction:column;flex:1;min-width:0}
+#new-workspace #persona-workspace .wp-personas .wp-card h2 {font-size:17px;font-weight:700;line-height:1.5;margin:0 0 4px;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+#persona-workspace .wp-personas .wp-bio {font-size:14px;color:#687067;line-height:1.5;min-height:42px;margin:0 0 12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+#persona-workspace .wp-personas .wp-badges {display:flex;flex-wrap:wrap;gap:5px;margin-top:auto;margin-bottom:8px}
+#persona-workspace .wp-personas .wp-badge {font-size:12px;line-height:1.5;padding:2px 8px;border-radius:5px;background:#e9eddf;color:#4e5b44}
+#persona-workspace .wp-personas .wp-live {background:#e5f8ca;color:#305125}#persona-workspace .wp-personas .wp-pending {background:#fff1d2;color:#845718}#persona-workspace .wp-personas .wp-draft {background:#eceaff;color:#51448d}#persona-workspace .wp-personas .wp-returned {background:#f9e7de;color:#893f26}
+#persona-workspace .wp-personas time {font-size:12px;color:#687067}
+#new-workspace #persona-workspace .wp-personas .wp-edit {display:grid;place-items:center;margin-top:14px;min-height:40px;border:1px solid #a3ad9e;border-radius:5px;text-decoration:none;font-size:14px}
+#persona-workspace .wp-personas .wp-edit:hover {background:#eef2e4}
+#persona-workspace .wp-personas .wp-create-card {border:1px dashed #b9c3b0;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;min-height:290px;padding:24px;text-align:center;text-decoration:none}
+#persona-workspace .wp-personas .wp-create-card>span:first-child {font-size:30px}
+#persona-workspace .wp-personas .wp-create-card>span:last-child {font-size:14px;color:#687067;max-width:170px}
+#persona-workspace .wp-personas .wp-empty {grid-column:1/-1;padding:25px;color:#687067}
+#persona-workspace .wp-personas .wp-editor {display:grid;grid-template-columns:150px minmax(0,1fr);gap:20px;align-items:start}
+#persona-workspace .wp-personas .wp-local {display:flex;flex-direction:column;gap:4px}
+#new-workspace #persona-workspace .wp-personas .wp-local button {text-align:left;border:0;background:transparent;font-size:14px;border-radius:0}
+#new-workspace #persona-workspace .wp-personas .wp-local button[aria-pressed=true] {border-left:2px solid #293f30;background:#e8ece0;font-weight:600}
+#persona-workspace .wp-personas .wp-unsaved:after {content:' •';color:#956213}
+#persona-workspace .wp-personas .wp-form-area {min-width:0}
+#persona-workspace .wp-personas .wp-public-layout {display:grid;grid-template-columns:minmax(0,1.6fr) minmax(210px,1fr);gap:20px;align-items:start}
+#persona-workspace .wp-personas .wp-surface {padding:20px;background:#fffef9;border:1px solid var(--line);border-radius:8px;min-width:0}
+#new-workspace #persona-workspace .wp-personas .wp-surface h2 {font-size:17px;margin:0 0 14px}
+#persona-workspace .wp-personas .wp-form-heading {display:flex;align-items:baseline;flex-wrap:wrap;gap:12px;justify-content:space-between}
+#new-workspace #persona-workspace .wp-personas .wp-form-heading label {font-size:12px;display:flex;align-items:center;gap:8px;margin:0}
+#new-workspace #persona-workspace .wp-personas .wp-form-heading select {width:auto;font-size:14px;min-height:40px}
+#persona-workspace .wp-personas .wp-muted {font-size:14px;color:#687067;margin:12px 0 20px}
+#persona-workspace .wp-personas fieldset {border:0;padding:0;margin:0;min-width:0}
+#persona-workspace .wp-personas .wp-avatar-row {display:flex;align-items:center;gap:20px;margin:0 0 24px}
+#persona-workspace .wp-personas .wp-avatar-row .wp-avatar {margin:0}#persona-workspace .wp-personas .wp-avatar-row label {margin:0!important}
+#persona-workspace .wp-personas .wp-preview {text-align:center}
+#persona-workspace .wp-personas .wp-preview h2 {text-align:left}
+#persona-workspace .wp-personas .wp-preview h3 {font-size:17px;line-height:1.5;overflow-wrap:anywhere;margin:16px 0 6px}
+#persona-workspace .wp-personas .wp-preview p {font-size:14px;white-space:pre-wrap;overflow-wrap:anywhere;margin:0 0 20px}
+#persona-workspace .wp-personas #wp-preview {max-height:600px;overflow:auto;padding:12px 0}
+#persona-workspace .wp-personas .wp-actions {display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px;margin:16px 0 12px}
+#persona-workspace .wp-personas .wp-save-state {font-size:14px;color:#55614f;margin:16px 0;overflow-wrap:anywhere}
+#persona-workspace .wp-personas .wp-error {color:#a03525!important}
+#persona-workspace .wp-personas .wp-history {margin-top:20px;font-size:14px}
+#persona-workspace .wp-personas .wp-history summary {cursor:pointer;min-height:24px;font-weight:600}
+#persona-workspace .wp-personas .wp-history dl {display:grid;grid-template-columns:max-content minmax(0,1fr);gap:8px 20px}
+#persona-workspace .wp-personas .wp-history dd {margin:0;font-family:monospace}
+#persona-workspace .wp-personas .wp-history p {overflow-wrap:anywhere;white-space:pre-wrap}
+#persona-workspace .wp-personas .wp-returned-note,#persona-workspace .wp-personas .wp-notice {padding:14px;border-left:3px solid #b47b40;background:#faf0de;border-radius:4px;font-size:14px;overflow-wrap:anywhere}
+#persona-workspace .wp-personas .wp-private {font-size:13px;background:#e9efdf;color:#3f5e38;border-radius:5px;padding:5px 9px}
+#persona-workspace .wp-personas .wp-notes-form {max-width:900px}
+#new-workspace #persona-workspace .wp-personas #wp-notes {min-height:340px;line-height:1.7}
+#persona-workspace .wp-personas .wp-note-meta {display:flex;gap:12px;justify-content:space-between;align-items:start;margin-top:8px;font-size:13px}
+#persona-workspace .wp-personas #wp-count {white-space:nowrap}
+#persona-workspace .wp-personas .wp-history-view .wp-avatar {margin:16px 0}
+#persona-workspace .wp-personas .wp-full-text {white-space:pre-wrap;overflow-wrap:anywhere}
+.wp-compare {width:min(650px,calc(100vw - 40px));box-sizing:border-box;max-height:85dvh;overflow:auto;border:1px solid #b3bfa9;border-radius:9px;background:#fffef9;padding:22px;color:#242b27}
+.wp-compare::backdrop {background:#17261d66}.wp-compare pre {white-space:pre-wrap;overflow-wrap:anywhere;font:15px/1.6 system-ui}
+.wp-compare button {padding:10px;margin:6px;min-height:44px;background:#fffef9;border:1px solid #a3ad9e;border-radius:5px}
+@media(max-width:1200px){#persona-workspace .wp-personas .wp-editor {grid-template-columns:1fr}#persona-workspace .wp-personas .wp-local {flex-direction:row}#persona-workspace .wp-personas .wp-toolbar {display:block}#persona-workspace .wp-personas .wp-tools {max-width:460px;margin:12px 0 0}}
+@media(max-width:900px){#persona-workspace .wp-personas .wp-public-layout {grid-template-columns:1fr}#persona-workspace .wp-personas .wp-preview {max-width:380px;width:100%;justify-self:center}}
+@media(max-width:760px){
+ #new-workspace .ws-sidebar {position:relative;padding:16px;min-height:66px}
+ #new-workspace .ws-menu {display:block;position:absolute;right:16px;top:12px;min-height:44px;border:1px solid #bac4b0;background:#fffef9;border-radius:5px;padding:8px 12px}
+ #new-workspace .ws-nav {display:none;white-space:normal;overflow:visible}
+ #new-workspace[data-menu=true] .ws-nav {display:grid;grid-template-columns:1fr 1fr}
+ #new-workspace[data-menu=true] .ws-nav-group {display:block;grid-column:1/-1}
+ #new-workspace[data-menu=true] .ws-sidebar-footer {display:grid;margin-top:20px}
+ #new-workspace .ws-nav a {min-height:44px}
+ #new-workspace[data-view=personas] .ws-page-head {flex-direction:row;gap:12px;align-items:center}
+ #new-workspace[data-view=personas] .ws-page-head>div {min-width:160px}
+ #new-workspace[data-view=personas] #ws-context {font-size:14px}
+ #new-workspace[data-view=personas] .ws-page-navigation {margin-bottom:18px}
+ #new-workspace[data-view=personas] .ws-crumbs {font-size:12px}
+ #new-workspace #persona-workspace .wp-personas button,#new-workspace[data-view=personas] #ws-head-action {min-height:44px}
+ #persona-workspace .wp-personas .wp-grid {display:block}#persona-workspace .wp-personas .wp-card {padding:18px 0;border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent;flex-direction:row;gap:14px;position:relative}
+ #persona-workspace .wp-personas .wp-card>.wp-avatar {width:56px;height:56px;margin:0;flex:none}
+ #new-workspace #persona-workspace .wp-personas .wp-card h2 {font-size:16px;margin:0;padding-right:15px}
+ #persona-workspace .wp-personas .wp-bio {font-size:13px;min-height:0;margin:4px 0 8px;padding-right:15px}
+ #persona-workspace .wp-personas .wp-card time {font-size:11px}#persona-workspace .wp-personas .wp-card .wp-badges {margin:0 0 4px}
+ #new-workspace #persona-workspace .wp-personas .wp-edit {font-size:0;border:0;position:absolute;inset:0;margin:0;display:block}
+ #persona-workspace .wp-personas .wp-edit:after {content:'›';position:absolute;right:0;top:35px;font-size:24px;color:#768270}
+ #persona-workspace .wp-personas .wp-edit:hover {background:transparent}
+ #persona-workspace .wp-personas .wp-create-card {min-height:52px;flex-direction:row;padding:12px;margin-top:20px;font-size:14px}
+ #persona-workspace .wp-personas .wp-create-card>span:first-child {font-size:22px}#persona-workspace .wp-personas .wp-create-card>span:last-child {display:none}
+ #persona-workspace .wp-personas .wp-tools {max-width:none}#persona-workspace .wp-personas .wp-filters {margin-left:-5px}
+ #persona-workspace .wp-personas .wp-surface {padding:18px}#persona-workspace .wp-personas .wp-editor {gap:14px}
+ #persona-workspace .wp-personas .wp-local {display:grid;grid-template-columns:1fr 1fr}#persona-workspace .wp-personas .wp-local button {text-align:center!important}
+ #persona-workspace .wp-personas .wp-form-heading label {width:100%;justify-content:space-between}
+ #persona-workspace .wp-personas .wp-actions {justify-content:stretch}#persona-workspace .wp-personas .wp-actions button {flex:1}
+ #persona-workspace .wp-personas .wp-history dl {grid-template-columns:1fr 1fr;gap:8px}
+ #persona-workspace .wp-personas .wp-note-meta {flex-wrap:wrap}
+ #new-workspace #persona-workspace .wp-personas #wp-notes {min-height:360px}
+}

@@ -102,3 +102,12 @@ npm run db:init:details -- --apply
 新版独立入口为 `/zh/workspace`、`/en/workspace`；旧 `/account`、`/admin` 及其深链接保持可用。新版 `view`、`world`、`content`、筛选和页码参数用于私有导航，管理能力依旧由相同 API 逐请求校验。实现和世界管理人工体验清单见 [第一阶段记录](workspace-handoff/phase-one-implementation.md)。
 
 必要增量迁移为 `009_persona_current_submission.sql` 与 `010_persona_submission_pointer_guard.sql`，按 `npm run db:migrate` 应用；它们只修正角色当前待审指针，不改不可变历史，不 seed、不重置数据。工作台页面及其私有预览继续继承 Basic Auth、noindex、no-store 和 robots 禁止抓取设置。
+
+
+## 工作台角色资料与私人笔记
+
+2026-10-13 新版 `/zh/workspace?view=personas` 与英文入口已接真实保存。必要增量迁移为 `011_persona_private_notes.sql`；保留原库、原卷和既有迁移，不 seed/reset。旧 `/account` 与旧后台继续可用。
+
+新版 `POST /api/me/personas/save` 在一个事务内保存固定资料版本并送审，或由网站管理员完成本人资料直接生效；草稿不清除旧待审指针。`/api/me/personas/:id/notes` 的 GET／PUT 仅角色所有者可用，网站管理员不能读取他人的私人笔记。笔记不进入公共资料与历史、审核、署名或索引，内部错误日志不得包含私有数据库行正文。
+
+后续验证仍应使用隔离测试 schema；不要向现用角色写测试笔记。所有页面、接口与资源继承现有 Basic Auth、noindex、no-store，应用会话错误继续由 Web 层转换为 403。详细证据与已知验证边界见[真实接入记录](workspace-handoff/personas-implementation/README.md)。

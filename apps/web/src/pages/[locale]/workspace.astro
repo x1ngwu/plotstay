@@ -13,7 +13,7 @@ Astro.response.headers.set('Cache-Control','private, no-store');
 const view = Astro.url.searchParams.get('view') ?? 'overview';
 const adminViews = ['works','editor','world-content','world-settings','world-tools','world-review'];
 const accountViews = ['personas','reviews','replies','moderation','site'];
-const title = ({overview:t('今天，从这里继续','Today, pick up where you left off'),works:t('我管理的内容','Content I manage'),editor:t('内容编辑','Edit content'),personas:t('我的角色','My personas'),reviews:t('评价与回复','Reviews and replies'),replies:t('评价与回复','Reviews and replies'),worlds:t('我管理的世界','Worlds I manage'),'world-content':t('世界内容','World content'),'world-settings':t('世界设定','World settings'),'world-tools':t('管理工具','Management tools'),'world-review':t('世界审核','World moderation'),'shared-settings':t('共享资料','Shared settings'),'world-members':t('成员','Members'),moderation:t('世界审核','World moderation'),site:t('网站审核','Site moderation'),settings:t('账号设置','Account settings')} as Record<string,string>)[view] ?? t('概览','Overview');
+const title = ({overview:t('今天，从这里继续','Today, pick up where you left off'),works:t('我管理的内容','Content I manage'),editor:t('内容编辑','Edit content'),personas:t('我的角色','My personas'),reviews:t('我的评价','My reviews'),replies:t('收到的评价','Received reviews'),worlds:t('我管理的世界','Worlds I manage'),'world-content':t('世界内容','World content'),'world-settings':t('世界设定','World settings'),'world-tools':t('管理工具','Management tools'),'world-review':t('世界审核','World moderation'),'shared-settings':t('共享资料','Shared settings'),'world-members':t('成员','Members'),moderation:t('评价与回复审核','Review moderation'),site:t('网站审核','Site moderation'),settings:t('账号设置','Account settings')} as Record<string,string>)[view] ?? t('概览','Overview');
 const worldId = Astro.url.searchParams.get('world');
 const oldAccountView = view==='site'?'moderation':view==='settings'?'personas':view;
 const oldQuery=new URLSearchParams();
@@ -28,13 +28,18 @@ const legacyTarget=accountViews.includes(view)||view==='settings'?`/${locale.pat
   <aside class="ws-sidebar">
     <a class="ws-brand" href={`/${locale.pathPrefix}/workspace`}><span class="ws-brand-icon" aria-hidden="true">P</span><span>PLOTSTAY</span></a>
     <p class="ws-nav-label">{t('我的工作台','My workspace')}</p>
-    <nav class="ws-nav" aria-label={t('工作台导航','Workspace navigation')}>
+    <button class="ws-menu" type="button" aria-expanded="false" aria-controls="workspace-navigation">☰ {t('导航','Menu')}</button>
+    <nav id="workspace-navigation" class="ws-nav" aria-label={t('工作台导航','Workspace navigation')}>
       <a href={`/${locale.pathPrefix}/workspace`}><span aria-hidden="true">◫</span>{t('概览','Overview')}</a>
       <a href={`/${locale.pathPrefix}/workspace?view=personas`}><span aria-hidden="true">◉</span>{t('我的角色','My personas')}</a>
+      <a href={`/${locale.pathPrefix}/workspace?view=reviews`}><span aria-hidden="true">▤</span>{t('我的评价','My reviews')}</a>
+      <a href={`/${locale.pathPrefix}/workspace?view=replies`}><span aria-hidden="true">☷</span>{t('收到的评价','Received reviews')}</a>
+      <p class="ws-nav-group">{t('我的内容','My content')}</p>
       <a href={`/${locale.pathPrefix}/workspace?view=works`}><span aria-hidden="true">▧</span>{t('我管理的内容','Content I manage')}</a>
-      <a href={`/${locale.pathPrefix}/workspace?view=reviews`}><span aria-hidden="true">☷</span>{t('评价与回复','Reviews and replies')}</a>
       <a href={`/${locale.pathPrefix}/workspace?view=worlds`}><span aria-hidden="true">◎</span>{t('我管理的世界','Worlds I manage')}</a>
       <a href={`/${locale.pathPrefix}/workspace?view=settings`}><span aria-hidden="true">⚙</span>{t('账号设置','Account settings')}</a>
+      <p class="ws-nav-group">{t('审核管理','Moderation')}</p>
+      <a class="ws-moderation-link" hidden href={`/${locale.pathPrefix}/workspace?view=moderation`}><span aria-hidden="true">☷</span>{t('评价与回复审核','Review moderation')}</a>
       <a class="ws-site-link" hidden href={`/${locale.pathPrefix}/workspace?view=site`}><span aria-hidden="true">◇</span>{t('网站审核','Site moderation')}</a>
     </nav>
     <div class="ws-sidebar-footer"><div class="ws-account-mark" aria-hidden="true">P</div><div><strong id="ws-account-name">{t('私人工作台','Private workspace')}</strong><small>{t('使用现有账号','Existing account')}</small></div><a class="ws-legacy" href={legacyTarget}>{t('旧版 ↗','Previous ↗')}</a></div>
@@ -54,7 +59,7 @@ const legacyTarget=accountViews.includes(view)||view==='settings'?`/${locale.pat
     {accountViews.includes(view) && <div id="persona-workspace" data-locale={locale.code} data-prefix={locale.pathPrefix}>
       <p id="persona-message" role="status" aria-live="polite"></p>
       <form id="account-login" class="panel" hidden><h2>{t('登录现有账号','Sign in to your account')}</h2><label>{t('邮箱','Email')}<input name="email" type="email" autocomplete="username" required/></label><label>{t('密码','Password')}<input name="password" type="password" autocomplete="current-password" required/></label><button>{t('登录','Sign in')}</button></form>
-      <div id="account-content" hidden><nav class="account-tabs"><a href={`/${locale.pathPrefix}/workspace?view=personas`}>{t('我的角色','My personas')}</a><a href={`/${locale.pathPrefix}/workspace?view=reviews`}>{t('我的评价','My reviews')}</a><a href={`/${locale.pathPrefix}/workspace?view=replies`}>{t('提供者回复','Provider replies')}</a><a data-review-admin hidden href={`/${locale.pathPrefix}/workspace?view=moderation`}>{t('评价与回复审核','Review moderation')}</a></nav><section id="account-view"></section></div>
+      <div id="account-content" hidden><section id="account-view"></section></div>
     </div>}
   </main></div>
 </div>}

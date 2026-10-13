@@ -1,0 +1,72 @@
+{
+  "time": "2026-10-13",
+  "baseline": "9f42a6b8e4fae210350716ebd45f507692e5753d",
+  "phase": "B real integration",
+  "dataTests": {
+    "passed": 96,
+    "failed": 0,
+    "scope": "npm test before final UI refinements; final atomic-command metadata change rerun separately"
+  },
+  "finalDomainRegression": {
+    "passed": 6,
+    "failed": 0
+  },
+  "existingE2E": {
+    "passed": 63,
+    "failed": 0
+  },
+  "finalTargetedE2E": {
+    "passed": 13,
+    "failed": 0,
+    "scope": "11 persona tests including parent + overview + workspace"
+  },
+  "build": {
+    "typescriptErrors": 0,
+    "astroErrors": 0,
+    "warnings": 0,
+    "passed": true
+  },
+  "screenshots": [
+    "admin-published.png",
+    "empty-390.png",
+    "list-en-1440.png",
+    "list-en-390.png",
+    "list-zh-1440.png",
+    "list-zh-390.png",
+    "long-profile-390.png",
+    "notes-en-1100.png",
+    "notes-en-1440.png",
+    "notes-en-360.png",
+    "notes-en-390.png",
+    "notes-zh-1440.png",
+    "notes-zh-390.png",
+    "public-en-1100.png",
+    "public-en-1440.png",
+    "public-en-360.png",
+    "public-en-390.png",
+    "public-zh-1440.png",
+    "public-zh-390.png"
+  ],
+  "isolation": "All authenticated business writes used disposable test schemas. No live sample business writes.",
+  "knownLimitations": [
+    "Physical mobile keyboard not tested",
+    "Authenticated public Basic Auth browser interaction not verified; no plaintext credential available"
+  ],
+  "resolvedFailures": [
+    "Synchronous notes validation assertion corrected",
+    "Legacy CSS overriding persona controls corrected",
+    "Notes error state after session recovery reset",
+    "Incomplete combined legacy run replaced by complete passing runs",
+    "Mobile full-row link text revealed by inherited font rule; corrected selector specificity and verified screenshots"
+  ],
+  "zipSha256": "2338ebbf7ead485b3842e0d8eb3204da83dfd52c4eb8994c85c2daa232b72d26",
+  "finalPersonaE2E": {
+    "passed": 11,
+    "failed": 0,
+    "scope": "Final CSS build; full persona interactions, cross-tab identity and mobile link layout"
+  },
+  "deploymentChecks": {
+    "passed": 28,
+    "failed": 0
+  }
+}

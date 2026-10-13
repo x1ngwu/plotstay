@@ -9,7 +9,7 @@ if (root) {
   const base = `/${prefix}/workspace`;
   const view = root.dataset.view ?? 'overview';
   const roles:Record<string,string>={owner:l('所有者','Owner'),admin:l('管理员','Administrator'),editor:l('编辑者','Editor')};
-  const titles:Record<string,string> = {overview:l('今天，从这里继续','Today, pick up where you left off'),works:l('我管理的内容','Content I manage'),editor:l('内容编辑','Edit content'),personas:l('我的角色','My personas'),reviews:l('评价与回复','Reviews and replies'),replies:l('评价与回复','Reviews and replies'),worlds:l('我管理的世界','Worlds I manage'),'world-content':l('世界内容','World content'),'world-settings':l('世界设定','World settings'),'world-tools':l('管理工具','Management tools'),'world-review':l('世界审核','World moderation'),'shared-settings':l('共享资料','Shared settings'),'world-members':l('成员','Members'),moderation:l('世界审核','World moderation'),site:l('网站审核','Site moderation'),settings:l('账号设置','Account settings')};
+  const titles:Record<string,string> = {overview:l('今天，从这里继续','Today, pick up where you left off'),works:l('我管理的内容','Content I manage'),editor:l('内容编辑','Edit content'),personas:l('我的角色','My personas'),reviews:l('我的评价','My reviews'),replies:l('收到的评价','Received reviews'),worlds:l('我管理的世界','Worlds I manage'),'world-content':l('世界内容','World content'),'world-settings':l('世界设定','World settings'),'world-tools':l('管理工具','Management tools'),'world-review':l('世界审核','World moderation'),'shared-settings':l('共享资料','Shared settings'),'world-members':l('成员','Members'),moderation:l('评价与回复审核','Review moderation'),site:l('网站审核','Site moderation'),settings:l('账号设置','Account settings')};
   const q = new URLSearchParams(location.search);
   const wsLink = (v:string,world?:string) => base+'?'+new URLSearchParams({view:v,...world?{world}:{} });
   function editorReturn(world?:string){
@@ -37,13 +37,16 @@ if (root) {
     const requestedReturn=new URLSearchParams(location.search).get('returnTo');
     if(v!=='overview'&&requestedReturn)try{const url=new URL(requestedReturn,location.origin);if(url.origin===location.origin&&url.pathname===base&&(url.searchParams.get('view')??'overview')==='overview'){back.href=url.pathname+url.search;back.textContent=l('返回工作台首页','Back to overview');}}catch{}
     for(const a of root!.querySelectorAll<HTMLAnchorElement>('.ws-nav a'))a.removeAttribute('aria-current');
-    const navView=v==='editor'?(returnView?.startsWith('world-')?'worlds':'works'):v.startsWith('world-')?'worlds':['replies','moderation'].includes(v)?'reviews':v;
+    const navView=v==='editor'?(returnView?.startsWith('world-')?'worlds':'works'):v.startsWith('world-')?'worlds':v;
     const selected=root!.querySelector<HTMLAnchorElement>(`.ws-nav a[href="${navView==='overview'?base:wsLink(navView)}"]`);
     selected?.setAttribute('aria-current','page');
     for(const a of root!.querySelectorAll<HTMLAnchorElement>('.ws-world-nav a'))a.setAttribute('aria-current',String(new URL(a.href).searchParams.get('view')===v));
     const listPanel=document.getElementById('content-list-panel');if(listPanel&&v==='editor')listPanel.hidden=true;
   }
   route(view,q.get('world')??undefined);
+  const menu=root.querySelector<HTMLButtonElement>('.ws-menu')!;
+  menu.onclick=()=>{const expanded=menu.getAttribute('aria-expanded')!=='true';menu.setAttribute('aria-expanded',String(expanded));root.dataset.menu=String(expanded);};
+  root.addEventListener('keydown',e=>{if(e.key==='Escape'&&root.dataset.menu==='true'){menu.click();menu.focus();}});
   window.addEventListener('workspace:world-context',((event:CustomEvent<{world:string;worldName:string}>)=>{
     const heading=document.getElementById('ws-page-title')!;const title=heading.textContent;
     const current=root!.dataset.view??view;route(current,event.detail.world,event.detail.worldName);
@@ -61,7 +64,7 @@ if (root) {
   }) as EventListener);
   window.addEventListener('workspace:editor-context',((event:CustomEvent<{id:string;world:string;worldName:string;title:string}>)=>{const detail=event.detail;const url=new URL(location.href);url.searchParams.set('content',detail.id);url.searchParams.delete('new');url.searchParams.delete('parentId');history.replaceState(history.state,'',url);currentHref=location.href;route('editor',detail.world,detail.worldName);document.getElementById('ws-page-title')!.textContent=l('编辑','Edit ')+detail.title;}) as EventListener);
   let currentHref=location.href;
-  window.addEventListener('popstate',()=>{const guard=new Event('workspace:leave',{cancelable:true});window.dispatchEvent(guard);if(guard.defaultPrevented){history.pushState({workspace:true},'',currentHref);return;}location.reload();});
+  window.addEventListener('popstate',()=>{if(root!.dataset.personaController==='true')return;const guard=new Event('workspace:leave',{cancelable:true});window.dispatchEvent(guard);if(guard.defaultPrevented){history.pushState({workspace:true},'',currentHref);return;}location.reload();});
   const overview=document.getElementById('ws-overview')!, worldsPanel=document.getElementById('ws-worlds')!, settings=document.getElementById('ws-settings')!,membersPanel=document.getElementById('ws-members')!;
   overview.hidden=view!=='overview';worldsPanel.hidden=view!=='worlds';settings.hidden=view!=='settings';membersPanel.hidden=view!=='world-members';
   async function get(path:string){const response=await (window.__plotstayWorkspace?.request(path,'shell')??fetch('/api'+path,{credentials:'same-origin'}));const data=await response.json();if(!response.ok)throw Object.assign(new Error(data.error?.message??l('无法载入工作台','Could not load workspace')),{code:data.error?.code,status:response.status});return data;}
@@ -72,6 +75,8 @@ if (root) {
     const auth=await authRequest;
     document.getElementById('ws-account-name')!.textContent=auth.actor.email;
     root!.querySelector<HTMLElement>('.ws-site-link')!.hidden=auth.actor.siteRole!=='admin';
+    root!.querySelector<HTMLElement>('.ws-moderation-link')!.hidden=!auth.capabilities?.canModerate;
+    root!.dataset.moderator=String(Boolean(auth.capabilities?.canModerate));
     if(view==='overview'){await initOverview(root!,auth.actor);return;}
     if(view==='shared-settings'){
       const {settingsEditor}=await import('./settings-editor');let dirty=false;

@@ -7,3 +7,4 @@ export * from './experience.ts';
 export * from './service.ts';
 export * from './booking.ts';
 export * from './settings.ts';
+export * from './personas.ts';

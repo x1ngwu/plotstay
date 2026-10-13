@@ -3,6 +3,9 @@ import type { Database } from '@plotstay/database';
 import { z } from 'zod';
 import { idSchema } from '@plotstay/contracts';
 import {
+  saveOwnPersona,
+  readPersonaNotes,
+  savePersonaNotes,
   bindProvider,
   replyDetail,
   saveReply,
@@ -38,6 +41,9 @@ export function personaRoutes(app: FastifyInstance, db: Database) {
       .strict()
       .parse(req.query).page;
   app.get('/api/me/personas', async (r) => ({ personas: await myPersonas(db, await actor(r)) }));
+  app.post('/api/me/personas/save',async r=>saveOwnPersona(db,await actor(r),r.body));
+  app.get('/api/me/personas/:id/notes',async r=>readPersonaNotes(db,await actor(r),id(r)));
+  app.put('/api/me/personas/:id/notes',async r=>savePersonaNotes(db,await actor(r),id(r),r.body));
   app.post('/api/me/personas', async (r) =>
     savePersona(db, await actor(r), z.object({ profiles: z.unknown() }).strict().parse(r.body).profiles),
   );
