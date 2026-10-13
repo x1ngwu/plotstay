@@ -91,7 +91,7 @@ const base = `WITH permitted AS (
   SELECT translation_id FROM revision_locales WHERE revision_id=r.id AND $2='reviews'
   UNION ALL SELECT translation_id FROM publication_locales WHERE publication_id=p.published_publication_id AND $2='replies' AND p.context_available)
   ORDER BY (tx.locale=$3) DESC,(tx.locale=r.source_locale) DESC LIMIT 1) rt ON true
- LEFT JOIN LATERAL(SELECT action FROM reply_events WHERE revision_id=p.own_reply_id ORDER BY created_at DESC,id DESC LIMIT 1) own_status ON true
+ LEFT JOIN LATERAL(SELECT action FROM reply_events WHERE revision_id=p.own_reply_id AND action IN ('draft','submit','publish','reject') ORDER BY created_at DESC,id DESC LIMIT 1) own_status ON true
  LEFT JOIN LATERAL(SELECT * FROM (
   SELECT e.created_at,e.action,e.revision_id FROM moderation_events e WHERE e.content_id=p.id AND $2='reviews'
    AND e.action IN ('draft_saved','submitted','published','rejected','restored','unpublished')

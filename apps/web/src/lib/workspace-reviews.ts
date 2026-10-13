@@ -754,8 +754,8 @@ export async function initWorkspaceReviews(root: HTMLElement) {
     }
     return true;
   }
-  function payloadBody() {
-    const body = copy(writing);
+  function payloadBody(input = writing) {
+    const body = copy(input);
     for (const lang of ["zh-CN", "en"]) {
       const t = body.texts[lang];
       if (
@@ -795,8 +795,8 @@ export async function initWorkspaceReviews(root: HTMLElement) {
       submittedWriting = copy(writing);
     updateBusy();
     try {
-      await identity();
-      if (seq !== currentSeq) return;
+      // Capture the validated input before any asynchronous identity check.
+      // Later typing must never change this command or its saved baseline.
       const command = recover
         ? lastCommand
         : {
@@ -808,9 +808,11 @@ export async function initWorkspaceReviews(root: HTMLElement) {
             expectedPersonaId: detail.identity.id,
             expectedPersonaRevisionId: detail.identity.revision_id,
             action,
-            body: payloadBody(),
+            body: payloadBody(submittedWriting),
           };
       if (!command) return;
+      await identity();
+      if (seq !== currentSeq) return;
       if (!recover) {
         const key = snapshot({ ...command, requestId: "" });
         command.requestId =
@@ -959,6 +961,7 @@ export async function initWorkspaceReviews(root: HTMLElement) {
     if (action === "adopt" && conflict) {
       baseline = snapshot(bodyFrom(conflict));
       detail = conflict;
+      lastSavedRevisionId = detail.baseRevisionId;
       conflict = null;
       lastCommand = null;
       renderDetail();

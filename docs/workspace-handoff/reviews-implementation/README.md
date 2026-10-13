@@ -1,5 +1,7 @@
 # 评价阶段 B 真实接入
 
+2026-10-13 后续 code review 的三项问题已修复并于17:25:55 JST更新开发域名，详见[修复记录与本轮证据](review-fixes/README.md)。下文保留初次阶段 B 的验证结果和时间，不与本次次数混合。
+
 阶段 B 已真实接入并于 2026-10-13 约 17:00 JST 更新开发域名。012 增量迁移已应用；服务 active、health ok，31 项部署后只读保护检查通过。用户实机体验待验收；阶段 A 的合成数据演示不算真实权限证据。
 
 真实入口：[我的评价](https://plotstay.xingwu.dev/zh/workspace?view=reviews)、[收到的评价](https://plotstay.xingwu.dev/zh/workspace?view=replies)；英文切换 `/en/`。沿用现有 Basic Auth 与应用账号登录，不建立演示账号。

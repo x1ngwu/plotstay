@@ -853,3 +853,112 @@ test("reply command fixed results and replacement of a former provider submissio
   assert.equal(history.reply_excerpt, "New provider draft");
   assert.equal(history.can_edit, false);
 });
+
+test("reply visibility events preserve submission and draft states across moderation, lists and home", async (t) => {
+  for (const decision of ["publish", "reject"] as const)
+    for (const newerDraft of [false, true]) {
+      await t.test(
+        `${decision} fixed A after hide/restore, newer draft: ${newerDraft}`,
+        async (t) => {
+          const f = await setup();
+          t.after(f.cleanup);
+          const { db, data, id } = f;
+          const review = await saveReview(db, data.admin, id, f.base, body);
+          await submitReview(db, data.admin, id, review.revisionId);
+          await reviewRevision(
+            db,
+            data.admin,
+            id,
+            review.revisionId,
+            "publish",
+            "",
+          );
+          await bindProvider(
+            db,
+            data.admin,
+            data.ids["observation-room"]!,
+            f.p.id,
+          );
+          const input = {
+            sourceLocale: "en",
+            texts: { en: "Public reply", "zh-CN": "公开回复" },
+          };
+          const p = await saveReply(db, data.admin, id, input, null);
+          await replyAction(db, data.admin, id, "submit", p.revisionId);
+          await replyAction(db, data.admin, id, "publish", p.revisionId);
+          const publication = (await replyDetail(db, data.admin, id))
+            .publications[0].id;
+          const a = await saveReply(db, data.admin, id, input, p.revisionId);
+          await replyAction(db, data.admin, id, "submit", a.revisionId);
+          const b = newerDraft
+            ? await saveReply(db, data.admin, id, input, a.revisionId)
+            : null;
+          const head = b?.revisionId ?? a.revisionId;
+          await replyAction(db, data.admin, id, "hide", head);
+          let detail = await replyDetail(db, data.admin, id);
+          assert.equal(detail.reply.hidden, true);
+          assert.equal(detail.reply.submitted_revision_id, a.revisionId);
+          assert.equal(
+            detail.revisions.find((r: any) => r.id === head).status,
+            b ? "draft" : "submit",
+          );
+          assert.ok(detail.events.some((e: any) => e.action === "hide"));
+          assert.equal(
+            (await moderationQueue(db, data.admin)).items.find(
+              (r: any) => r.id === id,
+            ).reply_status,
+            "submit",
+          );
+          const list = await reviewWorkspaceList(db, data.admin, {
+            view: "replies",
+            status: b ? "draft" : "submitted",
+          });
+          assert.ok(list.items.some((r: any) => r.id === id));
+          if (b)
+            assert.ok(
+              JSON.stringify(
+                await workspaceOverview(db, data.admin, { locale: "en" }),
+              ).includes("reply:" + id + ":" + b.revisionId),
+            );
+          if (!b) await replyAction(db, data.admin, id, "submit", a.revisionId); // Same submission remains idempotent after hide.
+          await replyAction(
+            db,
+            data.admin,
+            id,
+            "restore",
+            head,
+            "",
+            publication,
+          );
+          detail = await replyDetail(db, data.admin, id);
+          assert.equal(
+            detail.revisions.find((r: any) => r.id === p.revisionId).status,
+            "publish",
+          );
+          assert.equal(detail.reply.submitted_revision_id, a.revisionId);
+          await replyAction(
+            db,
+            data.admin,
+            id,
+            decision,
+            a.revisionId,
+            "Only A",
+          );
+          detail = await replyDetail(db, data.admin, id);
+          assert.equal(detail.reply.submitted_revision_id, null);
+          assert.equal(detail.reply.head_revision_id, head);
+          if (b) {
+            assert.equal(
+              detail.revisions.find((r: any) => r.id === b.revisionId).status,
+              "draft",
+            );
+            await replyAction(db, data.admin, id, "submit", b.revisionId);
+            await assert.rejects(
+              () => replyAction(db, data.admin, id, "publish", a.revisionId),
+              (e: any) => e.code === "SUBMISSION_SUPERSEDED",
+            );
+          }
+        },
+      );
+    }
+});

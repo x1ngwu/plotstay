@@ -18,6 +18,7 @@ import {
   bindProvider,
   saveReply,
   replyAction,
+  replyDetail,
   savePersonaNotes,
 } from "@plotstay/domain";
 const artifactDir = new URL(
@@ -718,6 +719,189 @@ test(
         assert.ok(
           !(await page.content()).includes("PRIVATE-NOTES-UI-SENTINEL"),
         );
+      },
+    );
+
+    await t.test(
+      "save and submit freeze input before a slow identity check for reviews and replies",
+      async () => {
+        for (const view of ["reviews", "replies"])
+          for (const revert of [false, true]) {
+            const id = view === "reviews" ? own.id : received[0]!.id;
+            await page.goto(route("en", view, id, true));
+            await expect(page.locator("#field-description")).toBeVisible();
+            const initial = `Click snapshot ${view} ${revert}`,
+              later = `Typed during authentication ${view}`;
+            await page.locator("#field-description").fill(initial);
+            let releaseAuth!: () => void,
+              authArrived!: () => void,
+              releaseSave!: () => void,
+              saveArrived!: () => void;
+            const authGate = new Promise<void>((r) => (releaseAuth = r)),
+              authSeen = new Promise<void>((r) => (authArrived = r));
+            const saveGate = new Promise<void>((r) => (releaseSave = r)),
+              saveSeen = new Promise<void>((r) => (saveArrived = r));
+            await page.route(
+              "**/api/auth/me",
+              async (r) => {
+                const response = await r.fetch();
+                authArrived();
+                await authGate;
+                await r.fulfill({ response });
+              },
+              { times: 1 },
+            );
+            let payload: any;
+            await page.route(
+              "**/api/me/review-workspace/save",
+              async (r) => {
+                payload = r.request().postDataJSON();
+                const response = await r.fetch();
+                saveArrived();
+                await saveGate;
+                await r.fulfill({ response });
+              },
+              { times: 1 },
+            );
+            if (revert) page.once("dialog", (d) => d.accept());
+            await page
+              .locator(`[data-action=${revert ? "submit" : "save"}]`)
+              .first()
+              .click();
+            await authSeen;
+            await page.locator("#field-description").fill(later);
+            releaseAuth();
+            await saveSeen;
+            if (revert) await page.locator("#field-description").fill(initial);
+            releaseSave();
+            await expect(page.locator("#persona-message")).toContainText(
+              revert ? "fixed version" : "Draft saved",
+            );
+            assert.equal(
+              view === "reviews"
+                ? payload.body.texts.en.description
+                : payload.body.texts.en,
+              initial,
+            );
+            const current =
+              view === "reviews"
+                ? await reviewDetail(db, owner, id)
+                : await replyDetail(db, owner, id);
+            const stored =
+              view === "reviews"
+                ? current.revisions[0].texts.en.description
+                : current.revisions[0].body.en;
+            assert.equal(stored, initial);
+            await expect(page.locator("#field-description")).toHaveValue(
+              revert ? initial : later,
+            );
+            await expect(page.locator("#dirty-state")).toHaveText(
+              revert ? "Input saved" : "Unsaved changes",
+            );
+            if (!revert) {
+              const dismissed = new Promise<void>((resolve) =>
+                page.once("dialog", async (d) => {
+                  await d.dismiss();
+                  resolve();
+                }),
+              );
+              await page.locator("#ws-back").click();
+              await dismissed;
+              await expect(page.locator("#field-description")).toHaveValue(
+                later,
+              );
+              await page.screenshot({
+                path: new URL(`fix-save-input-${view}-en.png`, artifactDir)
+                  .pathname,
+                fullPage: true,
+              });
+              await page.locator("#field-description").fill(initial);
+            }
+            await page.locator("#ws-back").click();
+            await expect(
+              page.locator(".rv-interaction-card").first(),
+            ).toBeVisible();
+          }
+      },
+    );
+    await t.test(
+      "matching conflict adoption previews the adopted review and reply revision",
+      async () => {
+        for (const view of ["reviews", "replies"]) {
+          const id = view === "reviews" ? own.id : received[0]!.id;
+          await page.goto(route("en", view, id, true));
+          await expect(page.locator("#editor")).toBeVisible();
+          const marker = `Matching server baseline ${view}`;
+          await page.locator("#field-description").fill(marker);
+          let revisionId: string, oldId: string;
+          if (view === "reviews") {
+            const current = await reviewDetail(db, owner, id),
+              r = current.revisions[0];
+            oldId = current.content.head_revision_id;
+            const texts = Object.fromEntries(
+              Object.entries(r.texts).map(([lang, t]: [string, any]) => [
+                lang,
+                {
+                  title: t.title,
+                  description: lang === "en" ? marker : t.description,
+                  origin: t.review?.origin ?? "",
+                  stayDuration: t.review?.stayDuration ?? "",
+                  tags: t.tags ?? [],
+                },
+              ]),
+            );
+            revisionId = (
+              await saveReview(db, owner, id, oldId, {
+                sourceLocale: r.source_locale,
+                texts,
+                rating: r.attributes.rating ?? null,
+                reviewRatings: r.attributes.reviewRatings ?? {},
+              })
+            ).revisionId;
+          } else {
+            const current = await replyDetail(db, owner, id),
+              r = current.revisions.find(
+                (r: any) => r.id === current.editRevisionId,
+              );
+            oldId = current.baseRevisionId;
+            revisionId = (
+              await saveReply(
+                db,
+                owner,
+                id,
+                {
+                  sourceLocale: r.source_locale,
+                  texts: { ...r.body, en: marker },
+                },
+                oldId,
+              )
+            ).revisionId;
+          }
+          await page.locator("[data-action=save]").first().click();
+          await expect(page.locator("[data-action=compare]")).toBeVisible();
+          await page.locator("[data-action=compare]").click();
+          await page.locator("[data-action=adopt]").click();
+          await expect(page.locator("#dirty-state")).toHaveText(
+            "Input matches the loaded version",
+          );
+          await page.locator("[data-action=preview]").click();
+          await expect(page.locator("#editor")).toHaveCount(0);
+          assert.equal(
+            new URL(page.url()).searchParams.get("revision"),
+            revisionId,
+          );
+          assert.notEqual(revisionId, oldId);
+          assert.ok(
+            (await page.locator(".rv-prose").allTextContents())
+              .join(" ")
+              .includes(marker),
+          );
+          await page.screenshot({
+            path: new URL(`fix-adopted-preview-${view}-en.png`, artifactDir)
+              .pathname,
+            fullPage: true,
+          });
+        }
       },
     );
     assert.deepEqual(errors, []);

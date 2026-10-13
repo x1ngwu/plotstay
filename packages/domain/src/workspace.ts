@@ -115,7 +115,7 @@ reply_facts AS (
  LEFT JOIN publication_locales rl ON rl.publication_id=cp.id AND rl.locale=$3 LEFT JOIN translations rt ON rt.id=rl.translation_id
  JOIN provider_bindings b ON b.content_id=parent.id JOIN personas person ON person.id=b.persona_id
  LEFT JOIN review_replies q ON q.review_id=c.id LEFT JOIN reply_revisions submitted_reply ON submitted_reply.id=q.submitted_revision_id LEFT JOIN reply_revisions rr ON rr.id=q.head_revision_id
- LEFT JOIN LATERAL(SELECT action,note FROM reply_events e WHERE e.revision_id=rr.id ORDER BY e.created_at DESC,e.id DESC LIMIT 1) ev ON true
+ LEFT JOIN LATERAL(SELECT action,note FROM reply_events e WHERE e.revision_id=rr.id AND e.action IN ('draft','submit','publish','reject') ORDER BY e.created_at DESC,e.id DESC LIMIT 1) ev ON true
  WHERE c.kind='review' AND w.visible AND NOT w.site_blocked AND NOT c.site_blocked
  AND parent.published_publication_id IS NOT NULL AND NOT parent.site_blocked
  AND (person.owner_id=$1 OR w.manage OR c.author_id=$1)

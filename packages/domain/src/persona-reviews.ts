@@ -547,10 +547,10 @@ export async function validateReviewPublication(
 export async function moderationQueue(db: Connection, actor: Actor, page = 1) {
   const rows = (
     await db.query(
-      `SELECT c.id,c.world_id,c.persona_id,c.author_id,c.published_publication_id,r.id AS revision_id,r.status,r.source_text->>'title' AS title,p.slug AS target_slug,p.kind AS target_kind,w.slug AS world_slug,s.persona_revision_id,d.decision AS persona_decision,(SELECT e.action FROM review_replies q JOIN reply_events e ON e.revision_id=q.submitted_revision_id WHERE q.review_id=c.id ORDER BY e.created_at DESC,e.id DESC LIMIT 1) AS reply_status
+      `SELECT c.id,c.world_id,c.persona_id,c.author_id,c.published_publication_id,r.id AS revision_id,r.status,r.source_text->>'title' AS title,p.slug AS target_slug,p.kind AS target_kind,w.slug AS world_slug,s.persona_revision_id,d.decision AS persona_decision,(SELECT e.action FROM review_replies q JOIN reply_events e ON e.revision_id=q.submitted_revision_id WHERE q.review_id=c.id AND e.action IN ('draft','submit','publish','reject') ORDER BY e.created_at DESC,e.id DESC LIMIT 1) AS reply_status
  FROM contents c JOIN contents p ON p.id=c.parent_content_id JOIN worlds w ON w.id=c.world_id JOIN content_revisions r ON r.id=coalesce(c.submitted_revision_id,c.head_revision_id) LEFT JOIN review_signatures s ON s.revision_id=r.id LEFT JOIN persona_revision_decisions d ON d.revision_id=s.persona_revision_id
  WHERE c.kind='review' AND ($1 OR w.owner_id=$2 OR EXISTS(SELECT 1 FROM world_members m WHERE m.world_id=c.world_id AND m.user_id=$2 AND m.role IN ('owner','admin')))
- ORDER BY ((r.status='submitted') OR EXISTS(SELECT 1 FROM review_replies q WHERE q.review_id=c.id AND (SELECT e.action FROM reply_events e WHERE e.revision_id=q.submitted_revision_id ORDER BY e.created_at DESC,e.id DESC LIMIT 1)='submit')) DESC,r.created_at DESC,c.id LIMIT 21 OFFSET $3`,
+ ORDER BY ((r.status='submitted') OR EXISTS(SELECT 1 FROM review_replies q WHERE q.review_id=c.id AND (SELECT e.action FROM reply_events e WHERE e.revision_id=q.submitted_revision_id AND e.action IN ('draft','submit','publish','reject') ORDER BY e.created_at DESC,e.id DESC LIMIT 1)='submit')) DESC,r.created_at DESC,c.id LIMIT 21 OFFSET $3`,
       [actor.siteRole === 'admin', actor.id, (page - 1) * 20],
     )
   ).rows;
@@ -668,7 +668,7 @@ export async function replyDetail(db: Connection, actor: Actor, reviewId: string
   }
   const publicRevision=reply&&!reply.hidden&&contextAvailable?(await db.query('SELECT revision_id FROM reply_publications WHERE id=$1',[reply.published_id])).rows[0]?.revision_id:null;
   const revisions=reply?(await db.query(`SELECT r.*,
-    coalesce((SELECT action FROM reply_events e WHERE e.revision_id=r.id ORDER BY created_at DESC,id DESC LIMIT 1),'draft') AS status,
+    coalesce((SELECT action FROM reply_events e WHERE e.revision_id=r.id AND e.action IN ('draft','submit','publish','reject') ORDER BY created_at DESC,id DESC LIMIT 1),'draft') AS status,
     CASE WHEN $2 OR r.created_by=$3 THEN d.decision END AS persona_decision,
     CASE WHEN $2 OR r.created_by=$3 THEN d.note END AS persona_note
     FROM reply_revisions r LEFT JOIN persona_revision_decisions d ON d.revision_id=r.persona_revision_id
@@ -769,7 +769,8 @@ export async function replyActionInTransaction(c: PoolClient, actor: Actor, revi
     assert(r,404,'NOT_FOUND','Reply version not found.');
     const status = (
       await c.query(
-        'SELECT action FROM reply_events WHERE revision_id=$1 ORDER BY created_at DESC,id DESC LIMIT 1',
+        // Visibility events do not replace this version's writing/moderation state.
+        "SELECT action FROM reply_events WHERE revision_id=$1 AND action IN ('draft','submit','publish','reject') ORDER BY created_at DESC,id DESC LIMIT 1",
         [r.id],
       )
     ).rows[0]?.action;
