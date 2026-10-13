@@ -1,3 +1,4 @@
+import {reviewWorkspaceRoutes} from './review-workspace-routes.ts';
 import {workspaceRoutes} from './workspace-routes.ts';
 import {personaRoutes} from './persona-routes.ts';
 import Fastify from 'fastify';
@@ -57,6 +58,7 @@ export async function createApp(db: Database, options: { logger?: boolean; webOr
 
   personaRoutes(app,db);
   workspaceRoutes(app,db);
+  reviewWorkspaceRoutes(app,db);
   app.get('/api/health', async (_request, reply) => {
     try {
       // Readiness requires the schema as well as the connection.

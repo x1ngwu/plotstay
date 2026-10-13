@@ -96,8 +96,8 @@ export function personaRoutes(app: FastifyInstance, db: Database) {
   app.get('/api/me/provider-reviews', async (r) => providerInbox(db, await actor(r), page(r)));
   app.get('/api/me/replies/:id', async (r) => replyDetail(db, await actor(r), id(r)));
   app.put('/api/me/replies/:id', async (r) => {
-    const b = z.object({ baseRevisionId: idSchema.nullable(), body: z.unknown() }).strict().parse(r.body);
-    return saveReply(db, await actor(r), id(r), b.body, b.baseRevisionId);
+    const b = z.object({ baseRevisionId: idSchema.nullable(), expectedPersonaId:idSchema.optional(), body: z.unknown() }).strict().parse(r.body);
+    return saveReply(db, await actor(r), id(r), b.body, b.baseRevisionId,b.expectedPersonaId);
   });
   app.post('/api/me/replies/:id/submit', async (r) =>
     replyAction(

@@ -327,7 +327,7 @@ test('phase 5.6 provider replies and all entry types', async (t) => {
       const old = (await getPublished(db, 'en', { id: c.id }))!.publicationId;
       await unpublishContent(db, data.owner, c.id, false, 'Hidden');
       assert.equal((await publicDetail()).reviews.total, 0);
-      await rejected(() => replyDetail(db, host, c.id), 'TARGET_UNAVAILABLE');
+      assert.equal((await replyDetail(db,host,c.id)).canEdit,false); // Own history survives unpublication, context does not.
       await restorePublication(db, data.owner, c.id, old);
       assert.equal((await publicDetail()).reviews.contents[0]!.reply!.name, 'Host Moss');
       await assert.rejects(
@@ -424,10 +424,9 @@ test('phase 5.6 missing languages, rejected profiles, immutable submissions and 
   const full = await saveReview(db, actor, c.id, next.revisionId, body);
   await submitReview(db, actor, c.id, full.revisionId);
   const changed = await saveReview(db, actor, c.id, full.revisionId, { ...body, rating: 1 });
-  await rejected(
-    () => reviewRevision(db, data.admin, c.id, full.revisionId, 'publish', ''),
-    'REVISION_CONFLICT',
-  );
+  // C12: a later draft no longer revokes the explicitly submitted fixed version.
+  await reviewRevision(db, data.admin, c.id, full.revisionId, 'publish', '');
+  assert.equal((await reviewDetail(db,actor,c.id)).content.head_revision_id,changed.revisionId);
   await submitReview(db, actor, c.id, changed.revisionId);
   await reviewRevision(db, data.admin, c.id, changed.revisionId, 'publish', '');
   const setting = (await myPersonas(db, actor))[0];

@@ -1,0 +1,117 @@
+{
+  "environment": "isolated PostgreSQL schema; real built API and web; Chromium",
+  "physicalDevice": false,
+  "publicBasicAuth": false,
+  "screenshots": [
+    {
+      "file": "reviews-list-zh-1440.png",
+      "lang": "zh",
+      "width": 1440,
+      "source": "built service + real API + isolated schema"
+    },
+    {
+      "file": "received-list-zh-1440.png",
+      "lang": "zh",
+      "width": 1440,
+      "source": "built service + real API + isolated schema"
+    },
+    {
+      "file": "review-edit-zh-1440.png",
+      "lang": "zh",
+      "width": 1440,
+      "source": "built service + real API + isolated schema"
+    },
+    {
+      "file": "reply-edit-zh-1440.png",
+      "lang": "zh",
+      "width": 1440,
+      "source": "built service + real API + isolated schema"
+    },
+    {
+      "file": "reviews-list-zh-390.png",
+      "lang": "zh",
+      "width": 390,
+      "source": "built service + real API + isolated schema"
+    },
+    {
+      "file": "received-list-zh-390.png",
+      "lang": "zh",
+      "width": 390,
+      "source": "built service + real API + isolated schema"
+    },
+    {
+      "file": "review-edit-zh-390.png",
+      "lang": "zh",
+      "width": 390,
+      "source": "built service + real API + isolated schema"
+    },
+    {
+      "file": "reply-edit-zh-390.png",
+      "lang": "zh",
+      "width": 390,
+      "source": "built service + real API + isolated schema"
+    },
+    {
+      "file": "reviews-list-en-1440.png",
+      "lang": "en",
+      "width": 1440,
+      "source": "built service + real API + isolated schema"
+    },
+    {
+      "file": "received-list-en-1440.png",
+      "lang": "en",
+      "width": 1440,
+      "source": "built service + real API + isolated schema"
+    },
+    {
+      "file": "review-edit-en-1440.png",
+      "lang": "en",
+      "width": 1440,
+      "source": "built service + real API + isolated schema"
+    },
+    {
+      "file": "reply-edit-en-1440.png",
+      "lang": "en",
+      "width": 1440,
+      "source": "built service + real API + isolated schema"
+    },
+    {
+      "file": "reviews-list-en-390.png",
+      "lang": "en",
+      "width": 390,
+      "source": "built service + real API + isolated schema"
+    },
+    {
+      "file": "received-list-en-390.png",
+      "lang": "en",
+      "width": 390,
+      "source": "built service + real API + isolated schema"
+    },
+    {
+      "file": "review-edit-en-390.png",
+      "lang": "en",
+      "width": 390,
+      "source": "built service + real API + isolated schema"
+    },
+    {
+      "file": "reply-edit-en-390.png",
+      "lang": "en",
+      "width": 390,
+      "source": "built service + real API + isolated schema"
+    }
+  ],
+  "errors": [],
+  "requestPaths": [
+    "/api/auth/me",
+    "/api/admin/worlds",
+    "/api/me/personas",
+    "/api/me/review-workspace",
+    "/api/me/review-workspace/6eb82c47-f32e-4764-b119-0cd5ff09eb0b",
+    "/api/me/review-workspace/b34ddd4c-dc66-43a8-bef1-8bfce5cf495e",
+    "/api/me/review-workspace/d5cf9cab-8f26-441d-9d71-cc568967b109",
+    "/api/me/review-workspace/entries",
+    "/api/me/reviews",
+    "/api/me/review-workspace/save",
+    "/api/auth/login"
+  ]
+}

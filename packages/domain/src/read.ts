@@ -122,7 +122,7 @@ export async function adminList(db: Connection, actor: Actor, worldId: string, f
   const { rows: [result] } = await db.query(`WITH matching AS MATERIALIZED (
     SELECT c.id,c.kind,c.slug,c.parent_content_id,c.site_blocked,c.published_publication_id,
     r.id AS revision_id,r.number,r.status,r.source_locale,r.source_text->>'title' AS title,r.created_at
-    FROM contents c JOIN content_revisions r ON r.id=c.head_revision_id WHERE c.world_id=$1
+    FROM contents c JOIN content_revisions r ON r.id=CASE WHEN c.kind='review' AND $4='submitted' THEN c.submitted_revision_id ELSE c.head_revision_id END WHERE c.world_id=$1
     AND ($2::text IS NULL OR c.kind=$2) AND ($3::text IS NULL OR r.source_text->>'title' ILIKE $3 OR c.slug ILIKE $3 OR EXISTS(SELECT 1 FROM revision_locales rl JOIN translations tx ON tx.id=rl.translation_id WHERE rl.revision_id=r.id AND tx.body->>'title' ILIKE $3))
     AND ($4::text IS NULL OR ($4='published' AND c.published_publication_id IS NOT NULL) OR ($4='unpublished' AND c.published_publication_id IS NULL) OR r.status=$4)
     AND ($5::uuid IS NULL OR c.parent_content_id=$5)
@@ -136,9 +136,8 @@ export async function adminDetail(db: Connection, actor: Actor, id: string) {
   assert(content, 404, 'NOT_FOUND', 'Content not found.');
   const world = await requireWorld(db, actor, content.world_id);
   const results = await Promise.all([
-    db.query(`SELECT r.*,coalesce((SELECT jsonb_object_agg(rl.locale,t.body) FROM revision_locales rl
-      JOIN translations t ON t.id=rl.translation_id WHERE rl.revision_id=r.id),'{}') AS translations
-      FROM content_revisions r WHERE content_id=$1 ORDER BY number DESC`, [id]),
+    db.query(`SELECT r.*,CASE WHEN r.id=$2 THEN coalesce((SELECT jsonb_object_agg(rl.locale,t.body) FROM review_submission_locales rl JOIN translations t ON t.id=rl.translation_id WHERE rl.submission_id=$3),'{}') ELSE coalesce((SELECT jsonb_object_agg(rl.locale,t.body) FROM revision_locales rl JOIN translations t ON t.id=rl.translation_id WHERE rl.revision_id=r.id),'{}') END AS translations
+      FROM content_revisions r WHERE content_id=$1 ORDER BY number DESC`, [id,content.submitted_revision_id??null,content.submission_token??null]),
     db.query('SELECT * FROM publications WHERE content_id=$1 ORDER BY published_at DESC,id', [id]),
     db.query('SELECT action,note,actor_id,revision_id,created_at FROM moderation_events WHERE content_id=$1 ORDER BY created_at DESC', [id]),
     db.query(`SELECT j.id,j.revision_id,j.locale,j.status,j.attempts,j.max_attempts,j.last_error,j.provider,j.available_at FROM translation_jobs j

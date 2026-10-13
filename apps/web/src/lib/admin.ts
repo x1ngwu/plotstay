@@ -435,8 +435,8 @@ function refreshActions() {
   if (!detail) return;
   const head = detail.revisions[0];
   const unsaved = dirty || selectedRevision !== detail.content.head_revision_id;
-  el<HTMLButtonElement>('submit-revision').disabled = unsaved || !['draft', 'rejected'].includes(head.status);
-  for (const id of ['publish', 'reject']) el<HTMLButtonElement>(id).disabled = unsaved || !detail.canReview || head.status !== 'submitted';
+  el<HTMLButtonElement>('submit-revision').disabled = unsaved || !(detail.content.kind==='review'?['draft']:['draft','rejected']).includes(head.status);
+  for (const id of ['publish', 'reject']) el<HTMLButtonElement>(id).disabled = unsaved || !detail.canReview || !(detail.content.kind==='review'?detail.content.submitted_revision_id:head.status==='submitted');
   el<HTMLButtonElement>('unpublish').disabled = !detail.canReview || !detail.content.published_publication_id;
   el('site-block').hidden = actor.siteRole !== 'admin';
   el('release-block').hidden = actor.siteRole !== 'admin' || !detail.content.site_blocked;
@@ -496,8 +496,16 @@ async function openContent(id: string) {
     return row;
   }));
   el('events').replaceChildren(...detail.events.map((event: any) => line(`${new Date(event.created_at).toLocaleString(locale)} · ${event.action} · ${event.note}`)));
+  document.getElementById('fixed-review-submission')?.remove();
+  if(detail.content.kind==='review'&&detail.content.submitted_revision_id){
+    const submitted=detail.revisions.find((r:any)=>r.id===detail.content.submitted_revision_id);
+    const box=document.createElement('section');box.id='fixed-review-submission';
+    const h=document.createElement('h3');h.textContent=l('本次审核的固定待审版','Fixed version for this moderation');box.append(h);
+    for(const language of locales){const p=document.createElement('p');p.style.whiteSpace='pre-wrap';const body=submitted.translations[language.code];p.textContent=language.name+': '+(body?body.title+'\n'+body.description:l('缺译','Missing translation'));box.append(p);}
+    el('workflow').prepend(box);
+  }
   refreshActions();
-  if(workspaceMode&&workspaceRevision(el('editor-panel'),detail.content.head_revision_id,detail.revisions,locale)){el('workflow').hidden=true;return;}
+  if(workspaceMode&&workspaceRevision(el('editor-panel'),detail.content.submitted_revision_id ?? detail.content.head_revision_id,detail.revisions,locale)){el('workflow').hidden=true;return;}
   if(workspaceMode){showPreview();document.getElementById('new-workspace')!.dataset.stage='edit';}
 }
 el<HTMLFormElement>('login').addEventListener('submit', async event => {
@@ -602,8 +610,8 @@ el<HTMLSelectElement>('world').addEventListener('change', async () => {
 });
 for (const [id, route, payload] of [
   ['submit-revision', 'submit', () => ({ revisionId: detail.content.head_revision_id, draftToken: detail.content.draft_token })],
-  ['publish', 'review', () => ({ revisionId: detail.content.head_revision_id, draftToken: detail.content.draft_token, decision: 'publish', note: el<HTMLTextAreaElement>('moderation-note').value })],
-  ['reject', 'review', () => ({ revisionId: detail.content.head_revision_id, draftToken: detail.content.draft_token, decision: 'reject', note: el<HTMLTextAreaElement>('moderation-note').value })],
+  ['publish', 'review', () => ({ revisionId: detail.content.submitted_revision_id ?? detail.content.head_revision_id, draftToken: detail.content.submission_token ?? detail.content.draft_token, decision: 'publish', note: el<HTMLTextAreaElement>('moderation-note').value })],
+  ['reject', 'review', () => ({ revisionId: detail.content.submitted_revision_id ?? detail.content.head_revision_id, draftToken: detail.content.submission_token ?? detail.content.draft_token, decision: 'reject', note: el<HTMLTextAreaElement>('moderation-note').value })],
   ['unpublish', 'unpublish', () => ({ siteBlock: false, note: el<HTMLTextAreaElement>('moderation-note').value })],
   ['site-block', 'unpublish', () => ({ siteBlock: true, note: el<HTMLTextAreaElement>('moderation-note').value })],
   ['release-block', 'release-site-block', () => ({ note: el<HTMLTextAreaElement>('moderation-note').value })],

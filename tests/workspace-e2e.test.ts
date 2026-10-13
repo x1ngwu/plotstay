@@ -43,7 +43,7 @@ test('workspace checkpoint shares the saved stay draft with the previous admin',
   await expect(personas.locator('.ws-nav a[aria-current=page]')).toContainText('Overview');
   if(process.env.PLOTSTAY_VISUAL_CAPTURE){await personas.screenshot({path:'/tmp/plotstay-overview-1440.png',fullPage:true});await personas.setViewportSize({width:390,height:850});await personas.screenshot({path:'/tmp/plotstay-overview-390.png'});assert.ok(await personas.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));}
   await personas.goto(webUrl+'/zh/workspace');await expect(personas.locator('#ws-continue')).not.toContainText('手记 · 已审核');await expect(personas.locator('[data-scope=mine]')).toHaveAttribute('aria-selected','true');
-  await personas.goto(webUrl+'/en/workspace?view=reviews');await expect(personas.locator('#account-view h2')).toContainText('My reviews');
+  await personas.goto(webUrl+'/en/workspace?view=reviews');await expect(personas.locator('#ws-page-title')).toHaveText('My reviews');await expect(personas.locator('h1')).toHaveCount(1);
   await personas.goto(webUrl+'/en/workspace?view=replies');await expect(personas.locator('.ws-nav a[aria-current=page]')).toContainText('Received reviews');
   await personas.goto(webUrl+'/en/workspace?view=worlds');await expect(personas.locator('#ws-world-list .ws-card')).not.toHaveCount(0);
   const worldId=(await f.db.query("SELECT id FROM worlds WHERE slug='lathe-worlds'")).rows[0].id;

@@ -32,13 +32,14 @@ export async function fixture(legacy = false) {
   } catch (error) { await cleanup(); throw error; }
 }
 
-export async function historyDigest(db: Connection) {
+export async function historyDigest(db: Connection, originalContentColumns = false) {
   const tables = ['contents', 'content_revisions', 'translations', 'revision_locales', 'publications', 'publication_locales',
     'translation_jobs', 'moderation_events', 'users', 'worlds', 'bookings'];
   const hash = createHash('sha256');
   const counts: Record<string, number> = {};
   for (const table of tables) {
-    const { rows } = await db.query(`SELECT to_jsonb(t)::text AS value FROM ${table} t ORDER BY to_jsonb(t)::text`);
+    const value=table==='contents'&&originalContentColumns?"(to_jsonb(t)-'submitted_revision_id'-'submission_token')":'to_jsonb(t)';
+    const { rows } = await db.query(`SELECT ${value}::text AS value FROM ${table} t ORDER BY ${value}::text`);
     counts[table] = rows.length; hash.update(table).update(JSON.stringify(rows));
   }
   return { counts, sha256: hash.digest('hex') };

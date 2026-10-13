@@ -69,3 +69,7 @@ HANDOFF_LIVE_SPIKE=1 node docs/workspace-handoff/verify.mjs
 ## 草图体验后的修订
 
 已补充所有非根页面的返回入口和可点击面包屑；从世界内容进入编辑时可直接返回世界内容。现有本机草图服务按请求读取文件，刷新浏览器即可查看。世界管理的细部组织继续以人工试用结果调整，不能把本轮整体认可当作所有管理工具均已验收。
+
+## 评价／回复阶段 B 真实接入
+
+用户已确认阶段 A 后授权阶段 B。2026-10-13 已完成真实 API、012 增量迁移与开发域名更新；未 commit/push。入口和交付范围见[实施记录](reviews-implementation/README.md)，逐项 B/V/O、实际测试命令及未验证边界见[验收记录](reviews-implementation/acceptance.md)，30 张真实浏览器截图见[视觉对照](reviews-implementation/visual-review.md)。阶段 A 证据原样保留，不能混作真实权限证明。

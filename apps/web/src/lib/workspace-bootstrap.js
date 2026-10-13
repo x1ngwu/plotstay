@@ -48,8 +48,7 @@
     ? json(start('/admin/worlds')) : null;
   if (view === 'overview') { const prefix = location.pathname.split('/')[1]; start('/me/workspace' + (query.has('section') ? '/items' : '') + '?' + new URLSearchParams({locale: prefix === 'zh' ? 'zh-CN' : 'en', ...query.has('section') ? Object.fromEntries(['section','scope','group','page'].filter(k=>query.has(k)).map(k=>[k,query.get(k)])) : {}})); }
   if (view === 'personas') start('/me/personas');
-  if (view === 'reviews') start('/me/reviews?page=1');
-  if (view === 'replies') start('/me/provider-reviews?page=1');
+  if (view === 'reviews' || view === 'replies') start('/me/personas');
   const loadWorld = world => {
     if (!world || !active) return;
     const base = '/admin/worlds/' + encodeURIComponent(world);

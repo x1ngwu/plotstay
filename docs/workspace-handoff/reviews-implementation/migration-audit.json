@@ -1,0 +1,173 @@
+{
+  "before": {
+    "at": "2026-10-13T07:59:15.406Z",
+    "schema": "public",
+    "tables": {
+      "contents": {
+        "count": 94,
+        "digest": "0af3b23493cda95ec86024772e9c92db"
+      },
+      "content_revisions": {
+        "count": 108,
+        "digest": "6d4aef2fc972e77dbe4d234480de7bc7"
+      },
+      "translations": {
+        "count": 212,
+        "digest": "0d349a894b1327be375fd15bffe9c68f"
+      },
+      "revision_locales": {
+        "count": 212,
+        "digest": "da8752ee596db06465ef7e92174de86e"
+      },
+      "publications": {
+        "count": 103,
+        "digest": "71a58d12bce99fcc1962d8326f236261"
+      },
+      "publication_locales": {
+        "count": 206,
+        "digest": "bb551011ca9c1ca09709caaa52f73f92"
+      },
+      "moderation_events": {
+        "count": 315,
+        "digest": "b656e016cb7733ae1a30bcd0798ef4b7"
+      },
+      "review_signatures": {
+        "count": 7,
+        "digest": "b14e56aa0c9af46db4c99d738e01fc85"
+      },
+      "review_replies": {
+        "count": 3,
+        "digest": "68888e8e39401bb0283ae3933a0ad7e2"
+      },
+      "reply_revisions": {
+        "count": 3,
+        "digest": "b770b0d26dd3729dd0aa51d23ce71f2b"
+      },
+      "reply_publications": {
+        "count": 3,
+        "digest": "5bad95ba85db8a9daf7c33276cae5e19"
+      },
+      "reply_events": {
+        "count": 9,
+        "digest": "44cedf4fb0c2235fda3f4a39a1514e52"
+      },
+      "provider_bindings": {
+        "count": 3,
+        "digest": "f2e7a5a4d0e9da04122ed6722de10794"
+      },
+      "provider_binding_events": {
+        "count": 3,
+        "digest": "6e70dbd9b038ada478736508043f744e"
+      }
+    },
+    "migrations": [
+      "001_foundation.sql",
+      "002_history_guards.sql",
+      "003_translation_execution.sql",
+      "004_locale_urls.sql",
+      "005_discovery.sql",
+      "006_booking_history.sql",
+      "007_detail_management.sql",
+      "008_persona_reviews.sql",
+      "009_persona_current_submission.sql",
+      "010_persona_submission_pointer_guard.sql",
+      "011_persona_private_notes.sql"
+    ],
+    "digest": "31d0b6e9558c44ca60a555023bc57a9695c14f0b59eb9b3775d5b5d23b128a13"
+  },
+  "after": {
+    "at": "2026-10-13T07:59:55.549Z",
+    "schema": "public",
+    "tables": {
+      "contents": {
+        "count": 94,
+        "digest": "0af3b23493cda95ec86024772e9c92db"
+      },
+      "content_revisions": {
+        "count": 108,
+        "digest": "6d4aef2fc972e77dbe4d234480de7bc7"
+      },
+      "translations": {
+        "count": 212,
+        "digest": "0d349a894b1327be375fd15bffe9c68f"
+      },
+      "revision_locales": {
+        "count": 212,
+        "digest": "da8752ee596db06465ef7e92174de86e"
+      },
+      "publications": {
+        "count": 103,
+        "digest": "71a58d12bce99fcc1962d8326f236261"
+      },
+      "publication_locales": {
+        "count": 206,
+        "digest": "bb551011ca9c1ca09709caaa52f73f92"
+      },
+      "moderation_events": {
+        "count": 315,
+        "digest": "b656e016cb7733ae1a30bcd0798ef4b7"
+      },
+      "review_signatures": {
+        "count": 7,
+        "digest": "b14e56aa0c9af46db4c99d738e01fc85"
+      },
+      "review_replies": {
+        "count": 3,
+        "digest": "68888e8e39401bb0283ae3933a0ad7e2"
+      },
+      "reply_revisions": {
+        "count": 3,
+        "digest": "b770b0d26dd3729dd0aa51d23ce71f2b"
+      },
+      "reply_publications": {
+        "count": 3,
+        "digest": "5bad95ba85db8a9daf7c33276cae5e19"
+      },
+      "reply_events": {
+        "count": 9,
+        "digest": "44cedf4fb0c2235fda3f4a39a1514e52"
+      },
+      "provider_bindings": {
+        "count": 3,
+        "digest": "f2e7a5a4d0e9da04122ed6722de10794"
+      },
+      "provider_binding_events": {
+        "count": 3,
+        "digest": "6e70dbd9b038ada478736508043f744e"
+      }
+    },
+    "migrations": [
+      "001_foundation.sql",
+      "002_history_guards.sql",
+      "003_translation_execution.sql",
+      "004_locale_urls.sql",
+      "005_discovery.sql",
+      "006_booking_history.sql",
+      "007_detail_management.sql",
+      "008_persona_reviews.sql",
+      "009_persona_current_submission.sql",
+      "010_persona_submission_pointer_guard.sql",
+      "011_persona_private_notes.sql",
+      "012_review_submissions.sql"
+    ],
+    "digest": "31d0b6e9558c44ca60a555023bc57a9695c14f0b59eb9b3775d5b5d23b128a13"
+  },
+  "originalHistoryUnchanged": true,
+  "backup": {
+    "at": "2026-10-13T07:59:08.469Z",
+    "path": "/tmp/plotstay-reviews-pre012-backup/public.dump",
+    "bytes": 246475,
+    "sha256": "10c8b2f865fe4806db3e9d6a6c612c498432b7e93fcafef940852f0feded78e8",
+    "catalogVerified": true,
+    "restoreRehearsal": false,
+    "buildBackup": "/tmp/plotstay-reviews-pre012-backup/build-before.tar.gz"
+  },
+  "onlyLiveWrites": "Migration 012 schema additions and effective submission backfill. No test accounts, reviews, replies, notes, seed or reset in public schema.",
+  "build": "Validated /tmp/plotstay-reviews-b-build artifacts installed by rsync; previous hashed assets retained.",
+  "nginxChanged": false,
+  "service": {
+    "active": true,
+    "health": "ok"
+  },
+  "noCommitPush": true
+}

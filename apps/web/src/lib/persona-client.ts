@@ -3,6 +3,7 @@ import { reviewRatingKeys } from '@plotstay/contracts';
 export async function initAccount() {
   const root = document.querySelector<HTMLElement>('#persona-workspace');
   if (!root) return;
+  if(document.querySelector('#new-workspace[data-view="reviews"],#new-workspace[data-view="replies"]')){const {initWorkspaceReviews}=await import('./workspace-reviews');await initWorkspaceReviews(root);return;}
   if(document.querySelector('#new-workspace[data-view="personas"]')&&!new URLSearchParams(location.search).has('submission')) {
     const {initWorkspacePersonas}=await import('./workspace-personas');
     await initWorkspacePersonas(root);return;
@@ -570,7 +571,7 @@ export async function initAccount() {
   }
   async function moderate(id: string) {
     const data = await api('/moderation/reviews/' + id),
-      r = data.revisions[0];
+      r = data.revisions.find((v:any)=>v.id===data.content.submitted_revision_id) ?? data.revisions[0];
     if(workspaceRevision(view,r?.id,data.revisions,root!.dataset.locale!))return;
     view.replaceChildren(
       node('h2', l('审核固定版本', 'Review fixed versions')),
@@ -612,7 +613,7 @@ export async function initAccount() {
       button(l('审核通过并发布', 'Approve and publish'), async () => {
         await api('/admin/contents/' + id + '/review', {
           revisionId: r.id,
-          draftToken: data.content.draft_token,
+          draftToken: data.content.submission_token ?? data.content.draft_token,
           decision: 'publish',
           note: note.value,
         });
@@ -622,7 +623,7 @@ export async function initAccount() {
       button(l('退回评价', 'Return review'), async () => {
         await api('/admin/contents/' + id + '/review', {
           revisionId: r.id,
-          draftToken: data.content.draft_token,
+          draftToken: data.content.submission_token ?? data.content.draft_token,
           decision: 'reject',
           note: note.value,
         });
@@ -746,13 +747,14 @@ export async function initAccount() {
   }
   async function editReply(id: string) {
     const data = await api('/me/replies/' + id),
-      r = data.revisions[0];
+      r = data.revisions.find((v:any)=>v.id===data.editRevisionId);
     dirty = false;
     view.replaceChildren(
       node('h2', l('提供者回复', 'Provider reply')),
       link(data.target.target_slug, targetLink(data.target)),
     );
     if(workspaceRevision(view,r?.id,data.revisions,root!.dataset.locale!))return;
+    if(!data.canEdit){view.append(node('p',l('本人历史 · 当前身份不可回复','Your history · replying is unavailable')));for(const revision of data.revisions)preview(view,revision);return;}
     const p = data.target.profiles[root!.dataset.locale!] ?? (Object.values(data.target.profiles)[0] as any);
     view.append(
       node('h3', l('固定提供者身份：', 'Assigned provider: ') + p?.name),
@@ -786,7 +788,8 @@ export async function initAccount() {
         await api(
           '/me/replies/' + id,
           {
-            baseRevisionId: r?.id ?? null,
+            baseRevisionId: data.baseRevisionId,
+            expectedPersonaId:data.target.provider_id,
             body: {
               sourceLocale: source.value,
               texts: Object.fromEntries(
@@ -820,7 +823,7 @@ export async function initAccount() {
   }
   async function moderateReply(id: string) {
     const data = await api('/moderation/replies/' + id),
-      r = data.revisions[0];
+      r = data.revisions.find((v:any)=>v.id===data.reply?.submitted_revision_id) ?? data.revisions[0];
     if(workspaceRevision(view,r?.id,data.revisions,root!.dataset.locale!))return;
     view.replaceChildren(node('h2', l('审核提供者回复', 'Moderate provider reply')));
     if (!r) {
@@ -860,7 +863,7 @@ export async function initAccount() {
     ])
       view.append(
         button(l(zhLabel!, en!), async () => {
-          await api('/moderation/replies/' + id, { action, revisionId: r.id, note: note.value });
+          await api('/moderation/replies/' + id, { action, revisionId: action==='hide'?data.reply.head_revision_id:r.id, note: note.value });
           await moderateReply(id);
           message.textContent = l('回复操作完成。', 'Reply action completed.');
         }),
@@ -870,7 +873,7 @@ export async function initAccount() {
         button(l('恢复回复：', 'Restore reply: ') + p.published_at, async () => {
           await api('/moderation/replies/' + id, {
             action: 'restore',
-            revisionId: r.id,
+            revisionId: data.reply.head_revision_id,
             publicationId: p.id,
           });
           await moderateReply(id);

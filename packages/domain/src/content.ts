@@ -3,6 +3,7 @@ import { transaction, type Database, type PoolClient } from '@plotstay/database'
 import { textSchema, type ContentText, type CreateContentInput, type EditContentInput } from '@plotstay/contracts';
 import { requireWorld, type Actor } from './auth.ts';
 import { assert, DomainError } from './errors.ts';
+import {recordReviewSubmission,checkReviewSubmission} from './review-submissions.ts';
 
 async function event(db: PoolClient, actor: Actor, content: any, action: string, revisionId?: string, note = '') {
   await db.query(`INSERT INTO moderation_events(content_id,revision_id,world_id,actor_id,action,note)
@@ -126,10 +127,12 @@ export function saveTranslation(db: Database, actor: Actor, id: string, revision
 export function submitRevision(db: Database, actor: Actor, id: string, revisionId: string, draftToken?: string) {
   return transaction(db, async client => {
     const { content } = await lockContent(client, actor, id);
+    if(content.kind==='review' && Object.hasOwn(content,'submitted_revision_id'))assert(!(await client.query('SELECT 1 FROM review_signatures WHERE revision_id=$1 AND managed',[content.head_revision_id])).rowCount,409,'PERSONA_EDITOR_REQUIRED','Submit personal reviews through the author endpoint.');
     assert(!draftToken || content.draft_token === draftToken,409,'REVISION_CONFLICT','Draft translations changed. Reload before submitting.');
     assert(content.head_revision_id === revisionId, 409, 'REVISION_CONFLICT', 'Submit the current draft.');
-    const result = await client.query("UPDATE content_revisions SET status='submitted' WHERE id=$1 AND status IN ('draft','rejected') RETURNING id", [revisionId]);
+    const result = await client.query("UPDATE content_revisions SET status='submitted' WHERE id=$1 AND (status='draft' OR status='rejected' AND $2<>'review') RETURNING id", [revisionId,content.kind]);
     assert(result.rowCount, 409, 'REVISION_LOCKED', 'This version cannot be submitted.');
+    if(content.kind==='review' && Object.hasOwn(content,'submitted_revision_id'))await recordReviewSubmission(client,actor,content,revisionId);
     await event(client, actor, content, 'submitted', revisionId);
     return { submitted: true };
   });
@@ -137,26 +140,34 @@ export function submitRevision(db: Database, actor: Actor, id: string, revisionI
 export function reviewRevision(db: Database, actor: Actor, id: string, revisionId: string, decision: 'publish' | 'reject', note: string, draftToken?: string) {
   return transaction(db, async client => {
     const { content, world } = await lockContent(client, actor, id, true);
-    assert(!draftToken || content.draft_token === draftToken,409,'REVISION_CONFLICT','Draft translations changed. Reload before reviewing.');
-    assert(content.head_revision_id === revisionId, 409, 'REVISION_CONFLICT', 'Review the current submitted version.');
+    if(content.kind==='review' && Object.hasOwn(content,'submitted_revision_id'))await checkReviewSubmission(client,content,revisionId,draftToken);
+    else {
+      assert(!draftToken || content.draft_token === draftToken,409,'REVISION_CONFLICT','Draft translations changed. Reload before reviewing.');
+      assert(content.head_revision_id === revisionId,409,'REVISION_CONFLICT','Review the current submitted version.');
+    }
     const { rows: [revision] } = await client.query('SELECT * FROM content_revisions WHERE id=$1', [revisionId]);
     assert(revision.status === 'submitted', 409, 'NOT_SUBMITTED', 'Submit this version for review first.');
     if (decision === 'reject') {
       await client.query("UPDATE content_revisions SET status='rejected' WHERE id=$1", [revisionId]);
+      if(content.kind==='review' && Object.hasOwn(content,'submitted_revision_id'))await client.query('UPDATE contents SET submitted_revision_id=NULL,submission_token=NULL,draft_token=gen_random_uuid() WHERE id=$1',[id]);
       await event(client, actor, content, 'rejected', revisionId, note);
       return { published: false };
     }
     assert(!world.site_blocked && !content.site_blocked, 403, 'SITE_BLOCKED', 'Site moderation prevents publication.');
     await (await import('./persona-reviews.ts')).validateReviewPublication(client,actor,content,revisionId);
+    const localeTable=content.kind==='review' && Object.hasOwn(content,'submitted_revision_id')?'review_submission_locales':'revision_locales';
+    const localeCondition=content.kind==='review' && Object.hasOwn(content,'submitted_revision_id')?'rl.submission_id=$1':'rl.revision_id=$1';
+    const localeKey=content.kind==='review' && Object.hasOwn(content,'submitted_revision_id')?content.submission_token:revisionId;
     const { rows: missing } = await client.query(`SELECT code FROM locales WHERE enabled AND required_for_publish
-      AND NOT EXISTS (SELECT 1 FROM revision_locales rl WHERE rl.revision_id=$1 AND rl.locale=locales.code)`, [revisionId]);
+      AND NOT EXISTS (SELECT 1 FROM ${localeTable} rl WHERE ${localeCondition} AND rl.locale=locales.code)`, [localeKey]);
     if (missing.length) throw new DomainError(409, 'TRANSLATIONS_REQUIRED', 'Complete the required translations before publishing.', missing.map(l => l.code));
     const publicationId = randomUUID();
     await client.query('INSERT INTO publications(id,content_id,revision_id,published_by) VALUES ($1,$2,$3,$4)', [publicationId, id, revisionId, actor.id]);
     await client.query(`INSERT INTO publication_locales(publication_id,revision_id,locale,translation_id)
-      SELECT $1,revision_id,locale,translation_id FROM revision_locales WHERE revision_id=$2`, [publicationId, revisionId]);
+      SELECT $1,revision_id,locale,translation_id FROM ${localeTable} rl WHERE ${localeCondition.replace('$1','$2')}`, [publicationId, localeKey]);
     await client.query("UPDATE content_revisions SET status='approved' WHERE id=$1", [revisionId]);
     await client.query('UPDATE contents SET published_publication_id=$2 WHERE id=$1', [id, publicationId]);
+    if(content.kind==='review' && Object.hasOwn(content,'submitted_revision_id'))await client.query('UPDATE contents SET submitted_revision_id=NULL,submission_token=NULL WHERE id=$1',[id]);
     await event(client, actor, content, 'published', revisionId, note);
     return { published: true, publicationId };
   });
@@ -167,6 +178,7 @@ export function restorePublication(db: Database, actor: Actor, id: string, publi
     assert(!world.site_blocked && !content.site_blocked, 403, 'SITE_BLOCKED', 'Site moderation prevents publication.');
     const { rows: [previous] } = await client.query('SELECT * FROM publications WHERE id=$1 AND content_id=$2', [publicationId, id]);
     assert(previous, 404, 'NOT_FOUND', 'Published version not found.');
+    if(content.kind==='review' && Object.hasOwn(content,'submitted_revision_id'))assert(await (await import('./read.ts')).getPublished(client,'en',{id:content.parent_content_id}),409,'TARGET_UNAVAILABLE','The entry is not visible.');
     const next = randomUUID();
     await client.query('INSERT INTO publications(id,content_id,revision_id,published_by,restored_from) VALUES ($1,$2,$3,$4,$5)', [next, id, previous.revision_id, actor.id, publicationId]);
     await client.query(`INSERT INTO publication_locales(publication_id,revision_id,locale,translation_id)

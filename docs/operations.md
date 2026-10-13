@@ -111,3 +111,13 @@ npm run db:init:details -- --apply
 新版 `POST /api/me/personas/save` 在一个事务内保存固定资料版本并送审，或由网站管理员完成本人资料直接生效；草稿不清除旧待审指针。`/api/me/personas/:id/notes` 的 GET／PUT 仅角色所有者可用，网站管理员不能读取他人的私人笔记。笔记不进入公共资料与历史、审核、署名或索引，内部错误日志不得包含私有数据库行正文。
 
 后续验证仍应使用隔离测试 schema；不要向现用角色写测试笔记。所有页面、接口与资源继承现有 Basic Auth、noindex、no-store，应用会话错误继续由 Web 层转换为 403。详细证据与已知验证边界见[真实接入记录](workspace-handoff/personas-implementation/README.md)。
+
+## 工作台个人评价／收到的评价（阶段 B）
+
+2026-10-13 `/zh/workspace?view=reviews`、`view=replies` 及英文入口已接真实 API，沿用既有壳与手机导航；旧 `/account`、`/admin` 仍可达。必要增量迁移 `012_review_submissions.sql`，011 私人笔记迁移保持原样。
+
+评价和回复的有效待审 A 与 head 草稿 B 分离；提交新版本才替代 A，旧审核请求不能批准新 head。评价提交另冻结署名所附版本及译文引用，回复 ID 路由参数仍是评价 ID。`POST /api/me/review-workspace/save` 同事务保存/送审，按 actor/requestId 幂等并校验版本及身份。管理员角色页直接生效特例不用于个人评价。
+
+本次发布先停止开发服务、备份 public schema 与旧构建、记录历史聚合摘要，然后 `npm run db:migrate`，安装临时目录验证通过的构建并重启。012 已应用；原历史字段/计数不变，无 seed/reset 或现用验收样例。备份放在 `/tmp/plotstay-reviews-pre012-backup/`（目录700、文件600），目录校验通过，未做现用恢复演练；后续勿无授权恢复并覆盖新数据。迁移及 API 细节见[契约](workspace-handoff/reviews-implementation/contract.md)，本轮测试和部署证据见[验收记录](workspace-handoff/reviews-implementation/acceptance.md)。
+
+新私有接口和静态资源继承 Basic Auth、noindex/nofollow/noarchive、no-store、robots 禁爬，浏览器无应用会话继续返回403。复验脚本：`node docs/workspace-handoff/reviews-implementation/check-deployment.mjs`，只读，不生成账号或业务样例。公网门禁已验，公网认证后交互和物理手机仍未验证。没有改 Nginx/systemd 配置。

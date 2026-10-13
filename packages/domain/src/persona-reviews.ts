@@ -1,11 +1,12 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { z } from 'zod';
-import { transaction, type Database, type Connection } from '@plotstay/database';
+import { transaction, type Database, type Connection, type PoolClient } from '@plotstay/database';
 import { sharedPersonaSchema, personaSaveSchema, personaNotesSchema, textSchema, reviewRatingsSchema, idSchema } from '@plotstay/contracts';
 import { type Actor, requireWorld, hashPassword } from './auth.ts';
 import { assert } from './errors.ts';
 import { appendRevision } from './content.ts';
 import { getPublished } from './read.ts';
+import {recordReviewSubmission} from './review-submissions.ts';
 
 const profilesSchema = sharedPersonaSchema.refine((b) => Object.keys(b).length > 0, 'Add a profile language');
 const reviewBody = z
@@ -153,7 +154,11 @@ async function personaSnapshot(c: Connection, actor: Actor, id: string) {
   profilesSchema.parse(r.body);
   return { revisionId: r.id, profiles: signatureProfiles(r.body), settingId: s.id };
 }
-export async function reviewDetail(db: Connection, actor: Actor, id: string, moderate = false) {
+export async function reviewHistoryBoundary(db:Connection,content:any){
+ const boundary=(await db.query('SELECT w.visible,w.site_blocked AS world_blocked,p.site_blocked AS parent_blocked FROM worlds w JOIN contents p ON p.id=$2 WHERE w.id=$1',[content.world_id,content.parent_content_id])).rows[0];
+ assert(boundary?.visible&&!boundary.world_blocked&&!boundary.parent_blocked&&!content.site_blocked,409,'TARGET_UNAVAILABLE','World or site restrictions prevent reading this history.');
+}
+export async function reviewDetail(db: Connection, actor: Actor, id: string, moderate = false, history?:{page:number;revision?:string}) {
   const c = (
     await db.query(
       "SELECT c.*,parent.slug AS target_slug,parent.kind AS target_kind,w.slug AS world_slug FROM contents c JOIN contents parent ON parent.id=c.parent_content_id JOIN worlds w ON w.id=c.world_id WHERE c.id=$1 AND c.kind='review'",
@@ -163,33 +168,37 @@ export async function reviewDetail(db: Connection, actor: Actor, id: string, mod
   assert(c, 404, 'NOT_FOUND', 'Review not found.');
   if (moderate) await requireWorld(db, actor, c.world_id, true);
   else assert(c.author_id === actor.id, 403, 'REVIEW_FORBIDDEN', 'This review belongs to another account.');
+  let contextAvailable=true;
+  if(!moderate){await reviewHistoryBoundary(db,c);contextAvailable=Boolean(await getPublished(db,'en',{id:c.parent_content_id}));}
+  if(!contextAvailable){c.target_slug=null;c.target_kind=null;c.world_slug=null;}
   const revisions = (
     await db.query(
       `SELECT r.*,s.persona_revision_id,s.profiles,s.managed,d.decision AS persona_decision,d.note AS persona_note,
- coalesce((SELECT jsonb_object_agg(l.locale,t.body) FROM revision_locales l JOIN translations t ON t.id=l.translation_id WHERE l.revision_id=r.id),'{}') AS texts
- FROM content_revisions r LEFT JOIN review_signatures s ON s.revision_id=r.id LEFT JOIN persona_revision_decisions d ON d.revision_id=s.persona_revision_id WHERE r.content_id=$1 ORDER BY r.number DESC`,
-      [id],
+ CASE WHEN r.id=$2 THEN coalesce((SELECT jsonb_object_agg(l.locale,t.body) FROM review_submission_locales l JOIN translations t ON t.id=l.translation_id WHERE l.submission_id=$3),'{}') ELSE coalesce((SELECT jsonb_object_agg(l.locale,t.body) FROM revision_locales l JOIN translations t ON t.id=l.translation_id WHERE l.revision_id=r.id),'{}') END AS texts
+ FROM content_revisions r LEFT JOIN review_signatures s ON s.revision_id=r.id LEFT JOIN persona_revision_decisions d ON d.revision_id=s.persona_revision_id WHERE r.content_id=$1 AND ($4::int IS NULL OR r.id=ANY($5::uuid[]) OR r.id=(SELECT revision_id FROM publications WHERE id=$6) OR r.id IN(SELECT id FROM content_revisions WHERE content_id=$1 ORDER BY number DESC LIMIT 20 OFFSET $4)) ORDER BY r.number DESC`,
+      [id,c.submitted_revision_id,c.submission_token,history?(history.page-1)*20:null,[c.head_revision_id,c.submitted_revision_id,history?.revision].filter(Boolean),c.published_publication_id],
     )
   ).rows;
   const events = (
     await db.query(
-      'SELECT action,note,created_at FROM moderation_events WHERE content_id=$1 ORDER BY created_at DESC',
-      [id],
+      'SELECT id,revision_id,action,note,created_at FROM moderation_events WHERE content_id=$1 AND ($2::uuid[] IS NULL OR revision_id=ANY($2)) ORDER BY created_at DESC LIMIT $3',
+      [id,history?revisions.map((r:any)=>r.id):null,history?100:null],
     )
   ).rows;
   const publications = (
     await db.query(
-      'SELECT id,revision_id,published_at FROM publications WHERE content_id=$1 ORDER BY published_at DESC',
-      [id],
+      'SELECT id,revision_id,published_at FROM publications WHERE content_id=$1 AND ($2::uuid[] IS NULL OR revision_id=ANY($2)) ORDER BY published_at DESC LIMIT $3',
+      [id,history?revisions.map((r:any)=>r.id):null,history?100:null],
     )
   ).rows;
-  return { content: c, revisions, events, publications };
+  const historyTotal=history?(await db.query('SELECT count(*)::int n FROM content_revisions WHERE content_id=$1',[id])).rows[0].n:revisions.length;
+  return { historyTotal,content: c, revisions, events, publications, contextAvailable };
 }
 export async function myReviews(db: Connection, actor: Actor, page = 1) {
   const {
     rows: [r],
   } = await db.query(
-    `WITH entries AS(SELECT c.id,c.persona_id,c.published_publication_id,r.status,r.source_text->>'title' AS title,(SELECT s.profiles FROM review_signatures s WHERE s.revision_id=r.id) AS profiles,r.source_text->'review'->>'name' AS legacy_name,p.slug AS target_slug,p.kind AS target_kind,w.slug AS world_slug,r.created_at FROM contents c JOIN contents p ON p.id=c.parent_content_id JOIN worlds w ON w.id=c.world_id JOIN content_revisions r ON r.id=c.head_revision_id WHERE c.kind='review' AND c.author_id=$1) SELECT (SELECT count(*)::int FROM entries) AS total,coalesce((SELECT jsonb_agg(e) FROM(SELECT * FROM entries ORDER BY created_at DESC,id LIMIT 20 OFFSET $2)e),'[]') AS items`,
+    `WITH entries AS(SELECT c.id,c.persona_id,c.published_publication_id,r.status,r.source_text->>'title' AS title,(SELECT s.profiles FROM review_signatures s WHERE s.revision_id=r.id) AS profiles,r.source_text->'review'->>'name' AS legacy_name,p.slug AS target_slug,p.kind AS target_kind,w.slug AS world_slug,r.created_at FROM contents c JOIN contents p ON p.id=c.parent_content_id JOIN worlds w ON w.id=c.world_id JOIN content_revisions r ON r.id=c.head_revision_id WHERE c.kind='review' AND c.author_id=$1 AND w.visible AND NOT w.site_blocked AND NOT c.site_blocked AND NOT p.site_blocked AND p.published_publication_id IS NOT NULL AND EXISTS(SELECT 1 FROM review_signatures sig WHERE sig.revision_id=r.id AND sig.managed)) SELECT (SELECT count(*)::int FROM entries) AS total,coalesce((SELECT jsonb_agg(e) FROM(SELECT * FROM entries ORDER BY created_at DESC,id LIMIT 20 OFFSET $2)e),'[]') AS items`,
     [actor.id, (page - 1) * 20],
   );
   return { ...r, page, pages: Math.max(1, Math.ceil(r.total / 20)) };
@@ -250,7 +259,9 @@ export function startReview(db: Database, actor: Actor, parentId: string, person
   });
 }
 export function saveReview(db: Database, actor: Actor, id: string, baseRevisionId: string, raw: unknown) {
-  return transaction(db, async (c) => {
+  return transaction(db, c => saveReviewInTransaction(c, actor, id, baseRevisionId, raw));
+}
+export async function saveReviewInTransaction(c: PoolClient, actor: Actor, id: string, baseRevisionId: string, raw: unknown) {
     const input = reviewBody.parse(raw);
     validateLanguages(input.texts, input.sourceLocale);
     const entry = (await c.query("SELECT * FROM contents WHERE id=$1 AND kind='review' FOR UPDATE", [id]))
@@ -269,6 +280,8 @@ export function saveReview(db: Database, actor: Actor, id: string, baseRevisionI
     );
     const parent = await getPublished(c, input.sourceLocale, { id: entry.parent_content_id });
     assert(parent, 409, 'TARGET_UNAVAILABLE', 'The entry is not accepting reviews.');
+    assert(!entry.site_blocked,403,'SITE_BLOCKED','This review is restricted.');
+    assert((await c.query('SELECT 1 FROM review_signatures WHERE revision_id=$1 AND managed',[entry.head_revision_id])).rowCount,409,'LEGACY_REVIEW','Use the legacy note editor.');
     const s = await personaSnapshot(c, actor, entry.persona_id);
     const texts = Object.fromEntries(
       Object.entries(input.texts).map(([locale, t]) => [
@@ -308,8 +321,7 @@ export function saveReview(db: Database, actor: Actor, id: string, baseRevisionI
       [revision.id, entry.persona_id, s.revisionId, s.profiles],
     );
     return { id, revisionId: revision.id };
-  });
-}
+  }
 export async function submitPersona(c: Connection, revisionId: string, actor: Actor) {
   const r = (await c.query('SELECT * FROM detail_setting_revisions WHERE id=$1', [revisionId])).rows[0];
   assert(r, 409, 'PROFILE_REQUIRED', 'Save a persona first.');
@@ -365,7 +377,9 @@ export async function personaQueue(db: Connection, actor: Actor, page = 1) {
   return { items: rows.slice(0,20), page, hasNext: rows.length>20 };
 }
 export function submitReview(db: Database, actor: Actor, id: string, revisionId: string) {
-  return transaction(db, async (c) => {
+  return transaction(db, c => submitReviewInTransaction(c, actor, id, revisionId));
+}
+export async function submitReviewInTransaction(c: PoolClient, actor: Actor, id: string, revisionId: string) {
     const entry = (await c.query('SELECT * FROM contents WHERE id=$1 FOR UPDATE', [id])).rows[0];
     assert(
       entry && entry.kind === 'review' && entry.author_id === actor.id,
@@ -386,11 +400,13 @@ export function submitReview(db: Database, actor: Actor, id: string, revisionId:
       'TARGET_UNAVAILABLE',
       'The entry is not accepting reviews.',
     );
+    assert(!entry.site_blocked,403,'SITE_BLOCKED','This review is restricted.');
+    if(entry.submitted_revision_id===revisionId)return {submitted:true,revisionId,submissionToken:entry.submission_token};
     const s = (await c.query('SELECT * FROM review_signatures WHERE revision_id=$1', [revisionId])).rows[0];
     assert(s?.persona_revision_id, 409, 'PROFILE_REQUIRED', 'Save this review with a persona first.');
     await submitPersona(c, s.persona_revision_id, actor);
     const r = await c.query(
-      "UPDATE content_revisions SET status='submitted' WHERE id=$1 AND status IN ('draft','rejected','submitted') RETURNING id",
+      "UPDATE content_revisions SET status='submitted' WHERE id=$1 AND status IN ('draft','submitted') RETURNING id",
       [revisionId],
     );
     assert(r.rowCount, 409, 'REVISION_LOCKED', 'Save a new draft before submitting.');
@@ -398,9 +414,8 @@ export function submitReview(db: Database, actor: Actor, id: string, revisionId:
       "INSERT INTO moderation_events(content_id,revision_id,world_id,actor_id,action)VALUES($1,$2,$3,$4,'submitted')",
       [id, revisionId, entry.world_id, actor.id],
     );
-    return { submitted: true };
-  });
-}
+    return { submitted: true, ...await recordReviewSubmission(c,actor,entry,revisionId) };
+  }
 export async function approvePersonaVersion(
   c: Connection,
   actor: Actor,
@@ -532,10 +547,10 @@ export async function validateReviewPublication(
 export async function moderationQueue(db: Connection, actor: Actor, page = 1) {
   const rows = (
     await db.query(
-      `SELECT c.id,c.world_id,c.persona_id,c.author_id,c.published_publication_id,r.id AS revision_id,r.status,r.source_text->>'title' AS title,p.slug AS target_slug,p.kind AS target_kind,w.slug AS world_slug,s.persona_revision_id,d.decision AS persona_decision,(SELECT e.action FROM review_replies q JOIN reply_events e ON e.revision_id=q.head_revision_id WHERE q.review_id=c.id ORDER BY e.created_at DESC,e.id DESC LIMIT 1) AS reply_status
- FROM contents c JOIN contents p ON p.id=c.parent_content_id JOIN worlds w ON w.id=c.world_id JOIN content_revisions r ON r.id=c.head_revision_id LEFT JOIN review_signatures s ON s.revision_id=r.id LEFT JOIN persona_revision_decisions d ON d.revision_id=s.persona_revision_id
+      `SELECT c.id,c.world_id,c.persona_id,c.author_id,c.published_publication_id,r.id AS revision_id,r.status,r.source_text->>'title' AS title,p.slug AS target_slug,p.kind AS target_kind,w.slug AS world_slug,s.persona_revision_id,d.decision AS persona_decision,(SELECT e.action FROM review_replies q JOIN reply_events e ON e.revision_id=q.submitted_revision_id WHERE q.review_id=c.id ORDER BY e.created_at DESC,e.id DESC LIMIT 1) AS reply_status
+ FROM contents c JOIN contents p ON p.id=c.parent_content_id JOIN worlds w ON w.id=c.world_id JOIN content_revisions r ON r.id=coalesce(c.submitted_revision_id,c.head_revision_id) LEFT JOIN review_signatures s ON s.revision_id=r.id LEFT JOIN persona_revision_decisions d ON d.revision_id=s.persona_revision_id
  WHERE c.kind='review' AND ($1 OR w.owner_id=$2 OR EXISTS(SELECT 1 FROM world_members m WHERE m.world_id=c.world_id AND m.user_id=$2 AND m.role IN ('owner','admin')))
- ORDER BY ((r.status='submitted') OR EXISTS(SELECT 1 FROM review_replies q WHERE q.review_id=c.id AND (SELECT e.action FROM reply_events e WHERE e.revision_id=q.head_revision_id ORDER BY e.created_at DESC,e.id DESC LIMIT 1)='submit')) DESC,r.created_at DESC,c.id LIMIT 21 OFFSET $3`,
+ ORDER BY ((r.status='submitted') OR EXISTS(SELECT 1 FROM review_replies q WHERE q.review_id=c.id AND (SELECT e.action FROM reply_events e WHERE e.revision_id=q.submitted_revision_id ORDER BY e.created_at DESC,e.id DESC LIMIT 1)='submit')) DESC,r.created_at DESC,c.id LIMIT 21 OFFSET $3`,
       [actor.siteRole === 'admin', actor.id, (page - 1) * 20],
     )
   ).rows;
@@ -640,47 +655,39 @@ async function providerAccess(c: Connection, actor: Actor, reviewId: string) {
   );
   return r;
 }
-export async function replyDetail(db: Connection, actor: Actor, reviewId: string, moderate = false) {
-  const target = moderate ? await providerFor(db, reviewId) : await providerAccess(db, actor, reviewId);
-  if (moderate) await requireWorld(db, actor, target.world_id, true);
-  const reply =
-    (await db.query('SELECT * FROM review_replies WHERE review_id=$1', [reviewId])).rows[0] ?? null;
-  const revisions = reply
-    ? (
-        await db.query(
-          `SELECT r.*,coalesce((SELECT action FROM reply_events e WHERE e.revision_id=r.id ORDER BY created_at DESC,id DESC LIMIT 1),'draft') AS status,d.decision AS persona_decision,d.note AS persona_note FROM reply_revisions r LEFT JOIN persona_revision_decisions d ON d.revision_id=r.persona_revision_id WHERE reply_id=$1 ORDER BY created_at DESC,id DESC`,
-          [reply.id],
-        )
-      ).rows
-    : [];
-  return {
-    target: {
-      id: target.id,
-      world_id: target.world_id,
-      provider_id: target.provider_id,
-      profiles: signatureProfiles(target.provider_profiles ?? {}),
-      target_slug: target.target_slug,
-      target_kind: target.target_kind,
-      world_slug: target.world_slug,
-    },
-    reply,
-    revisions,
-    publications: reply
-      ? (
-          await db.query(
-            'SELECT * FROM reply_publications WHERE reply_id=$1 ORDER BY published_at DESC,id DESC',
-            [reply.id],
-          )
-        ).rows
-      : [],
-    events: reply
-      ? (
-          await db.query('SELECT * FROM reply_events WHERE reply_id=$1 ORDER BY created_at DESC,id DESC', [
-            reply.id,
-          ])
-        ).rows
-      : [],
-  };
+export async function replyDetail(db: Connection, actor: Actor, reviewId: string, moderate = false, history?:{page:number;revision?:string}) {
+  const target = await providerFor(db,reviewId);
+  if(moderate)await requireWorld(db,actor,target.world_id,true);
+  const reply=(await db.query('SELECT * FROM review_replies WHERE review_id=$1',[reviewId])).rows[0]??null;
+  const authored=reply&&(await db.query('SELECT 1 FROM reply_revisions WHERE reply_id=$1 AND created_by=$2 LIMIT 1',[reply.id,actor.id])).rowCount;
+  const contextAvailable=Boolean(await getPublished(db,'en',{id:reviewId}));
+  if(!moderate){
+    assert(target.provider_owner===actor.id||authored,403,'PROVIDER_FORBIDDEN','Only the current provider or original author can read this reply.');
+    await reviewHistoryBoundary(db,target);
+    assert(contextAvailable||authored,409,'TARGET_UNAVAILABLE','This review context is not available.');
+  }
+  const publicRevision=reply&&!reply.hidden&&contextAvailable?(await db.query('SELECT revision_id FROM reply_publications WHERE id=$1',[reply.published_id])).rows[0]?.revision_id:null;
+  const revisions=reply?(await db.query(`SELECT r.*,
+    coalesce((SELECT action FROM reply_events e WHERE e.revision_id=r.id ORDER BY created_at DESC,id DESC LIMIT 1),'draft') AS status,
+    CASE WHEN $2 OR r.created_by=$3 THEN d.decision END AS persona_decision,
+    CASE WHEN $2 OR r.created_by=$3 THEN d.note END AS persona_note
+    FROM reply_revisions r LEFT JOIN persona_revision_decisions d ON d.revision_id=r.persona_revision_id
+    WHERE reply_id=$1 AND ($2 OR r.created_by=$3 OR r.id=$4)
+    AND ($5::int IS NULL OR r.id=ANY($6::uuid[]) OR r.id IN(SELECT id FROM reply_revisions WHERE reply_id=$1 AND created_by=$3 ORDER BY created_at DESC,id DESC LIMIT 20 OFFSET $5))
+    ORDER BY created_at DESC,id DESC`,[reply.id,moderate,actor.id,publicRevision??null,history?(history.page-1)*20:null,[reply.head_revision_id,reply.submitted_revision_id,publicRevision,history?.revision].filter(Boolean)])).rows:[];
+  const ownIds=revisions.filter((r:any)=>moderate||r.created_by===actor.id).map((r:any)=>r.id);
+  const publications=reply?(await db.query('SELECT * FROM reply_publications WHERE reply_id=$1 AND ($2 OR revision_id=ANY($3::uuid[]) OR id=$4) ORDER BY published_at DESC,id DESC LIMIT $5',[reply.id,moderate,ownIds,reply.hidden||!contextAvailable?null:reply.published_id,history?100:null])).rows:[];
+  const events=reply?(await db.query(`SELECT * FROM reply_events WHERE reply_id=$1 AND ($2 OR revision_id=ANY($3::uuid[])) ORDER BY created_at DESC,id DESC LIMIT $4`,[reply.id,moderate,ownIds,history?100:null])).rows:[];
+  const canEdit=contextAvailable&&target.provider_owner===actor.id&&!target.provider_disabled;
+  // A head ID is only a concurrency token, never a reason to return its private body.
+  const safeReply=reply?{...reply,submitted_revision_id:moderate||ownIds.includes(reply.submitted_revision_id)?reply.submitted_revision_id:null}:null;
+  const historyTotal=history&&reply?(await db.query('SELECT count(*)::int n FROM reply_revisions WHERE reply_id=$1 AND created_by=$2',[reply.id,actor.id])).rows[0].n:revisions.length;
+  return {historyTotal,target:{id:target.id,world_id:target.world_id,provider_id:target.provider_id,
+    profiles:contextAvailable?signatureProfiles(target.provider_profiles??{}):{},target_slug:contextAvailable?target.target_slug:null,target_kind:contextAvailable?target.target_kind:null,world_slug:contextAvailable?target.world_slug:null},
+    reply:safeReply,revisions,publications,events,canEdit,contextAvailable,
+    editRevisionId:revisions.find((r:any)=>r.created_by===actor.id&&r.persona_id===target.provider_id)?.id??null,
+    submissionGuard:canEdit?reply?.submitted_revision_id??null:null,
+    baseRevisionId:reply?.head_revision_id??null};
 }
 export function saveReply(
   db: Database,
@@ -688,8 +695,11 @@ export function saveReply(
   reviewId: string,
   raw: unknown,
   baseRevisionId: string | null,
+  expectedPersonaId?: string,
 ) {
-  return transaction(db, async (c) => {
+  return transaction(db, c => saveReplyInTransaction(c, actor, reviewId, raw, baseRevisionId,expectedPersonaId));
+}
+export async function saveReplyInTransaction(c: PoolClient, actor: Actor, reviewId: string, raw: unknown, baseRevisionId: string | null,expectedPersonaId?:string) {
     const body = z
       .object({
         sourceLocale: z.enum(['en', 'zh-CN']),
@@ -702,6 +712,8 @@ export function saveReply(
     await c.query('SELECT id FROM contents WHERE id=$1 FOR UPDATE', [target.parent_content_id]);
     // Recheck binding under the parent lock so assignment cannot race the reply author.
     const current = await providerAccess(c, actor, reviewId);
+    if(expectedPersonaId)assert(current.provider_id===expectedPersonaId,409,'PROVIDER_CHANGED','Provider changed since this form was opened.');
+    else if(baseRevisionId){const base=(await c.query('SELECT persona_id,created_by FROM reply_revisions WHERE id=$1',[baseRevisionId])).rows[0];assert(!base||base.created_by!==actor.id||base.persona_id===current.provider_id,409,'PROVIDER_CHANGED','Confirm the new provider identity before saving.');}
     const s = await personaSnapshot(c, actor, current.provider_id);
     await c.query('INSERT INTO review_replies(review_id)VALUES($1)ON CONFLICT(review_id)DO NOTHING', [
       reviewId,
@@ -727,8 +739,7 @@ export function saveReply(
       actor.id,
     ]);
     return { id: reply.id, revisionId: r.id };
-  });
-}
+  }
 export function replyAction(
   db: Database,
   actor: Actor,
@@ -738,7 +749,9 @@ export function replyAction(
   note = '',
   publicationId?: string,
 ) {
-  return transaction(db, async (c) => {
+  return transaction(db, c => replyActionInTransaction(c, actor, reviewId, action, revisionId, note, publicationId));
+}
+export async function replyActionInTransaction(c: PoolClient, actor: Actor, reviewId: string, action: 'submit' | 'publish' | 'reject' | 'hide' | 'restore', revisionId: string, note = '', publicationId?: string) {
     const target = await providerFor(c, reviewId);
     if (action === 'submit') await providerAccess(c, actor, reviewId);
     else await requireWorld(c, actor, target.world_id, true);
@@ -747,12 +760,13 @@ export function replyAction(
       .rows[0];
     assert(reply, 404, 'NOT_FOUND', 'Reply not found.');
     assert(
-      reply.head_revision_id === revisionId,
+      (action==='publish'||action==='reject' ? reply.submitted_revision_id : reply.head_revision_id) === revisionId,
       409,
-      'REVISION_CONFLICT',
-      'Reply changed; reload before reviewing.',
+      action==='publish'||action==='reject' ? 'SUBMISSION_SUPERSEDED' : 'REVISION_CONFLICT',
+      'Reply changed; reload the effective version.',
     );
-    let r = (await c.query('SELECT * FROM reply_revisions WHERE id=$1', [revisionId])).rows[0];
+    let r = (await c.query('SELECT * FROM reply_revisions WHERE id=$1 AND reply_id=$2', [revisionId,reply.id])).rows[0];
+    assert(r,404,'NOT_FOUND','Reply version not found.');
     const status = (
       await c.query(
         'SELECT action FROM reply_events WHERE revision_id=$1 ORDER BY created_at DESC,id DESC LIMIT 1',
@@ -768,13 +782,15 @@ export function replyAction(
         'Save a reply under the current provider identity.',
       );
       assert(
-        ['draft', 'reject', 'submit'].includes(status),
+        ['draft', 'submit'].includes(status),
         409,
         'REVISION_LOCKED',
         'Save a new reply version first.',
       );
       await ownPersona(c, actor, r.persona_id, true);
       await submitPersona(c, r.persona_revision_id, actor);
+      if(reply.submitted_revision_id===revisionId)return {action,revisionId};
+      await c.query('UPDATE review_replies SET submitted_revision_id=$2 WHERE id=$1',[reply.id,revisionId]);
     } else if (action === 'hide')
       await c.query('UPDATE review_replies SET hidden=true WHERE id=$1', [reply.id]);
     else if (action === 'reject')
@@ -835,17 +851,17 @@ export function replyAction(
       ).rows[0];
       await c.query('UPDATE review_replies SET published_id=$2,hidden=false WHERE id=$1', [reply.id, p.id]);
     }
+    if(action==='publish'||action==='reject')await c.query('UPDATE review_replies SET submitted_revision_id=NULL WHERE id=$1',[reply.id]);
     await c.query(
       'INSERT INTO reply_events(reply_id,revision_id,action,actor_id,note)VALUES($1,$2,$3,$4,$5)',
       [reply.id, r.id, action, actor.id, note],
     );
     return { action };
-  });
-}
+  }
 export async function providerInbox(db: Connection, actor: Actor, page = 1) {
   const rows = (
     await db.query(
-      `SELECT c.id,p.slug AS target_slug,p.kind AS target_kind,w.slug AS world_slug,b.persona_id,coalesce(pr.profiles->'en'->>'name','') AS name,r.source_text->>'title' AS title,rr.id AS reply_id FROM provider_bindings b JOIN personas pr ON pr.id=b.persona_id JOIN contents p ON p.id=b.content_id JOIN worlds w ON w.id=p.world_id JOIN contents c ON c.parent_content_id=p.id JOIN publications cp ON cp.id=c.published_publication_id JOIN content_revisions r ON r.id=cp.revision_id LEFT JOIN review_replies rr ON rr.review_id=c.id WHERE pr.owner_id=$1 AND c.published_publication_id IS NOT NULL ORDER BY c.created_at DESC,c.id LIMIT 21 OFFSET $2`,
+      `SELECT c.id,p.slug AS target_slug,p.kind AS target_kind,w.slug AS world_slug,b.persona_id,coalesce(pr.profiles->'en'->>'name','') AS name,r.source_text->>'title' AS title,rr.id AS reply_id FROM provider_bindings b JOIN personas pr ON pr.id=b.persona_id JOIN contents p ON p.id=b.content_id JOIN worlds w ON w.id=p.world_id JOIN contents c ON c.parent_content_id=p.id JOIN publications cp ON cp.id=c.published_publication_id JOIN content_revisions r ON r.id=cp.revision_id LEFT JOIN review_replies rr ON rr.review_id=c.id WHERE (pr.owner_id=$1 OR EXISTS(SELECT 1 FROM reply_revisions history WHERE history.reply_id=rr.id AND history.created_by=$1)) AND w.visible AND NOT w.site_blocked AND NOT c.site_blocked AND NOT p.site_blocked AND p.published_publication_id IS NOT NULL AND c.published_publication_id IS NOT NULL ORDER BY c.created_at DESC,c.id LIMIT 21 OFFSET $2`,
       [actor.id, (page - 1) * 20],
     )
   ).rows;

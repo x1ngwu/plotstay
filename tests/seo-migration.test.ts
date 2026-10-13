@@ -7,10 +7,11 @@ import { listLocales, getPublished } from '@plotstay/domain';
 
 test('upgrade from populated 001–003 preserves all history, credentials and jobs across repeated migrate/seed', async t => {
   const f = await fixture(true); t.after(f.cleanup);
-  const before = await historyDigest(f.db);
+  // Compare every original column; 012 adds independent submission pointers.
+  const before = await historyDigest(f.db,true);
   await migrate(f.db); await seed(f.db, f.credentials);
   await migrate(f.db); await seed(f.db, f.credentials);
-  assert.deepEqual(await historyDigest(f.db), before);
+  assert.deepEqual(await historyDigest(f.db,true), before);
   assert.deepEqual((await listLocales(f.db)).map(l => [l.code, l.pathPrefix, l.languageTag]), [['en', 'en', 'en'], ['zh-CN', 'zh', 'zh-Hans']]);
   assert.equal((await getPublished(f.db, 'zh-CN', { id: f.data.ids['observation-room'] }))!.text.title, '观察室');
   await f.db.query("INSERT INTO locales(code,name) VALUES ('de','Deutsch')");
