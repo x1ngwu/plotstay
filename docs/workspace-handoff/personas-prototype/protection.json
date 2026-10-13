@@ -1,0 +1,110 @@
+{
+  "time": "2026-10-13T03:04:32.477Z",
+  "results": [
+    {
+      "path": "/_design/personas/",
+      "credentials": "none",
+      "status": 401,
+      "robots": "noindex, nofollow, noarchive",
+      "cache": "private, no-store",
+      "challenge": "Basic realm=\"Plotstay development\""
+    },
+    {
+      "path": "/_design/personas/?lang=en",
+      "credentials": "none",
+      "status": 401,
+      "robots": "noindex, nofollow, noarchive",
+      "cache": "private, no-store",
+      "challenge": "Basic realm=\"Plotstay development\""
+    },
+    {
+      "path": "/_design/personas/app.js",
+      "credentials": "none",
+      "status": 401,
+      "robots": "noindex, nofollow, noarchive",
+      "cache": "private, no-store",
+      "challenge": "Basic realm=\"Plotstay development\""
+    },
+    {
+      "path": "/_design/personas/style.css",
+      "credentials": "none",
+      "status": 401,
+      "robots": "noindex, nofollow, noarchive",
+      "cache": "private, no-store",
+      "challenge": "Basic realm=\"Plotstay development\""
+    },
+    {
+      "path": "/_design/personas/screenshots/personas-list-zh-1440.png",
+      "credentials": "none",
+      "status": 401,
+      "robots": "noindex, nofollow, noarchive",
+      "cache": "private, no-store",
+      "challenge": "Basic realm=\"Plotstay development\""
+    },
+    {
+      "path": "/_design/personas/missing-file",
+      "credentials": "none",
+      "status": 401,
+      "robots": "noindex, nofollow, noarchive",
+      "cache": "private, no-store",
+      "challenge": "Basic realm=\"Plotstay development\""
+    },
+    {
+      "path": "/zh/workspace?view=personas",
+      "credentials": "none",
+      "status": 401,
+      "robots": "noindex, nofollow, noarchive",
+      "cache": "private, no-store",
+      "challenge": "Basic realm=\"Plotstay development\""
+    },
+    {
+      "path": "/en/workspace?view=personas",
+      "credentials": "none",
+      "status": 401,
+      "robots": "noindex, nofollow, noarchive",
+      "cache": "private, no-store",
+      "challenge": "Basic realm=\"Plotstay development\""
+    },
+    {
+      "path": "/zh/account",
+      "credentials": "none",
+      "status": 401,
+      "robots": "noindex, nofollow, noarchive",
+      "cache": "private, no-store",
+      "challenge": "Basic realm=\"Plotstay development\""
+    },
+    {
+      "path": "/en/admin",
+      "credentials": "none",
+      "status": 401,
+      "robots": "noindex, nofollow, noarchive",
+      "cache": "private, no-store",
+      "challenge": "Basic realm=\"Plotstay development\""
+    },
+    {
+      "path": "/api/me/personas",
+      "credentials": "none",
+      "status": 401,
+      "robots": "noindex, nofollow, noarchive",
+      "cache": "private, no-store",
+      "challenge": "Basic realm=\"Plotstay development\""
+    },
+    {
+      "path": "/robots.txt",
+      "credentials": "none",
+      "status": 200,
+      "robots": "noindex, nofollow, noarchive",
+      "cache": "private, no-store",
+      "challenge": null
+    },
+    {
+      "path": "/_design/personas/",
+      "credentials": "invalid-credentials",
+      "status": 401,
+      "robots": "noindex, nofollow, noarchive",
+      "cache": "private, no-store",
+      "challenge": "Basic realm=\"Plotstay development\""
+    }
+  ],
+  "authenticatedBrowser": "Not verified: no Basic Auth plaintext credential available"
+}

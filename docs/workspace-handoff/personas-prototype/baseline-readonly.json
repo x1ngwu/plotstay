@@ -1,0 +1,37 @@
+{
+  "scope": "Existing deployed renderer; browser-only synthetic API responses; no account login or business writes",
+  "pages": [
+    {
+      "path": "/zh/workspace?view=personas",
+      "status": 200
+    },
+    {
+      "path": "/en/workspace?view=personas",
+      "status": 200
+    },
+    {
+      "path": "/zh/account?view=personas",
+      "status": 200
+    },
+    {
+      "path": "/en/account?view=personas",
+      "status": 200
+    },
+    {
+      "path": "/zh/admin",
+      "status": 200
+    },
+    {
+      "path": "/en/admin",
+      "status": 200
+    },
+    {
+      "path": "/api/health",
+      "status": 200
+    }
+  ],
+  "screens": [
+    "personas-before-zh-1440.png"
+  ],
+  "errors": []
+}
