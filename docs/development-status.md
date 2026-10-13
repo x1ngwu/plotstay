@@ -2,6 +2,8 @@
 
 ## 当前工作：后台第一阶段已收口，逐页讨论体验调整
 
+2026-10-13 用户确认评价预览「基本正确」，授权 commit & push 阶段 A 成果。归档范围为独立评价预览、原参考图对照、48 张本轮浏览器截图及历史对照、检查脚本与结果、用户原始评价交接附件，以及已生效的 `/_design/reviews/` 受保护静态入口；`example_pages.zip` 原样保留且不纳入提交。首版结构被用户指出偏差后，已按四张参考图重排筛选、横向互动卡片、完整评价／回复和编辑分栏。85 项交互／响应式、7 项布局／动作检查及 18 项公网保护检查通过。线上独立预览已更新，正式页面／API／数据库未接入，无迁移、现用库写入或应用构建／重启；本次仅归档，不自动进入阶段 B。公网认证后浏览器交互与真实权限／并发仍未验证。详见[评价预览记录](workspace-handoff/reviews-prototype/README.md)和[结构修正记录](workspace-handoff/reviews-prototype/LAYOUT-REVISION.md)。提交标识以 Git 历史为准，相关文档中的首版拒绝／待验收状态保留为历史记录。
+
 2026-10-13 第二轮角色 review 修复（HEAD／远端 `f684b0d`）：核对并发版本后，未保存状态改为对比服务器基准，保留本地输入；修复主按钮禁用及离开不提示，并区分内容确实一致的情况。新增普通用户／管理员四种恢复场景，22 项角色浏览器检查、构建与 28 项部署检查通过。开发服务于 13:17:55 JST 更新，无 API／迁移及现用业务测试写入，ZIP 原样；本次未 commit/push。详见[第二轮修复记录](workspace-handoff/personas-implementation/review-fixes.md#第二轮-review冲突核对后的未保存状态)。
 
 2026-10-13 角色页面 code review 修复：实际 HEAD／远端为 `4aa911f`。修复保存后静默采用另一窗口版本、角色间笔记 loading 遗留、慢速导航丢失新输入三项问题；新增 6 个浏览器竞态场景，联合回归 26/26、构建及部署只读检查 28/28 通过。开发服务于 13:08:02 JST 更新，active／health 正常；无 API 或迁移变更、现用业务测试写入或 seed/reset，ZIP 原样，尚未 commit/push。公网 Basic Auth 登录交互和物理软键盘未验证，完整边界见[修复记录](workspace-handoff/personas-implementation/review-fixes.md)。

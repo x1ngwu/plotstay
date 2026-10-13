@@ -1,0 +1,157 @@
+{
+  "environment": "Local browser, synthetic data only",
+  "results": [
+    {
+      "name": "01-my-reviews",
+      "result": "passed",
+      "metrics": {
+        "filterY": [
+          300.734375,
+          300.734375,
+          300.734375,
+          300.734375,
+          300.734375
+        ],
+        "cards": [
+          {
+            "y": 373.734375,
+            "height": 259.4375
+          },
+          {
+            "y": 645.171875,
+            "height": 259.4375
+          },
+          {
+            "y": 916.609375,
+            "height": 215.0625
+          }
+        ],
+        "main": null,
+        "aside": null,
+        "reading": [],
+        "font": "system-ui, -apple-system, \"Noto Sans CJK SC\", sans-serif"
+      }
+    },
+    {
+      "name": "02-received-reviews",
+      "result": "passed",
+      "metrics": {
+        "filterY": [
+          300.734375,
+          300.734375,
+          300.734375,
+          300.734375,
+          300.734375
+        ],
+        "cards": [
+          {
+            "y": 373.734375,
+            "height": 223.28125
+          },
+          {
+            "y": 609.015625,
+            "height": 259.78125
+          },
+          {
+            "y": 880.796875,
+            "height": 273.59375
+          }
+        ],
+        "main": null,
+        "aside": null,
+        "reading": [],
+        "font": "system-ui, -apple-system, \"Noto Sans CJK SC\", sans-serif"
+      }
+    },
+    {
+      "name": "03-review-detail-editor",
+      "result": "passed",
+      "metrics": {
+        "filterY": [
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "cards": [],
+        "main": {
+          "x": 294,
+          "y": 751.609375,
+          "width": 795.734375,
+          "height": 496.71875,
+          "bottom": 1248.328125
+        },
+        "aside": {
+          "x": 1113.734375,
+          "y": 751.609375,
+          "width": 482.25,
+          "height": 496.71875,
+          "bottom": 1248.328125
+        },
+        "reading": [
+          {
+            "visible": true,
+            "text": "向导让我们在桥边停了一会儿，听河水从树根之间穿过。路线没有赶时间，夜间也能辨认路标。建议带一件防风外衣，最后一段河岸比想象中凉。"
+          },
+          {
+            "visible": true,
+            "text": "谢谢你的建议。下次出发前，我会提醒大家准备防风外衣。很高兴那一小段静听的时间也留在了你的记忆里。"
+          }
+        ],
+        "font": "system-ui, -apple-system, \"Noto Sans CJK SC\", sans-serif"
+      }
+    },
+    {
+      "name": "04-reply-detail-editor",
+      "result": "passed",
+      "metrics": {
+        "filterY": [
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "cards": [],
+        "main": {
+          "x": 294,
+          "y": 767.109375,
+          "width": 795.734375,
+          "height": 295.578125,
+          "bottom": 1062.6875
+        },
+        "aside": {
+          "x": 1113.734375,
+          "y": 767.109375,
+          "width": 482.25,
+          "height": 265.078125,
+          "bottom": 1032.1875
+        },
+        "reading": [
+          {
+            "visible": true,
+            "text": "阁楼的灯光适合读书。楼梯较窄，带大行李时可以先请主人帮忙。"
+          },
+          {
+            "visible": true,
+            "text": "谢谢你提到楼梯。我们会在到达前提醒携带大行李的客人，并安排在门口接应。希望阁楼里的那本书也陪你度过了一个安静的夜晚。\n还想补充一些细节。"
+          }
+        ],
+        "font": "system-ui, -apple-system, \"Noto Sans CJK SC\", sans-serif"
+      }
+    },
+    {
+      "name": "Quick persona chips filter the same shared scope",
+      "result": "passed"
+    },
+    {
+      "name": "Only long exchange text collapses; expanding and closing preserves input",
+      "result": "passed"
+    },
+    {
+      "name": "Top and bottom save actions share operation and busy state",
+      "result": "passed"
+    }
+  ]
+}

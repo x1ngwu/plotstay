@@ -1,0 +1,132 @@
+{
+  "time": "2026-10-13T06:34:51.214Z",
+  "results": [
+    {
+      "path": "/_design/reviews/",
+      "status": 401,
+      "robots": "noindex, nofollow, noarchive",
+      "cache": "private, no-store",
+      "challenge": "Basic realm=\"Plotstay development\""
+    },
+    {
+      "path": "/_design/reviews/?lang=en&view=replies",
+      "status": 401,
+      "robots": "noindex, nofollow, noarchive",
+      "cache": "private, no-store",
+      "challenge": "Basic realm=\"Plotstay development\""
+    },
+    {
+      "path": "/_design/reviews/app.js",
+      "status": 401,
+      "robots": "noindex, nofollow, noarchive",
+      "cache": "private, no-store",
+      "challenge": "Basic realm=\"Plotstay development\""
+    },
+    {
+      "path": "/_design/reviews/data.js",
+      "status": 401,
+      "robots": "noindex, nofollow, noarchive",
+      "cache": "private, no-store",
+      "challenge": "Basic realm=\"Plotstay development\""
+    },
+    {
+      "path": "/_design/reviews/style.css",
+      "status": 401,
+      "robots": "noindex, nofollow, noarchive",
+      "cache": "private, no-store",
+      "challenge": "Basic realm=\"Plotstay development\""
+    },
+    {
+      "path": "/_design/reviews/workspace-shell.css",
+      "status": 401,
+      "robots": "noindex, nofollow, noarchive",
+      "cache": "private, no-store",
+      "challenge": "Basic realm=\"Plotstay development\""
+    },
+    {
+      "path": "/_design/reviews/comparison.html",
+      "status": 401,
+      "robots": "noindex, nofollow, noarchive",
+      "cache": "private, no-store",
+      "challenge": "Basic realm=\"Plotstay development\""
+    },
+    {
+      "path": "/_design/reviews/comparison.css",
+      "status": 401,
+      "robots": "noindex, nofollow, noarchive",
+      "cache": "private, no-store",
+      "challenge": "Basic realm=\"Plotstay development\""
+    },
+    {
+      "path": "/_design/reviews/reference/01-my-reviews-desktop.png",
+      "status": 401,
+      "robots": "noindex, nofollow, noarchive",
+      "cache": "private, no-store",
+      "challenge": "Basic realm=\"Plotstay development\""
+    },
+    {
+      "path": "/_design/reviews/gallery.html",
+      "status": 401,
+      "robots": "noindex, nofollow, noarchive",
+      "cache": "private, no-store",
+      "challenge": "Basic realm=\"Plotstay development\""
+    },
+    {
+      "path": "/_design/reviews/screenshots/reviews-list-zh-1440.png",
+      "status": 401,
+      "robots": "noindex, nofollow, noarchive",
+      "cache": "private, no-store",
+      "challenge": "Basic realm=\"Plotstay development\""
+    },
+    {
+      "path": "/_design/reviews/missing-file",
+      "status": 401,
+      "robots": "noindex, nofollow, noarchive",
+      "cache": "private, no-store",
+      "challenge": "Basic realm=\"Plotstay development\""
+    },
+    {
+      "path": "/_design/personas/",
+      "status": 401,
+      "robots": "noindex, nofollow, noarchive",
+      "cache": "private, no-store",
+      "challenge": "Basic realm=\"Plotstay development\""
+    },
+    {
+      "path": "/_design/overview/",
+      "status": 401,
+      "robots": "noindex, nofollow, noarchive",
+      "cache": "private, no-store",
+      "challenge": "Basic realm=\"Plotstay development\""
+    },
+    {
+      "path": "/zh/workspace?view=reviews",
+      "status": 401,
+      "robots": "noindex, nofollow, noarchive",
+      "cache": "private, no-store",
+      "challenge": "Basic realm=\"Plotstay development\""
+    },
+    {
+      "path": "/en/workspace?view=replies",
+      "status": 401,
+      "robots": "noindex, nofollow, noarchive",
+      "cache": "private, no-store",
+      "challenge": "Basic realm=\"Plotstay development\""
+    },
+    {
+      "path": "/api/me/reviews",
+      "status": 401,
+      "robots": "noindex, nofollow, noarchive",
+      "cache": "private, no-store",
+      "challenge": "Basic realm=\"Plotstay development\""
+    },
+    {
+      "path": "/robots.txt",
+      "status": 200,
+      "robots": "noindex, nofollow, noarchive",
+      "cache": "private, no-store",
+      "challenge": null
+    }
+  ],
+  "authenticatedBrowser": "Not verified: no Basic Auth credential read or supplied. Interaction evidence was captured from the same static files locally."
+}
