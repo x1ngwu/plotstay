@@ -1,0 +1,146 @@
+{
+  "time": "2026-10-13T04:18:03.290Z",
+  "results": [
+    {
+      "scope": "public gate",
+      "path": "/zh/workspace?view=personas",
+      "status": 401
+    },
+    {
+      "scope": "public gate",
+      "path": "/en/workspace?view=personas",
+      "status": 401
+    },
+    {
+      "scope": "public gate",
+      "path": "/zh/workspace?view=replies",
+      "status": 401
+    },
+    {
+      "scope": "public gate",
+      "path": "/en/workspace?view=moderation",
+      "status": 401
+    },
+    {
+      "scope": "public gate",
+      "path": "/zh/account",
+      "status": 401
+    },
+    {
+      "scope": "public gate",
+      "path": "/en/admin",
+      "status": 401
+    },
+    {
+      "scope": "public gate",
+      "path": "/api/me/personas",
+      "status": 401
+    },
+    {
+      "scope": "public gate",
+      "path": "/api/me/personas/save",
+      "status": 401
+    },
+    {
+      "scope": "public gate",
+      "path": "/api/me/personas/00000000-0000-0000-0000-000000000001/notes",
+      "status": 401
+    },
+    {
+      "scope": "public gate",
+      "path": "/_design/personas/",
+      "status": 401
+    },
+    {
+      "scope": "public gate",
+      "path": "/robots.txt",
+      "status": 200
+    },
+    {
+      "scope": "wrong Basic Auth",
+      "status": 401
+    },
+    {
+      "scope": "loopback HTTP read only",
+      "path": "/zh",
+      "status": 200
+    },
+    {
+      "scope": "loopback HTTP read only",
+      "path": "/en",
+      "status": 200
+    },
+    {
+      "scope": "loopback HTTP read only",
+      "path": "/zh/workspace?view=personas",
+      "status": 200
+    },
+    {
+      "scope": "loopback HTTP read only",
+      "path": "/en/workspace?view=personas",
+      "status": 200
+    },
+    {
+      "scope": "loopback HTTP read only",
+      "path": "/zh/account",
+      "status": 200
+    },
+    {
+      "scope": "loopback HTTP read only",
+      "path": "/en/admin",
+      "status": 200
+    },
+    {
+      "scope": "loopback HTTP read only",
+      "path": "/api/health",
+      "status": 200
+    },
+    {
+      "scope": "application session recovery",
+      "path": "/api/auth/me",
+      "status": 403
+    },
+    {
+      "scope": "application session recovery",
+      "path": "/api/me/personas",
+      "status": 403
+    },
+    {
+      "scope": "application session recovery",
+      "path": "/api/me/personas/00000000-0000-0000-0000-000000000001/notes",
+      "status": 403
+    },
+    {
+      "scope": "deployed browser, signed out",
+      "language": "zh",
+      "passed": true
+    },
+    {
+      "scope": "deployed browser, signed out",
+      "language": "en",
+      "passed": true
+    },
+    {
+      "scope": "asset gate",
+      "path": "/_astro/workspace.D6g0rSMR.css",
+      "status": 401
+    },
+    {
+      "scope": "asset gate",
+      "path": "/_astro/account.KR7_9Vsr.css",
+      "status": 401
+    },
+    {
+      "scope": "asset gate",
+      "path": "/_astro/AdminConsole.l6KGK8V6.css",
+      "status": 401
+    },
+    {
+      "scope": "asset gate",
+      "path": "/_astro/workspace.astro_astro_type_script_index_0_lang.32N3Q-nU.js",
+      "status": 401
+    }
+  ],
+  "errors": [],
+  "authenticatedPublicBrowser": "Not verified: no Basic Auth plaintext credential available. Authenticated interactions tested against real API in isolated schemas."
+}

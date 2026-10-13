@@ -34,6 +34,10 @@ const clone = <T>(v: T): T => structuredClone(v);
 const colors: Record<string, string> = { mint: '#b8f264', amber: '#ffd36e', violet: '#c9b0ff', sky: '#a4ddf5' };
 const avatar = (value?: string) => `<svg aria-hidden="true" viewBox="0 0 64 64"><rect width="64" height="64" fill="${colors[value ?? 'mint'] ?? colors.mint}"/><circle cx="32" cy="23" r="11" fill="#26332b"/><path d="M12 58V46q20-23 40 0v12" fill="#26332b"/></svg>`;
 const emptyProfiles = (): Profiles => ({ 'zh-CN': { name: '', bio: '', avatar: 'mint' }, en: { name: '', bio: '', avatar: 'mint' } });
+// Compare editable values in a stable order, including the form's defaults.
+const profileSnapshot = (value: Profiles) => JSON.stringify(Object.entries({ ...emptyProfiles(), ...value })
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([locale, p]) => [locale, p.name, p.bio, p.avatar ?? 'mint']));
 export async function initWorkspacePersonas(root: HTMLElement) {
     const shell = document.getElementById('new-workspace')!;
     shell.dataset.personaController = 'true';
@@ -43,7 +47,7 @@ export async function initWorkspacePersonas(root: HTMLElement) {
     view.classList.add('wp-personas');
     let zh = root.dataset.locale === 'zh-CN', editLocale = zh ? 'zh-CN' : 'en', tab = 'public';
     let actor: any, personas: Persona[] = [], current: Persona | undefined, editing = false, historical: any = null, historyData: any = null;
-    let profiles = emptyProfiles(), savedProfiles = JSON.stringify(profiles), note: Note = { body: '', version: null, updatedAt: null }, noteText = '', notesReady = false;
+    let profiles = emptyProfiles(), savedProfiles = profileSnapshot(profiles), note: Note = { body: '', version: null, updatedAt: null }, noteText = '', notesReady = false;
     let publicBusy = false, notesBusy = false, notesLoading = false, publicStatus = '', notesStatus = '', notesError = false, publicError = false;
     let notesLoadRequest = 0, navigationRequest = 0;
     let lastPublic: {
@@ -58,7 +62,7 @@ export async function initWorkspacePersonas(root: HTMLElement) {
     const l = (a: string, b: string) => zh ? a : b;
     const prefix = () => zh ? 'zh' : 'en';
     const listUrl = () => `/${prefix()}/workspace?view=personas`;
-    const dirtyPublic = () => editing && !historical && JSON.stringify(profiles) !== savedProfiles;
+    const dirtyPublic = () => editing && !historical && profileSnapshot(profiles) !== savedProfiles;
     const dirtyNotes = () => editing && !historical && noteText !== note.body;
     const dirty = () => dirtyPublic() || dirtyNotes();
     const guard = () => !publicBusy && !notesBusy && (!dirty() || confirm(l('对外资料或角色笔记有未保存输入。离开并放弃这些修改？', 'Public profile or private notes have unsaved changes. Leave and discard them?')));
@@ -309,7 +313,7 @@ export async function initWorkspacePersonas(root: HTMLElement) {
         try {
             const result = await api('/me/personas/save', lastPublic!.body);
             if (saveSequence !== sequence) return;
-            savedProfiles = JSON.stringify(profiles);
+            savedProfiles = profileSnapshot(profiles);
             historyData = null;
             lastPublic = undefined;
             const created = !current;
@@ -373,7 +377,19 @@ export async function initWorkspacePersonas(root: HTMLElement) {
         dialog.innerHTML = `<h2>${l('服务器最新资料', 'Latest server profile')}</h2><pre>${esc(JSON.stringify(fresh.draft ?? fresh.published, null, 2))}</pre><p>${l('采用最新版本作为保存基准会保留你当前输入。请核对后再保存。', 'Using this version as the save base keeps your input. Compare it before saving again.')}</p><button data-use>${l('已核对，保留我的输入', 'Compared; keep my input')}</button><button data-close>${l('关闭', 'Close')}</button>`;
         document.body.append(dialog);
         dialog.querySelector<HTMLButtonElement>('[data-close]')!.onclick = () => dialog.close();
-        dialog.querySelector<HTMLButtonElement>('[data-use]')!.onclick = () => { current = fresh; lastPublic = undefined; publicStatus = l('已更新版本基准；当前输入尚未保存。', 'Save base updated; your input is still unsaved.'); publicError = false; dialog.close(); form(); };
+        dialog.querySelector<HTMLButtonElement>('[data-use]')!.onclick = () => {
+            current = fresh;
+            // The retained input must now be compared with the server version
+            // the user accepted, rather than this window's earlier saved input.
+            savedProfiles = profileSnapshot(fresh.draft ?? fresh.published);
+            lastPublic = undefined;
+            publicStatus = dirtyPublic()
+                ? l('已更新版本基准；当前输入尚未保存。', 'Save base updated; your input is still unsaved.')
+                : l('已更新版本基准；当前输入与最新资料一致。', 'Save base updated; your input matches the latest profile.');
+            publicError = false;
+            dialog.close();
+            form();
+        };
         dialog.onclose = () => dialog.remove();
         dialog.showModal();
     }
@@ -436,7 +452,7 @@ export async function initWorkspacePersonas(root: HTMLElement) {
         const seq = ++sequence;
         clearPrivate();
         profiles = emptyProfiles();
-        savedProfiles = JSON.stringify(profiles);
+        savedProfiles = profileSnapshot(profiles);
         publicStatus = notesStatus = '';
         publicError = notesError = false;
         lastPublic = undefined;
@@ -459,7 +475,7 @@ export async function initWorkspacePersonas(root: HTMLElement) {
                 return;
             }
             profiles = { ...emptyProfiles(), ...clone(current.draft ?? current.published) };
-            savedProfiles = JSON.stringify(profiles);
+            savedProfiles = profileSnapshot(profiles);
             if (q.has('revision') && q.get('revision') !== current.head_revision_id) {
                 view.textContent = l('正在核对历史版本…', 'Checking the linked version…');
                 const detail = await api('/admin/settings/' + current.setting_id);
@@ -572,7 +588,7 @@ export async function initWorkspacePersonas(root: HTMLElement) {
         if (u.href !== location.href && !a.hash && (!guard()))
             event.preventDefault();
         else if (u.href !== location.href && !a.hash) {
-            savedProfiles = JSON.stringify(profiles);
+            savedProfiles = profileSnapshot(profiles);
             note.body = noteText;
         }
     }, true);
@@ -627,7 +643,7 @@ export async function initWorkspacePersonas(root: HTMLElement) {
         if (actor && actor.id !== session.actor.id) {
             clearPrivate();
             profiles = emptyProfiles();
-            savedProfiles = JSON.stringify(profiles);
+            savedProfiles = profileSnapshot(profiles);
             const u = new URL(listUrl(), location.origin);
             history.replaceState({ personaIndex: index }, '', u);
         }

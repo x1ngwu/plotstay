@@ -36,3 +36,21 @@
 [部署只读检查](review-fixes-deployment-check.json) **28/28 通过**：公开认证门禁、错误 Basic Auth 拒绝、robots 禁止抓取、noindex / no-store、旧页面与 API、部署服务的中英退出登录界面及移动导航，无浏览器脚本错误。沙箱 DNS 初次失败后使用获准联网执行同一检查；未调整认证或爬虫设置。
 
 现用数据库和数据卷保留，没有迁移、seed/reset 或现用业务测试写入；测试 schema 已清理。ZIP 原样，SHA-256 仍为 `2338ebbf7ead485b3842e0d8eb3204da83dfd52c4eb8994c85c2daa232b72d26`。方案、原截图和附件保留。当前工作区包含上述修复、测试和记录，尚未 commit/push。
+
+## 第二轮 review：冲突核对后的未保存状态
+
+上述三项修复已提交推送为 `f684b0d`。第二轮 review 复现：本窗口刚保存成功，刷新发现另一窗口新版本后选择“已核对，保留我的输入”，只更新版本指针却仍用本窗口旧保存内容判断 dirty，导致主按钮禁用、离开不提示。本次开工 HEAD 与远端 main 均为 `f684b0d`，用户授权修复。
+
+修复位于 `workspace-personas.ts`：显式核对后以服务器最新资料作为未保存比较基准，保留本地输入。比较按语言和可编辑字段的稳定顺序进行，并采用表单默认值，避免 JSON 属性顺序导致相同内容被误判。有差异时提示未保存并启用正常完成操作；内容一致时明确显示一致，不产生虚假的未保存提示。私人笔记状态独立保持。
+
+`persona-workspace-races-e2e.test.ts` 新增普通用户／站点管理员 × 内容不同／相同四个场景，覆盖离开取消、主按钮、当前版本及待审指针、真正保存／提交／生效、保存后公开状态清除而私人笔记仍未保存。与现有角色浏览器测试联合 **22/22 通过**（含父测试计数）：
+
+```bash
+./node_modules/.bin/tsx --test --test-concurrency=1 tests/persona-workspace-races-e2e.test.ts tests/persona-workspace-e2e.test.ts
+```
+
+构建通过，TypeScript / Astro 0 errors / warnings / hints；中英及手机布局、旧入口和角色历史深链接沿用该角色回归检查。没有重跑全套后端／端到端测试。开发服务于 **2026-10-13 13:17:55 JST** 更新，active / running、health 正常；[本次只读部署检查](conflict-recovery-deployment-check.json) **28/28 通过**，Basic Auth、noindex、no-store 保持，公网认证后交互仍未验证。
+
+本次无 API、迁移或样式变更；写入仅在隔离 schema，现用业务库及数据卷保持，不 seed/reset。ZIP 校验值与上文相同。新修改尚未 commit/push。
+
+用户随后明确授权 commit & push，本次归档第二轮修复、四个新增场景和部署证据，提交标识以 Git 历史为准。上述未提交状态为首次交付记录；运行代码已经验证并部署，本次不重复构建、迁移或重启，ZIP 继续排除。

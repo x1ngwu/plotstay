@@ -129,6 +129,76 @@ try {
    await page.locator('[data-tab=public]').click();await expect(page.locator('#wp-bio')).toHaveValue('Public retained');
    await page.unroute('**/api/me/personas');
  });
+ for (const role of ['user', 'admin']) for (const sameContent of [false, true]) {
+   await t.test(`conflict recovery for ${role}: retained input is ${sameContent ? 'identical' : 'different'}`, async () => {
+     const account = role === 'admin' ? f.data.admin : owner;
+     const credentials = role === 'admin' ? f.credentials : { email: user.email, password: 'review-tests-123' };
+     const target = await saveOwnPersona(f.db, account, cmd({ profiles: profiles('Initial') }));
+     const ctx = await browser!.newContext();
+     try {
+       assert.equal((await ctx.request.post(webUrl + '/api/auth/login', { headers: { Origin: webUrl }, data: credentials })).status(), 200);
+       const p = await ctx.newPage();
+       p.on('pageerror', e => errors.push(e.message));
+       await p.goto(root + '&persona=' + target.id);
+       await expect(p.locator('#wp-name')).toHaveValue('Initial');
+       await p.locator('#wp-name').fill('Kept locally');
+       let foreign: any;
+       await p.route('**/api/me/personas', async route => {
+         const head = (await myPersonas(f.db, account)).find(persona => persona.id === target.id)!;
+         foreign = await saveOwnPersona(f.db, account, cmd({ personaId: target.id, baseRevisionId: head.head_revision_id,
+           action: 'complete', profiles: profiles(sameContent ? 'Kept locally' : 'Changed elsewhere') }));
+         await route.continue();
+       });
+       await p.locator('#wp-draft').click();
+       await expect(p.locator('#wp-public-state')).toContainText('A newer version exists');
+       await p.unroute('**/api/me/personas');
+       // No additional edits before comparing: the local buffer was just saved.
+       await p.getByRole('button', { name: 'Compare latest profile', exact: true }).click();
+       await expect(p.locator('.wp-compare')).toContainText(sameContent ? 'Kept locally' : 'Changed elsewhere');
+       await p.getByRole('button', { name: 'Compared; keep my input', exact: true }).click();
+       await expect(p.locator('#wp-name')).toHaveValue('Kept locally');
+       if (sameContent) {
+         await expect(p.locator('[data-tab=public]')).not.toHaveClass(/wp-unsaved/);
+         await expect(p.locator('#wp-public-state')).toContainText('matches the latest profile');
+         await expect(p.locator('#wp-complete')).toBeDisabled();
+         let dialogs = 0;
+         p.on('dialog', async dialog => { dialogs++; await dialog.dismiss(); });
+         await p.locator('#ws-back').click();
+         await expect(p.locator('#wp-search')).toBeVisible();
+         assert.equal(dialogs, 0);
+       } else {
+         await expect(p.locator('[data-tab=public]')).toHaveClass(/wp-unsaved/);
+         await expect(p.locator('#wp-public-state')).toContainText('input is still unsaved');
+         await expect(p.locator('#wp-complete')).toBeEnabled();
+         const from = p.url();
+         const leaveDialog = p.waitForEvent('dialog');
+         const leaveClick = p.locator('#ws-back').click();
+         await (await leaveDialog).dismiss(); await leaveClick;
+         assert.equal(p.url(), from);
+         await expect(p.locator('#wp-name')).toHaveValue('Kept locally');
+         // Saving the recovered public input must leave private changes dirty.
+         await p.locator('[data-tab=notes]').click();
+         await expect(p.locator('#wp-notes')).toBeEnabled();
+         await p.locator('#wp-notes').fill('Private input remains unsaved');
+         await p.locator('[data-tab=public]').click();
+         const write = p.waitForRequest(r => r.url().endsWith('/api/me/personas/save'));
+         if (role === 'user') p.once('dialog', dialog => dialog.accept());
+         await p.locator('#wp-complete').click();
+         const payload = (await write).postDataJSON();
+         assert.equal(payload.baseRevisionId, foreign.revisionId);
+         assert.equal(payload.expectedSubmittedRevisionId, role === 'user' ? foreign.revisionId : null);
+         await expect(p.locator('#wp-public-state')).toContainText(role === 'user' ? 'saved and submitted' : 'saved and published');
+         await expect(p.locator('[data-tab=public]')).not.toHaveClass(/wp-unsaved/);
+         await expect(p.locator('[data-tab=notes]')).toHaveClass(/wp-unsaved/);
+         const result = (await myPersonas(f.db, account)).find(persona => persona.id === target.id)!;
+         assert.equal(result.draft.en.name, 'Kept locally');
+         assert.equal(role === 'user' ? result.submitted_revision_id : result.published_revision_id, result.head_revision_id);
+         await p.locator('[data-tab=notes]').click();
+         await expect(p.locator('#wp-notes')).toHaveValue('Private input remains unsaved');
+       }
+     } finally { await ctx.close(); }
+   });
+ }
  assert.deepEqual(errors,[]);
 } finally {if(browser)await browser.close();for(const child of children.reverse())await stop(child);await f.cleanup();}
 });
