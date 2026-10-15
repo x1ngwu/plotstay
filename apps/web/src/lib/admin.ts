@@ -31,6 +31,8 @@ const workspaceMode = root.dataset.mode === 'workspace';
 const initialWorkspaceView = document.getElementById('new-workspace')?.dataset.view;
 const authorEditor=workspaceMode&&initialWorkspaceView==='editor'&&new URLSearchParams(location.search).get('author')==='1';
 let saveRequest:{payload:string;id:string}|null=null;
+let savedReadback:{result:{id:string;revisionId:string;draftToken?:string};snapshot:string}|null=null;
+const formSnapshot=()=>JSON.stringify([...new FormData(editor)].map(([key,value])=>[key,String(value)]));
 const detailPath=(id:string)=>`${authorEditor?'/me/works':'/admin/contents'}/${id}`;
 const previewBase=authorEditor?'/api/me/work-preview':'/api/admin/preview';
 const listView = !workspaceMode || ['works','world-content','world-review'].includes(initialWorkspaceView ?? '');
@@ -365,7 +367,7 @@ async function loadWorld(page=1) {
   loadedWorld=worldId();
   listPage=page;parentFilter=workspaceMode?new URLSearchParams(location.search).get('parentId')??'':'';
   optionsWorld='';
-  el('editor-panel').hidden = true; detail = null; saveConflictId = null; dirty = false;
+  el('editor-panel').hidden = true; detail = null; saveConflictId = null; savedReadback = null; dirty = false;
   resetPreview();
   previewedImport = ''; el<HTMLButtonElement>('import-apply').disabled = true;
   if(!workspaceMode||initialWorkspaceView==='world-settings')settingsEditor(el('settings-panel'),worldId(),locale==='zh-CN',api,v=>settingsDirty=v);
@@ -464,6 +466,7 @@ async function openContent(id: string, accept?: (next: any) => boolean) {
   if(request!==openRequest)return;
   // Compare inputs after the complete readback, immediately before changing the form.
   if(accept&&!accept(next))return;
+  if(!accept)savedReadback=null;
   if(next.content.world_id!==worldId()&&worlds.some(world=>world.id===next.content.world_id)){
     if(workspaceMode){const url=new URL(location.href);url.searchParams.set('world',next.content.world_id);location.replace(url);return;}
     el<HTMLSelectElement>('world').value=next.content.world_id;await loadWorld();
@@ -535,20 +538,11 @@ el<HTMLFormElement>('login').addEventListener('submit', async event => {
   catch (error) { message(errorText(error)); }
 });
 editor.addEventListener('input', () => { dirty = true; refreshActions(); });
-async function saveDraft() {
-  if (savingDraft) throw new Error(l('草稿正在保存，请稍候。', 'The draft is being saved. Please wait.'));
-  if(saveConflictId)throw new Error(l('保存后服务器又有新版本。输入已保留，请先复制或导出，再载入最新版本比较。','The server changed again after saving. Input is preserved; copy or export it before loading the latest version.'));
-  if (!editor.reportValidity()) throw new Error(l('请先修正表单中标出的字段。', 'Correct the highlighted form fields first.'));
-  savingDraft = true;
-  const submit = editor.querySelector<HTMLButtonElement>('button[type=submit]')!;
-  const previewButton = el<HTMLButtonElement>('save-preview');
-  submit.disabled = true; previewButton.disabled = true;
+async function finishSavedReadback() {
+  const pending=savedReadback;
+  if(!pending)return;
+  const {result,snapshot}=pending;
   try {
-    const formSnapshot=()=>JSON.stringify([...new FormData(editor)].map(([key,value])=>[key,String(value)]));
-    const payload=formValue();const snapshot=formSnapshot();
-    let command:any=payload;
-    if(authorEditor){const value={...detail?{contentId:detail.content.id,expectedProviderId:detail.provider?.persona_id}:{},providerId:field('providerId').value,draft:payload};const encoded=JSON.stringify(value);if(saveRequest?.payload!==encoded)saveRequest={payload:encoded,id:crypto.randomUUID()};command={...value,requestId:saveRequest.id};}
-    const result = await api(authorEditor?'/me/works/save':detail ? `/admin/contents/${detail.content.id}/revisions` : '/admin/contents', command);
     await openContent(result.id,next=>{
       if(next.content.head_revision_id!==result.revisionId||(result.draftToken&&next.content.draft_token!==result.draftToken)){
         saveConflictId=result.id;dirty=true;refreshActions();
@@ -556,12 +550,43 @@ async function saveDraft() {
         return false;
       }
       if(snapshot===formSnapshot())return true;
-      detail=next;selectedRevision=next.content.head_revision_id;dirty=true;refreshActions();
-      if(workspaceMode)window.dispatchEvent(new CustomEvent('workspace:editor-context',{detail:{id:result.id,world:worldId(),worldName:el<HTMLSelectElement>('world').selectedOptions[0]?.textContent??'',title:next.revisions[0].source_text.title}}));
+      detail=next;selectedRevision=next.content.head_revision_id;dirty=true;
+      el<HTMLFieldSetElement>('identity').disabled=true;
+      el('editor-panel').dataset.existing='true';el('workflow').hidden=false;
+      refreshActions();
       message(l('已保存提交时的输入；保存期间的新修改仍未保存。','The submitted input was saved. Changes made during saving remain unsaved.'));
       return false;
     });
+  } catch(error) {
+    throw new Error(l('内容已保存，但详情读取失败。输入已保留，再次点击保存将先重试读取。','Content was saved, but details could not be loaded. Your input is preserved; Save will retry loading first.')+' '+errorText(error));
+  }
+  if(savedReadback===pending)savedReadback=null;
+}
+async function saveDraft() {
+  if (savingDraft) throw new Error(l('草稿正在保存，请稍候。', 'The draft is being saved. Please wait.'));
+  if(saveConflictId)throw new Error(l('保存后服务器又有新版本。输入已保留，请先复制或导出，再载入最新版本比较。','The server changed again after saving. Input is preserved; copy or export it before loading the latest version.'));
+  savingDraft = true;
+  const submit = editor.querySelector<HTMLButtonElement>('button[type=submit]')!;
+  const previewButton = el<HTMLButtonElement>('save-preview');
+  submit.disabled = true; previewButton.disabled = true;
+  try {
+    if(savedReadback){
+      await finishSavedReadback();
+      if(saveConflictId)return;
+      if(!dirty){await refreshList();message(l('草稿已保存，公开内容保持原版本。', 'Draft saved. The public version is unchanged.'));return;}
+    }
+    if (!editor.reportValidity()) throw new Error(l('请先修正表单中标出的字段。', 'Correct the highlighted form fields first.'));
+    const payload=formValue();const snapshot=formSnapshot();
+    let command:any=payload;
+    if(authorEditor){const value={...detail?{contentId:detail.content.id,expectedProviderId:detail.provider?.persona_id}:{},providerId:field('providerId').value,draft:payload};const encoded=JSON.stringify(value);if(saveRequest?.payload!==encoded)saveRequest={payload:encoded,id:crypto.randomUUID()};command={...value,requestId:saveRequest.id};}
+    const result = await api(authorEditor?'/me/works/save':detail ? `/admin/contents/${detail.content.id}/revisions` : '/admin/contents', command);
+    // A committed save keeps its identity even if the following GET fails.
+    // Recovery must read this result before another write can be attempted.
+    savedReadback={result,snapshot};
+    dirty=true;refreshActions();
+    if(workspaceMode)window.dispatchEvent(new CustomEvent('workspace:editor-context',{detail:{id:result.id,world:worldId(),worldName:el<HTMLSelectElement>('world').selectedOptions[0]?.textContent??'',title:payload.text.title}}));
     if(authorEditor){saveRequest=null;sessionStorage.setItem('plotstay:works-saved:'+actor.id,result.id);}
+    await finishSavedReadback();
     await refreshList();
     if(!dirty)message(l('草稿已保存，公开内容保持原版本。', 'Draft saved. The public version is unchanged.'));
   } finally {
@@ -593,7 +618,7 @@ function navigateNew(parent=''){
 }
 async function startNew(parent=''){
   await ensureOptions();
-  detail = null; saveConflictId = null; resetPreview(); originalAttributes={images:[]}; editor.reset(); identity(); el<HTMLFieldSetElement>('identity').disabled = false;
+  detail = null; saveConflictId = null; savedReadback = null; resetPreview(); originalAttributes={images:[]}; editor.reset(); identity(); el<HTMLFieldSetElement>('identity').disabled = false;
   if(parent){field('kind').value='review';field('parentContentId').value=parent;refreshCategories();}
   if(authorEditor){const q=new URLSearchParams(location.search);const kind=q.get('kind'),provider=q.get('provider');if(!['stay','service','experience'].includes(kind??'')||!options.personas.some((p:any)=>p.id===provider&&!p.disabled))throw new Error(l('创建参数已失效，请返回创建内容页重新选择。','Creation choices changed. Return to Create content and choose again.'));field('kind').value=kind!;field('kind').disabled=true;field('providerId').value=provider!;field('personaId').value=provider!;refreshCategories();}
   renderTextFields({}); selectedRevision = null; dirty = false;
@@ -609,7 +634,7 @@ on('new', async () => {
 });
 on('export-draft',async()=>{const blob=new Blob([JSON.stringify({contentId:detail?.content.id??null,...formValue()},null,2)],{type:'application/json'});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='plotstay-draft.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);message(l('草稿副本已下载到本机。','A draft copy was downloaded to this device.'));});
 on('refresh-image-fields',async()=>renderStructured());
-on('reload-editor', async () => { const id=saveConflictId??detail?.content.id;if(id&&confirmDiscard())await openContent(id); });
+on('reload-editor', async () => { const id=saveConflictId??savedReadback?.result.id??detail?.content.id;if(id&&confirmDiscard())await openContent(id); });
 on('clear-translations', async () => {
   if (!confirm(l('清空表单中的其他语言？保存草稿后会创建缺译任务，历史版本会保留。', 'Clear other languages in this form? Saving queues missing translations and preserves history.'))) return;
   const source = field('sourceLocale').value;

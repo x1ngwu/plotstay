@@ -1,0 +1,202 @@
+{
+  "completedAt": "2026-10-15T06:46:03.113Z",
+  "backup": "/tmp/plotstay-demo-pre014-1792046567236",
+  "applied": [
+    "013_work_authorship.sql",
+    "014_reply_operating_eligibility.sql"
+  ],
+  "ownership": {
+    "admin": 21,
+    "existingDemoProvider": 3
+  },
+  "bindingsFilled": 21,
+  "bindingsPreserved": 3,
+  "participationAndEligibilityPairs": 3,
+  "unresolved": 0,
+  "historyUnchanged": {
+    "contents": {
+      "count": 94,
+      "hash": "c4c27a6c011873d3e221e1fa2561979e"
+    },
+    "content_revisions": {
+      "count": 108,
+      "hash": "4c7b1e23bd83897c9f868789443146e0"
+    },
+    "publications": {
+      "count": 103,
+      "hash": "cf924fe4808693d83b23c9868c89e6fc"
+    },
+    "review_signatures": {
+      "count": 7,
+      "hash": "e5eaebadbeed38e3662b8a4617980bbf"
+    },
+    "reply_revisions": {
+      "count": 3,
+      "hash": "8d25f6cea4f2e7900037d81c4f3beb4b"
+    },
+    "reply_events": {
+      "count": 9,
+      "hash": "9998522d01381fb10220d995ad570a72"
+    },
+    "reply_publications": {
+      "count": 3,
+      "hash": "7815b8e7e83f2a25735173417d7ab664"
+    },
+    "bookings": {
+      "count": 8,
+      "hash": "b84d591975b59b35a5315e62c0b1b482"
+    },
+    "world_members": {
+      "count": 3,
+      "hash": "13ecdec69ed26072a199e23c35dd88a9"
+    }
+  },
+  "mapping": [
+    {
+      "slug": "archive-nook",
+      "owner_id": "d2b3f23f-ae68-4f6c-a2e6-0a64cf8d1e4c",
+      "persona_id": "cf7a56c1-a46f-4726-9ecd-778c85f6e76b"
+    },
+    {
+      "slug": "archive-whispers",
+      "owner_id": "d2b3f23f-ae68-4f6c-a2e6-0a64cf8d1e4c",
+      "persona_id": "cf7a56c1-a46f-4726-9ecd-778c85f6e76b"
+    },
+    {
+      "slug": "arrival-cabin",
+      "owner_id": "d2b3f23f-ae68-4f6c-a2e6-0a64cf8d1e4c",
+      "persona_id": "cf7a56c1-a46f-4726-9ecd-778c85f6e76b"
+    },
+    {
+      "slug": "assembly-tour",
+      "owner_id": "d2b3f23f-ae68-4f6c-a2e6-0a64cf8d1e4c",
+      "persona_id": "cf7a56c1-a46f-4726-9ecd-778c85f6e76b"
+    },
+    {
+      "slug": "augmetic-tune-up",
+      "owner_id": "d2b3f23f-ae68-4f6c-a2e6-0a64cf8d1e4c",
+      "persona_id": "cf7a56c1-a46f-4726-9ecd-778c85f6e76b"
+    },
+    {
+      "slug": "deep-space-radio",
+      "owner_id": "d2b3f23f-ae68-4f6c-a2e6-0a64cf8d1e4c",
+      "persona_id": "cf7a56c1-a46f-4726-9ecd-778c85f6e76b"
+    },
+    {
+      "slug": "dockside-window",
+      "owner_id": "d2b3f23f-ae68-4f6c-a2e6-0a64cf8d1e4c",
+      "persona_id": "cf7a56c1-a46f-4726-9ecd-778c85f6e76b"
+    },
+    {
+      "slug": "dock-sunset",
+      "owner_id": "d2b3f23f-ae68-4f6c-a2e6-0a64cf8d1e4c",
+      "persona_id": "cf7a56c1-a46f-4726-9ecd-778c85f6e76b"
+    },
+    {
+      "slug": "first-light-walk",
+      "owner_id": "d2b3f23f-ae68-4f6c-a2e6-0a64cf8d1e4c",
+      "persona_id": "cf7a56c1-a46f-4726-9ecd-778c85f6e76b"
+    },
+    {
+      "slug": "forge-walk",
+      "owner_id": "d2b3f23f-ae68-4f6c-a2e6-0a64cf8d1e4c",
+      "persona_id": "cf7a56c1-a46f-4726-9ecd-778c85f6e76b"
+    },
+    {
+      "slug": "harbour-room",
+      "owner_id": "d2b3f23f-ae68-4f6c-a2e6-0a64cf8d1e4c",
+      "persona_id": "cf7a56c1-a46f-4726-9ecd-778c85f6e76b"
+    },
+    {
+      "slug": "luggage-blessing",
+      "owner_id": "d2b3f23f-ae68-4f6c-a2e6-0a64cf8d1e4c",
+      "persona_id": "cf7a56c1-a46f-4726-9ecd-778c85f6e76b"
+    },
+    {
+      "slug": "missing-translation",
+      "owner_id": "d2b3f23f-ae68-4f6c-a2e6-0a64cf8d1e4c",
+      "persona_id": "cf7a56c1-a46f-4726-9ecd-778c85f6e76b"
+    },
+    {
+      "slug": "night-shift-suite",
+      "owner_id": "d2b3f23f-ae68-4f6c-a2e6-0a64cf8d1e4c",
+      "persona_id": "cf7a56c1-a46f-4726-9ecd-778c85f6e76b"
+    },
+    {
+      "slug": "observation-room",
+      "owner_id": "d2b3f23f-ae68-4f6c-a2e6-0a64cf8d1e4c",
+      "persona_id": "cf7a56c1-a46f-4726-9ecd-778c85f6e76b"
+    },
+    {
+      "slug": "phase56-acceptance-experience-64eac316",
+      "owner_id": "f234ba4a-80d5-47c4-abb8-d79339013cfe",
+      "persona_id": "0a578bd6-6d94-40eb-ae90-05983246e511"
+    },
+    {
+      "slug": "phase56-acceptance-service-64eac316",
+      "owner_id": "f234ba4a-80d5-47c4-abb8-d79339013cfe",
+      "persona_id": "0a578bd6-6d94-40eb-ae90-05983246e511"
+    },
+    {
+      "slug": "phase56-acceptance-stay-64eac316",
+      "owner_id": "f234ba4a-80d5-47c4-abb8-d79339013cfe",
+      "persona_id": "0a578bd6-6d94-40eb-ae90-05983246e511"
+    },
+    {
+      "slug": "quiet-constellations",
+      "owner_id": "d2b3f23f-ae68-4f6c-a2e6-0a64cf8d1e4c",
+      "persona_id": "cf7a56c1-a46f-4726-9ecd-778c85f6e76b"
+    },
+    {
+      "slug": "shift-rest-cabin",
+      "owner_id": "d2b3f23f-ae68-4f6c-a2e6-0a64cf8d1e4c",
+      "persona_id": "cf7a56c1-a46f-4726-9ecd-778c85f6e76b"
+    },
+    {
+      "slug": "signal-listening",
+      "owner_id": "d2b3f23f-ae68-4f6c-a2e6-0a64cf8d1e4c",
+      "persona_id": "cf7a56c1-a46f-4726-9ecd-778c85f6e76b"
+    },
+    {
+      "slug": "silent-reading-room",
+      "owner_id": "d2b3f23f-ae68-4f6c-a2e6-0a64cf8d1e4c",
+      "persona_id": "cf7a56c1-a46f-4726-9ecd-778c85f6e76b"
+    },
+    {
+      "slug": "starboard-studio",
+      "owner_id": "d2b3f23f-ae68-4f6c-a2e6-0a64cf8d1e4c",
+      "persona_id": "cf7a56c1-a46f-4726-9ecd-778c85f6e76b"
+    },
+    {
+      "slug": "unpublished-room",
+      "owner_id": "d2b3f23f-ae68-4f6c-a2e6-0a64cf8d1e4c",
+      "persona_id": "cf7a56c1-a46f-4726-9ecd-778c85f6e76b"
+    }
+  ],
+  "deployment": false,
+  "serviceRestart": false,
+  "seedOrCleanup": false,
+  "readVerification": {
+    "checks": [
+      {
+        "account": "admin",
+        "mine": 21,
+        "repairItems": 0,
+        "availablePersonas": 1,
+        "approvedWorlds": 2
+      },
+      {
+        "account": "existing-demo-provider",
+        "mine": 3,
+        "repairItems": 0,
+        "availablePersonas": 1,
+        "approvedWorlds": 1
+      }
+    ],
+    "migrations": [
+      "013_work_authorship.sql",
+      "014_reply_operating_eligibility.sql"
+    ],
+    "missingHistoricalLocks": 0
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "checkedAt": "2026-10-15T07:03:17.200Z",
+  "readOnly": true,
+  "migrations": [
+    {
+      "name": "013_work_authorship.sql",
+      "applied_at": "2026-10-15T06:46:03.014Z"
+    },
+    {
+      "name": "014_reply_operating_eligibility.sql",
+      "applied_at": "2026-10-15T06:46:03.014Z"
+    }
+  ],
+  "works": {
+    "total": 24,
+    "missing_owner": 0,
+    "missing_binding": 0,
+    "owner_binding_mismatch": 0,
+    "created_after_migration": 0
+  },
+  "pending": {
+    "reply_missing_epoch": 0,
+    "work_missing_epoch": 0
+  }
+}

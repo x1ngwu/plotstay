@@ -1,0 +1,12 @@
+{
+  "cases": [
+    "edited / en / 1440",
+    "unchanged / zh / 390",
+    "conflict / en / 390"
+  ],
+  "legacyMissingProvider": 400,
+  "legacyValidCreate": 201,
+  "legacySubmit": 200,
+  "ownerAndBindingAtomic": true,
+  "errors": []
+}

@@ -1,0 +1,136 @@
+{
+  "checkedAt": "2026-10-15T07:04:11.184Z",
+  "results": [
+    {
+      "scope": "public gate",
+      "path": "/zh/workspace?view=works",
+      "status": 401
+    },
+    {
+      "scope": "public gate",
+      "path": "/en/workspace?view=create",
+      "status": 401
+    },
+    {
+      "scope": "public gate",
+      "path": "/api/me/works",
+      "status": 401
+    },
+    {
+      "scope": "public gate",
+      "path": "/api/me/works/save",
+      "status": 401
+    },
+    {
+      "scope": "public gate",
+      "path": "/api/me/works/create-options",
+      "status": 401
+    },
+    {
+      "scope": "public gate",
+      "path": "/api/me/work-preview/en/test",
+      "status": 401
+    },
+    {
+      "scope": "public gate",
+      "path": "/zh/account",
+      "status": 401
+    },
+    {
+      "scope": "public gate",
+      "path": "/en/admin",
+      "status": 401
+    },
+    {
+      "scope": "public gate",
+      "path": "/robots.txt",
+      "status": 200
+    },
+    {
+      "scope": "deployed authenticated read-only browser",
+      "lang": "zh",
+      "width": 1440,
+      "view": "works"
+    },
+    {
+      "scope": "deployed authenticated read-only browser",
+      "lang": "zh",
+      "width": 1440,
+      "view": "create"
+    },
+    {
+      "scope": "deployed authenticated read-only browser",
+      "lang": "en",
+      "width": 390,
+      "view": "works"
+    },
+    {
+      "scope": "deployed authenticated read-only browser",
+      "lang": "en",
+      "width": 390,
+      "view": "create"
+    },
+    {
+      "scope": "old entry / public page smoke",
+      "path": "/zh",
+      "status": 200
+    },
+    {
+      "scope": "old entry / public page smoke",
+      "path": "/en",
+      "status": 200
+    },
+    {
+      "scope": "old entry / public page smoke",
+      "path": "/zh/account",
+      "status": 200
+    },
+    {
+      "scope": "old entry / public page smoke",
+      "path": "/en/admin",
+      "status": 200
+    },
+    {
+      "scope": "old entry / public page smoke",
+      "path": "/zh/workspace?view=personas",
+      "status": 200
+    },
+    {
+      "scope": "old entry / public page smoke",
+      "path": "/en/workspace?view=reviews",
+      "status": 200
+    },
+    {
+      "scope": "deployed authenticated API",
+      "path": "/api/me/works",
+      "status": 200
+    },
+    {
+      "scope": "deployed authenticated API",
+      "path": "/api/me/works/create-options",
+      "status": 200
+    },
+    {
+      "scope": "asset gate",
+      "path": "/_astro/workspace.Du9FtThL.css",
+      "status": 401
+    },
+    {
+      "scope": "asset gate",
+      "path": "/_astro/account.KR7_9Vsr.css",
+      "status": 401
+    },
+    {
+      "scope": "asset gate",
+      "path": "/_astro/AdminConsole.l6KGK8V6.css",
+      "status": 401
+    },
+    {
+      "scope": "asset gate",
+      "path": "/_astro/workspace.astro_astro_type_script_index_0_lang.B6g90FUc.js",
+      "status": 401
+    }
+  ],
+  "errors": [],
+  "scope": "Public Basic Auth/header checks; authenticated browser uses the same deployed service through its loopback listener. No live content saves. Ordinary-author writes verified only in isolated database."
+}
