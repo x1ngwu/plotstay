@@ -1,10 +1,11 @@
+import {createFixtureContent as createContent} from './work-fixtures.ts';
 // Source-contract preparation for the overview. These validate existing evidence,
 // not an implemented overview endpoint. All writes stay in fixture's random schema.
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {fixture} from './helpers.ts';
 import {createContentSchema,textSchema} from '@plotstay/contracts';
-import {createContent,editContent,saveTranslation,submitRevision,reviewRevision,requireWorld,
+import {editContent,saveTranslation,submitRevision,reviewRevision,requireWorld,
   createAccount,savePersona,submitOwnPersona,moderatePersona,myPersonas,saveSetting} from '@plotstay/domain';
 
 async function isolated(t: {after: (fn:()=>Promise<void>)=>void}) {

@@ -1,0 +1,149 @@
+TAP version 13
+# Subtest: translation execution and stale result isolation
+    # Subtest: disabled preserves tasks; configured adapter gets version, glossary and configuration
+    ok 1 - disabled preserves tasks; configured adapter gets version, glossary and configuration
+      ---
+      duration_ms: 41.873489
+      type: 'test'
+      ...
+    # Subtest: failure backs off, stops at the limit and can be retried only by authorized members
+    ok 2 - failure backs off, stops at the limit and can be retried only by authorized members
+      ---
+      duration_ms: 84.484386
+      type: 'test'
+      ...
+    # Subtest: timeouts release the lease for retry and invalid adapter output is rejected
+    ok 3 - timeouts release the lease for retry and invalid adapter output is rejected
+      ---
+      duration_ms: 87.688255
+      type: 'test'
+      ...
+    # Subtest: concurrent workers claim once; an expired lease can recover without late overwrite
+    ok 4 - concurrent workers claim once; an expired lease can recover without late overwrite
+      ---
+      duration_ms: 41.87557
+      type: 'test'
+      ...
+    # Subtest: late results cannot overwrite new revision
+    ok 5 - late results cannot overwrite new revision
+      ---
+      duration_ms: 56.416138
+      type: 'test'
+      ...
+    # Subtest: late results cannot overwrite manual translation
+    ok 6 - late results cannot overwrite manual translation
+      ---
+      duration_ms: 45.442122
+      type: 'test'
+      ...
+    # Subtest: late results cannot overwrite submitted revision
+    ok 7 - late results cannot overwrite submitted revision
+      ---
+      duration_ms: 53.866396
+      type: 'test'
+      ...
+    1..7
+ok 1 - translation execution and stale result isolation
+  ---
+  duration_ms: 945.757434
+  type: 'test'
+  ...
+# Subtest: B01-B06 ownership and cross-world filtering: ordinary author never acquires world management
+ok 2 - B01-B06 ownership and cross-world filtering: ordinary author never acquires world management
+  ---
+  duration_ms: 1121.150543
+  type: 'test'
+  ...
+# Subtest: B08-B12 create options and first save are atomic, unapproved own role works; entry has no writes; retry is idempotent
+ok 3 - B08-B12 create options and first save are atomic, unapproved own role works; entry has no writes; retry is idempotent
+  ---
+  duration_ms: 548.246203
+  type: 'test'
+  ...
+# Subtest: G01 participation precedes eligibility, only world admin or site admin may approve; revoke invalidates old pending submission
+ok 4 - G01 participation precedes eligibility, only world admin or site admin may approve; revoke invalidates old pending submission
+  ---
+  duration_ms: 546.152744
+  type: 'test'
+  ...
+# Subtest: B15-B19 all old and new rebind paths lock forever after successful submit; failed submit does not lock
+ok 5 - B15-B19 all old and new rebind paths lock forever after successful submit; failed submit does not lock
+  ---
+  duration_ms: 596.511548
+  type: 'test'
+  ...
+# Subtest: G03 locked disabled persona permits body draft; revoked eligibility blocks saves and restores
+ok 6 - G03 locked disabled persona permits body draft; revoked eligibility blocks saves and restores
+  ---
+  duration_ms: 547.488156
+  type: 'test'
+  ...
+# Subtest: B29-B31 narrow preview uses saved version, token and object authorization and does not mutate timestamps
+ok 7 - B29-B31 narrow preview uses saved version, token and object authorization and does not mutate timestamps
+  ---
+  duration_ms: 487.014542
+  type: 'test'
+  ...
+# Subtest: B24 genuinely overlapping submit and rebind serialize on content; stale save cannot change checked provider
+ok 8 - B24 genuinely overlapping submit and rebind serialize on content; stale save cannot change checked provider
+  ---
+  duration_ms: 525.627722
+  type: 'test'
+  ...
+# Subtest: B34 old create cannot omit provider, admin cannot use another owner role; unauthenticated API denied
+ok 9 - B34 old create cannot omit provider, admin cannot use another owner role; unauthenticated API denied
+  ---
+  duration_ms: 632.727068
+  type: 'test'
+  ...
+# Subtest: B03 B07 B20 B22 B30 B32 API forgery, save timestamps and approved profile projection
+ok 10 - B03 B07 B20 B22 B30 B32 API forgery, save timestamps and approved profile projection
+  ---
+  duration_ms: 776.561779
+  type: 'test'
+  ...
+# Subtest: B10 B11 rollback after insertion, canonical retry and concurrent stale saves
+ok 11 - B10 B11 rollback after insertion, canonical retry and concurrent stale saves
+  ---
+  duration_ms: 538.389156
+  type: 'test'
+  ...
+# Subtest: B13 B16 B18 B21 B35 revoked submission needs explicit resubmit; hidden world, disabled provider, restore and legacy history are guarded
+ok 12 - B13 B16 B18 B21 B35 revoked submission needs explicit resubmit; hidden world, disabled provider, restore and legacy history are guarded
+  ---
+  duration_ms: 552.844243
+  type: 'test'
+  ...
+# Subtest: B36 migration locks historical successes without inferring owners or inventing bindings
+ok 13 - B36 migration locks historical successes without inferring owners or inventing bindings
+  ---
+  duration_ms: 422.723573
+  type: 'test'
+  ...
+# Subtest: B07 B14 delayed automatic translation cannot write after operating eligibility revocation
+ok 14 - B07 B14 delayed automatic translation cannot write after operating eligibility revocation
+  ---
+  duration_ms: 488.405754
+  type: 'test'
+  ...
+# Subtest: B07 equal saved timestamps have stable ID ordering across pages
+ok 15 - B07 equal saved timestamps have stable ID ordering across pages
+  ---
+  duration_ms: 829.001962
+  type: 'test'
+  ...
+# Subtest: ordinary author translation retry is bounded to its content and cannot use world admin API
+ok 16 - ordinary author translation retry is bounded to its content and cannot use world admin API
+  ---
+  duration_ms: 463.374172
+  type: 'test'
+  ...
+1..16
+# tests 23
+# suites 0
+# pass 23
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 11229.889152

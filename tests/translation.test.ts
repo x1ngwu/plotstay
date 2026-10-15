@@ -1,8 +1,9 @@
+import {createFixtureContent as createContent} from './work-fixtures.ts';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { createContentSchema, editContentSchema, textSchema } from '@plotstay/contracts';
-import { createContent, editContent, saveTranslation, submitRevision, runTranslationOnce, retryTranslation, type TranslationAdapter } from '@plotstay/domain';
+import {  editContent, saveTranslation, submitRevision, runTranslationOnce, retryTranslation, type TranslationAdapter } from '@plotstay/domain';
 import { fixture } from './helpers.ts';
 
 test('translation execution and stale result isolation', async t => {

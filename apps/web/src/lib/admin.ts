@@ -28,6 +28,10 @@ let previewRevisionId: string | null = null;
 let savingDraft = false;
 const workspaceMode = root.dataset.mode === 'workspace';
 const initialWorkspaceView = document.getElementById('new-workspace')?.dataset.view;
+const authorEditor=workspaceMode&&initialWorkspaceView==='editor'&&new URLSearchParams(location.search).get('author')==='1';
+let saveRequest:{payload:string;id:string}|null=null;
+const detailPath=(id:string)=>`${authorEditor?'/me/works':'/admin/contents'}/${id}`;
+const previewBase=authorEditor?'/api/me/work-preview':'/api/admin/preview';
 const listView = !workspaceMode || ['works','world-content','world-review'].includes(initialWorkspaceView ?? '');
 let openRequest=0;
 let worldLoadRequest=0;
@@ -48,8 +52,9 @@ function resetPreview() {
 }
 function updatePreviewState() {
   const version = detail?.revisions[0]?.number;
+  const previewVersion=detail?.revisions.find((r:any)=>r.id===previewRevisionId)?.number??version;
   const state = !detail ? l('新内容尚未保存。保存草稿后可预览。', 'New content is not saved yet. Save a draft to preview it.')
-    : dirty ? previewRevisionId ? l(`有未保存修改；当前预览仍是已保存版本 ${version}。点击“保存并预览”更新。`, `Unsaved changes. The preview still shows saved revision ${version}. Select Save and preview to update it.`) : l('有未保存修改；点击“保存并预览”查看效果。', 'Unsaved changes. Select Save and preview to see them.')
+    : dirty ? previewRevisionId ? l(`有未保存修改；当前预览仍是已保存版本 ${previewVersion}。点击“保存并预览”更新。`, `Unsaved changes. The preview still shows saved revision ${previewVersion}. Select Save and preview to update it.`) : l('有未保存修改；点击“保存并预览”查看效果。', 'Unsaved changes. Select Save and preview to see them.')
     : previewRevisionId === detail.content.head_revision_id ? l(`已保存 · 版本 ${version} · 预览不影响公开页面。`, `Saved · revision ${version} · preview does not change the public page.`)
     : l(`已保存 · 版本 ${version}。可以预览当前草稿。`, `Saved · revision ${version}. You can preview this draft.`);
   el('draft-preview-state').textContent = state;
@@ -59,7 +64,7 @@ function showPreview() {
   const language = el<HTMLSelectElement>('draft-preview-language').value;
   previewNonce=crypto.randomUUID();
   const q = new URLSearchParams({revisionId:detail.content.head_revision_id,token:detail.content.draft_token,...workspaceMode?{bridge:previewNonce}:{}});
-  const url = `/api/admin/preview/${language}/${detail.content.id}?${q}`;
+  const url = `${previewBase}/${language}/${detail.content.id}?${q}`;
   const full = el<HTMLAnchorElement>('draft-preview-full');
   full.href = url; full.hidden = false;
   const area = el('draft-preview-area'); area.hidden = false;
@@ -102,6 +107,8 @@ if(workspaceMode){
   });
 }
 const errorText = (error: any) => {
+  const workErrors:Record<string,string>={ACCOUNT_CHANGED:l('登录账号已变化。输入已保留；请登录原账号后重试。','The account changed. Input is preserved; sign in to the original account.'),ELIGIBILITY_REVOKED:l('经营资格已撤销，暂时不能保存或送审。输入已保留。','Operating eligibility was revoked. Saving and submission are blocked. Your input is preserved.'),ELIGIBILITY_REQUIRED:l('账号须先加入此世界，并由世界管理员或网站总管理员批准经营资格，才能送审。','Join this world and obtain operating approval from its administrator or a site administrator before submitting.'),PROVIDER_UNAVAILABLE:l('经营角色须有已批准且可用的资料，才能送审或发布。','The provider needs approved, available profile data before submission or publication.'),PROVIDER_LOCKED:l('经营角色已在首次成功送审或发布时永久锁定。','The provider was permanently locked on first successful submission or publication.'),PROVIDER_REQUIRED:l('请先选择本人已有保存资料且未停用的经营角色。','Choose your own saved, enabled provider persona.'),PERSONA_FORBIDDEN:l('经营角色不可用，请核对其所属账号和停用状态。','This provider is unavailable. Check its account and disabled status.'),OWNERSHIP_REVIEW_REQUIRED:l('这条历史作品的归属尚待核对，暂时不能编辑。','Historical ownership needs verification before editing.'),PROVIDER_REVIEW_REQUIRED:l('这条历史作品的经营角色尚待核对。','The historical provider needs verification.'),SUBMISSION_EXPIRED:l('经营资格发生过变化，请重新送审后再发布。','Operating eligibility changed. Submit again before publication.')};
+  if(workErrors[error.code])return workErrors[error.code];
   if (error.code === 'REVISION_CONFLICT' || error.code === 'TRANSLATION_CONFLICT') return l('保存冲突：另一位编辑或翻译任务已更新内容。你的输入仍保留；请先复制或导出，再载入最新版本比较。', 'Save conflict: the draft changed. Your input is preserved. Copy it before loading the latest version.');
   if(error.code==='SESSION_REQUIRED'){el('login').hidden=false;return l('会话已过期。输入仍保留；请重新登录后重试，系统将重新核对版本和权限。','Session expired. Your input is preserved. Sign in again, then retry; permissions and versions will be checked.');}
   if (error.code === 'TRANSLATIONS_REQUIRED') return l('缺少发布所需译文：', 'Required translations missing: ') + JSON.stringify(error.details);
@@ -110,10 +117,12 @@ const errorText = (error: any) => {
 async function api(path: string, body?: unknown, method = 'POST'): Promise<any> {
   const init:RequestInit = { method: body === undefined ? 'GET' : method, credentials: 'same-origin',
     ...(body === undefined ? {} : { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }) };
+  if(authorEditor&&actor&&path.startsWith('/me/works'))init.headers={...init.headers,'X-Plotstay-Actor':actor.id};
   const response = await (window.__plotstayWorkspace?.request(path, 'admin', init) ?? fetch('/api' + path, init));
   const data = await response.json();
   if(data.error?.code==='SESSION_REQUIRED')el('login').hidden=false;
   if (!response.ok) throw Object.assign(new Error(data.error?.message ?? l('请求失败', 'Request failed')), data.error);
+  if(authorEditor&&data.actorId&&actor&&data.actorId!==actor.id)throw Object.assign(new Error(l('账号已变化；输入保留，请重新打开工作台。','Account changed. Your input is preserved; reopen the workspace.')),{code:'ACCOUNT_CHANGED'});
   if(body!==undefined)clearWorkspaceRevision();
   return data;
 }
@@ -368,16 +377,22 @@ async function loadWorld(page=1) {
 async function ensureOptions(){
   const world=worldId();
   if(optionsWorld===world)return;
-  const value=await api(`/admin/worlds/${world}/options`);
+  const value=await api(authorEditor?'/me/works/editor-options?'+new URLSearchParams({world,...new URLSearchParams(location.search).get('content')?{content:new URLSearchParams(location.search).get('content')!}:{}}):`/admin/worlds/${world}/options`);
   if(world===worldId()){options=value;optionsWorld=world;}
 }
 async function signIn() {
-  const [session,languages,managed]=await Promise.all([api('/auth/me'),api('/locales'),api('/admin/worlds')]);
+  const [session,languages,managed]=await Promise.all([api('/auth/me'),api('/locales'),api(authorEditor?'/me/works/create-options':'/admin/worlds')]);
   actor=session.actor;locales=languages.locales;worlds=managed.worlds;
   el('account').textContent = actor.email;
   el<HTMLSelectElement>('draft-preview-language').value = locale === 'zh-CN' ? 'zh' : 'en';
   el('login').hidden = true; el('workspace').hidden = false;
   el<HTMLSelectElement>('world').replaceChildren(...worlds.map(world => option(world.id, world.translations[locale]?.name ?? world.slug)));
+  if(authorEditor){
+    const query=new URLSearchParams(location.search);const contentId=query.get('content');
+    if(contentId){const d=await api(detailPath(contentId));if(!worlds.some(w=>w.id===d.content.world_id)){worlds.push({id:d.content.world_id,translations:{},slug:l('原所属世界','Original world')});el<HTMLSelectElement>('world').append(option(d.content.world_id,l('原所属世界','Original world')));}query.set('world',d.content.world_id);}
+    if(!query.get('world')||!worlds.some(w=>w.id===query.get('world')))throw new Error(l('请从创建内容页选择世界。','Choose a world on Create content.'));
+    el<HTMLSelectElement>('world').value=query.get('world')!;el<HTMLSelectElement>('world').disabled=true;await loadWorld();if(contentId)await openContent(contentId);else await startNew();return;
+  }
   if (worlds.length) el<HTMLSelectElement>('world').value = worlds.find(world=>world.id===new URLSearchParams(location.search).get('world'))?.id ?? (worlds.find(world => world.slug === 'lathe-worlds') ?? worlds[0]).id;
   if (worlds.length) {
     const query=new URLSearchParams(location.search);
@@ -420,6 +435,7 @@ function refreshCategories() {
 field('kind').addEventListener('change', () => { refreshCategories(); renderStructured(); });
 el('filter-kind').addEventListener('change', () => { listPage=1;if(el<HTMLSelectElement>('filter-kind').value!=='review')parentFilter=''; void refreshList().catch(error => message(errorText(error))); });
 function identity() {
+  if(authorEditor){const label=el('work-provider-label');label.hidden=false;(field('providerId') as HTMLSelectElement).replaceChildren(option('',l('请选择经营角色','Choose a provider persona')),...options.personas.map((p:any)=>option(p.id,(p.profiles[locale]?.name??p.profiles.en?.name??p.id)+(p.approved?'':l(' · 未批准，可准备草稿',' · Unapproved, drafts allowed')))));field('personaId').closest('label')!.hidden=true;}
   refreshCategories();
   (field('sourceLocale') as HTMLSelectElement).replaceChildren(...locales.map(item => option(item.code, item.name)));
   for (const [name, list, title] of [
@@ -435,7 +451,7 @@ function refreshActions() {
   if (!detail) return;
   const head = detail.revisions[0];
   const unsaved = dirty || selectedRevision !== detail.content.head_revision_id;
-  el<HTMLButtonElement>('submit-revision').disabled = unsaved || !(detail.content.kind==='review'?['draft']:['draft','rejected']).includes(head.status);
+  el<HTMLButtonElement>('submit-revision').disabled = unsaved || !((detail.content.kind==='review'?['draft']:['draft','rejected']).includes(head.status)||authorEditor&&detail.submissionExpired);
   for (const id of ['publish', 'reject']) el<HTMLButtonElement>(id).disabled = unsaved || !detail.canReview || !(detail.content.kind==='review'?detail.content.submitted_revision_id:head.status==='submitted');
   el<HTMLButtonElement>('unpublish').disabled = !detail.canReview || !detail.content.published_publication_id;
   el('site-block').hidden = actor.siteRole !== 'admin';
@@ -443,7 +459,7 @@ function refreshActions() {
 }
 async function openContent(id: string) {
   const request=++openRequest;
-  const [next] = await Promise.all([api(`/admin/contents/${id}`),ensureOptions()]);
+  const [next] = await Promise.all([api(detailPath(id)),ensureOptions()]);
   if(request!==openRequest)return;
   if(next.content.world_id!==worldId()&&worlds.some(world=>world.id===next.content.world_id)){
     if(workspaceMode){const url=new URL(location.href);url.searchParams.set('world',next.content.world_id);location.replace(url);return;}
@@ -457,6 +473,7 @@ async function openContent(id: string) {
   field('placeId').value = detail.content.place_id ?? '';
   field('parentContentId').value = detail.content.parent_content_id ?? '';
   field('personaId').value = detail.content.persona_id ?? '';
+  if(authorEditor){field('providerId').value=detail.provider?.persona_id??'';field('providerId').disabled=detail.locked||detail.content.owner_id!==actor.id;el('work-provider-note').textContent=detail.locked?l('首次成功送审／发布后，经营角色已永久锁定。','The provider was permanently locked on first successful submission or publication.'):l('首次成功送审或发布前可更换本人经营角色。','You can change your own operating persona before the first successful submission or publication.');}
   el<HTMLFieldSetElement>('identity').disabled = true;
   fillRevision(detail.revisions[0]); dirty = false;
   el('editor-title').textContent = detail.revisions[0].source_text.title;
@@ -492,7 +509,7 @@ async function openContent(id: string) {
   el('content-changes').textContent=l('相对当前公开版本的改动字段：','Fields changed from the public revision: ')+(changed.join(', ')||l('无','None'))+'\n'+locales.map(language=>language.name+': '+(detail.revisions[0].translations[language.code]?l('已填写，请校订','Present; review wording'):l('缺译，不能发布','Missing; cannot publish'))).join(' · ');
   el('jobs').replaceChildren(...detail.jobs.map((job: any) => {
     const row = line(`${job.locale} · ${status(job.status)} · ${job.attempts}/${job.max_attempts} ${job.last_error ?? ''}`);
-    if (job.status === 'failed') row.append(button(l('重试', 'Retry'), async () => { await api(`/admin/translation-jobs/${job.id}/retry`, {}); if (!dirty) await openContent(id); }));
+    if (job.status === 'failed') row.append(button(l('重试', 'Retry'), async () => { await api(authorEditor?`/me/works/${id}/translation-jobs/${job.id}/retry`:`/admin/translation-jobs/${job.id}/retry`, {}); if (!dirty) await openContent(id); }));
     return row;
   }));
   el('events').replaceChildren(...detail.events.map((event: any) => line(`${new Date(event.created_at).toLocaleString(locale)} · ${event.action} · ${event.note}`)));
@@ -510,7 +527,7 @@ async function openContent(id: string) {
 }
 el<HTMLFormElement>('login').addEventListener('submit', async event => {
   event.preventDefault(); const data = new FormData(event.currentTarget as HTMLFormElement);
-  try { await api('/auth/login', Object.fromEntries(data)); (event.target as HTMLFormElement).reset(); if(dirty||settingsDirty){({actor}=await api('/auth/me'));el('login').hidden=true;message(l('已重新登录，输入已保留。','Signed in again; your input is preserved.'));}else{await signIn();message('');} if(workspaceMode)window.dispatchEvent(new Event('workspace:authenticated')); }
+  try { await api('/auth/login', Object.fromEntries(data)); (event.target as HTMLFormElement).reset(); if(dirty||settingsDirty){const session=await api('/auth/me');if(authorEditor&&actor?.id!==session.actor.id)throw new Error(l('登录账号与当前草稿不一致。输入已保留；请登录原账号，或复制文字后重新打开工作台。','This draft belongs to a different account. Your input is preserved. Sign in to the original account, or copy your text and reopen the workspace.'));actor=session.actor;el('login').hidden=true;message(l('已重新登录，输入已保留。','Signed in again; your input is preserved.'));}else{await signIn();message('');} if(workspaceMode)window.dispatchEvent(new Event('workspace:authenticated')); }
   catch (error) { message(errorText(error)); }
 });
 editor.addEventListener('input', () => { dirty = true; refreshActions(); });
@@ -523,9 +540,12 @@ async function saveDraft() {
   submit.disabled = true; previewButton.disabled = true;
   try {
     const payload=formValue();const snapshot=JSON.stringify([...new FormData(editor)].map(([key,value])=>[key,String(value)]));
-    const result = await api(detail ? `/admin/contents/${detail.content.id}/revisions` : '/admin/contents', payload);
+    let command:any=payload;
+    if(authorEditor){const value={...detail?{contentId:detail.content.id,expectedProviderId:detail.provider?.persona_id}:{},providerId:field('providerId').value,draft:payload};const encoded=JSON.stringify(value);if(saveRequest?.payload!==encoded)saveRequest={payload:encoded,id:crypto.randomUUID()};command={...value,requestId:saveRequest.id};}
+    const result = await api(authorEditor?'/me/works/save':detail ? `/admin/contents/${detail.content.id}/revisions` : '/admin/contents', command);
     if(snapshot===JSON.stringify([...new FormData(editor)].map(([key,value])=>[key,String(value)])))await openContent(result.id);
-    else {detail=await api(`/admin/contents/${result.id}`);selectedRevision=detail.content.head_revision_id;dirty=true;refreshActions();message(l('已保存提交时的输入；保存期间的新修改仍未保存。','The submitted input was saved. Changes made during saving remain unsaved.'));}
+    else {detail=await api(detailPath(result.id));selectedRevision=detail.content.head_revision_id;dirty=true;refreshActions();message(l('已保存提交时的输入；保存期间的新修改仍未保存。','The submitted input was saved. Changes made during saving remain unsaved.'));}
+    if(authorEditor){saveRequest=null;sessionStorage.setItem('plotstay:works-saved:'+actor.id,result.id);}
     await refreshList();
     if(!dirty)message(l('草稿已保存，公开内容保持原版本。', 'Draft saved. The public version is unchanged.'));
   } finally {
@@ -559,6 +579,7 @@ async function startNew(parent=''){
   await ensureOptions();
   detail = null; resetPreview(); originalAttributes={images:[]}; editor.reset(); identity(); el<HTMLFieldSetElement>('identity').disabled = false;
   if(parent){field('kind').value='review';field('parentContentId').value=parent;refreshCategories();}
+  if(authorEditor){const q=new URLSearchParams(location.search);const kind=q.get('kind'),provider=q.get('provider');if(!['stay','service','experience'].includes(kind??'')||!options.personas.some((p:any)=>p.id===provider&&!p.disabled))throw new Error(l('创建参数已失效，请返回创建内容页重新选择。','Creation choices changed. Return to Create content and choose again.'));field('kind').value=kind!;field('kind').disabled=true;field('providerId').value=provider!;field('personaId').value=provider!;refreshCategories();}
   renderTextFields({}); selectedRevision = null; dirty = false;
   const title=parent?l('新建后台手记','New editorial note'):l('新建内容', 'New content');
   el('editor-title').textContent = title; el('revision-state').textContent = '';
@@ -592,7 +613,7 @@ on('entry-notes',async()=>{
   el<HTMLSelectElement>('filter-kind').value='review';el<HTMLInputElement>('filter-query').value='';el<HTMLSelectElement>('filter-status').value='';listPage=1;await refreshList();el('content-list').scrollIntoView();
 });
 on('new-note',async()=>{if(!detail||!confirmDiscard())return;const parent=detail.content.kind==='review'?detail.content.parent_content_id:detail.content.id;if(workspaceMode){navigateNew(parent);return;}await startNew(parent);refreshActions();});
-on('preview-draft',async()=>{if(!detail||dirty)throw new Error(l('请先保存草稿。','Save the draft first.'));const rev=detail.content.head_revision_id;const links=el('preview-links');links.replaceChildren(...locales.map(language=>{const a=document.createElement('a');a.href=`/api/admin/preview/${language.pathPrefix}/${detail.content.id}?revisionId=${rev}&token=${detail.content.draft_token}`;a.target='_blank';a.rel='noopener';a.textContent=language.name+' ↗ ';return a;}));});
+on('preview-draft',async()=>{if(!detail||dirty)throw new Error(l('请先保存草稿。','Save the draft first.'));const rev=detail.content.head_revision_id;const links=el('preview-links');links.replaceChildren(...locales.map(language=>{const a=document.createElement('a');a.href=`${previewBase}/${language.pathPrefix}/${detail.content.id}?revisionId=${rev}&token=${detail.content.draft_token}`;a.target='_blank';a.rel='noopener';a.textContent=language.name+' ↗ ';return a;}));});
 on('logout', async () => { if (!confirmDiscard()) return; await api('/auth/logout', {}); location.reload(); });
 el<HTMLSelectElement>('world').addEventListener('change', async () => {
   if (!confirmDiscard()) { el<HTMLSelectElement>('world').value = loadedWorld; return; }
@@ -618,16 +639,16 @@ for (const [id, route, payload] of [
 ] as const) on(id, async () => {
   if (dirty) throw new Error(l('请先保存或放弃未保存的输入。', 'Save or discard input first.'));
   const contentId = detail.content.id;
-  await api(`/admin/contents/${contentId}/${route}`, payload());
+  await api(`${authorEditor&&route==='submit'?'/me/works':'/admin/contents'}/${contentId}/${route}`, payload());
   await openContent(contentId); await refreshList(); message(l('操作已完成。', 'Action completed.'));
 });
 const importInput = el<HTMLTextAreaElement>('import-json');
 importInput.addEventListener('input', () => { previewedImport = ''; importIsValid = false; el<HTMLButtonElement>('import-apply').disabled = true; });
 on('import-example', async () => {
   importInput.value = JSON.stringify({ worldId: worldId(), source: 'manual-example', items: [{ externalId: 'example-room-1', content: {
-    worldId: worldId(), kind: 'stay', slug: 'import-example-room', sourceLocale: 'en', text: { title: 'Import example', description: 'Replace with your source content.' },
+    worldId: worldId(), kind: 'stay', personaId:null, slug: 'import-example-room', sourceLocale: 'en', text: { title: 'Import example', description: 'Replace with your source content.' },
     translations: { 'zh-CN': { title: '导入示例', description: '请替换为需要导入的内容。' } }, attributes: { price: { amount: 100, unit: 'night' } },
-  } }] }, null, 2); importInput.dispatchEvent(new Event('input'));
+  } }] }, null, 2); importInput.dispatchEvent(new Event('input'));message(l('导入前请逐项填写本人已保存且未停用的经营角色 personaId；示例不会代选或创建角色。','Before importing, fill each personaId with your own saved, enabled provider. The example does not choose or create a persona.'));
 });
 el<HTMLInputElement>('import-file').addEventListener('change', async event => {
   const file = (event.target as HTMLInputElement).files?.[0];

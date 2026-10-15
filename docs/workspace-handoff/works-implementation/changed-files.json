@@ -1,0 +1,727 @@
+{
+  "files": [
+    {
+      "path": "apps/api/src/app.ts",
+      "kind": "application/migration",
+      "sha256": "ab58ecdb5acc63ebe4d57fe953db45ee91f978978a6f4872029941447e93a262"
+    },
+    {
+      "path": "apps/api/src/works-routes.ts",
+      "kind": "application/migration",
+      "sha256": "acf9efe796aac0465a6258ef6bc666461fa7ec2f6eaf4c0a33a720b59dbb6a01"
+    },
+    {
+      "path": "apps/web/astro.config.mjs",
+      "kind": "application/migration",
+      "sha256": "3d633cc00f5b141ce40922690458987ee829077a3484447dfb6b1b3900c79136"
+    },
+    {
+      "path": "apps/web/src/components/workspace/AdminConsole.astro",
+      "kind": "application/migration",
+      "sha256": "a50674db6a77cb030a2ab21ee605c7eb5af1a55eb61f5313e41bdeec655b8792"
+    },
+    {
+      "path": "apps/web/src/lib/admin.ts",
+      "kind": "application/migration",
+      "sha256": "b4c8bf301565439729eeee6f94d66e6646c9b0f28fa49444b8f23c70df522cb0"
+    },
+    {
+      "path": "apps/web/src/lib/workspace-bootstrap.js",
+      "kind": "application/migration",
+      "sha256": "a569eb3a83636abb71bb1a1f05d47880d84bf006ca7611b5f4eddac0d242afbd"
+    },
+    {
+      "path": "apps/web/src/lib/workspace-personas.ts",
+      "kind": "application/migration",
+      "sha256": "b972e2215738d183fe68403c00a99d23d97d53e6697c7097527337878230094f"
+    },
+    {
+      "path": "apps/web/src/lib/workspace-works.js",
+      "kind": "application/migration",
+      "sha256": "2abaf5f9ee74ac1852f531d20bf4fd13403d86e64c0b67804567160398bc7bc7"
+    },
+    {
+      "path": "apps/web/src/lib/workspace.ts",
+      "kind": "application/migration",
+      "sha256": "1a485c88c529761e8be55b8e6ab2ff6b6cda9d3f3111ac94d958ee8da2ba3f8d"
+    },
+    {
+      "path": "apps/web/src/middleware.ts",
+      "kind": "application/migration",
+      "sha256": "969b7807a3ff7d93d8d9d4a8074c1446775dd6d342c0f0947f388b2cd893251b"
+    },
+    {
+      "path": "apps/web/src/pages/[locale]/workspace.astro",
+      "kind": "application/migration",
+      "sha256": "5df91770e6c4644a823299ee8df139a52d6f61b20506944f2a7e433d11e2e979"
+    },
+    {
+      "path": "apps/web/src/pages/api/[...path].ts",
+      "kind": "application/migration",
+      "sha256": "11953425fa6c0a3129139cf2ad7b27070135c9b43c2e47ceccaca07a86c7b096"
+    },
+    {
+      "path": "apps/web/src/pages/api/me/work-preview/[locale]/[id].astro",
+      "kind": "application/migration",
+      "sha256": "f7b40286be939e83c053d2fb92e5ca58fa6d514ce07b5839a510384da2fa3bfe"
+    },
+    {
+      "path": "apps/web/src/styles/workspace-works.css",
+      "kind": "application/migration",
+      "sha256": "8052b6f039b871495240fdcd9557cd413a49227c13340a267e838cce075c6fc1"
+    },
+    {
+      "path": "docs/development-status.md",
+      "kind": "evidence/documentation",
+      "sha256": "9f3a4c7436058464f68efad1dca9414840fcad5aca8946dd244d68f7158832bd"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/README.md",
+      "kind": "evidence/documentation",
+      "sha256": "725d913111335c6d9ba0a209e2917d94617b4f9ce58bff5f1075181fe31c66e7"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/acceptance.md",
+      "kind": "evidence/documentation",
+      "sha256": "06be1e4950c9050802ad8780a357850bbaa8a2317878a5eb48d04356af814ccf"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/api-contract.md",
+      "kind": "evidence/documentation",
+      "sha256": "96af35996dfe1958407141f600c8751698009023525cffd136884bcceff72ccb"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/browser-tests.log",
+      "kind": "evidence/documentation",
+      "sha256": "c01e4eaf37adc3522fc01b87dbc4a6f8749d0672b0bb4637085f72b228953959"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/browser-verification.json",
+      "kind": "evidence/documentation",
+      "sha256": "a2baa6311e24680913fb47445197fa0676bb104f263dec8f78312187f42ddfe9"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/build.log",
+      "kind": "evidence/documentation",
+      "sha256": "9a657afaa55956772cb521227d979328b1540cc6a666f1fa32ba060c45bc9cc1"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/check.log",
+      "kind": "evidence/documentation",
+      "sha256": "1bad600ca11b21e078592e3e6be346200cd345d7a36ce11bbc30c1b927590208"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/contract.md",
+      "kind": "evidence/documentation",
+      "sha256": "177bcf494efa87403701b4525d8276fe27e72ce8dbb7f5e603b2e03b9a0fd0b7"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/domain-core.log",
+      "kind": "evidence/documentation",
+      "sha256": "fbb09948dacb61ec16c36ca0c2454099810707c28b9583f10e5279bffa0da3ad"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/domain-tests.log",
+      "kind": "evidence/documentation",
+      "sha256": "06992f80a2170435427d034230e33223ba69c867503e2e65dee94df5e74247ad"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/legacy-editor-browser.log",
+      "kind": "evidence/documentation",
+      "sha256": "3eb78eef223abb99eb43145f679b97a3298887d7a45701788891de83caa5bf18"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/migration-plan.md",
+      "kind": "evidence/documentation",
+      "sha256": "674b475ee73d4febf8af91888caa6f47f2cd7bb363e4888ced29e9faad522ef5"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/regression-browser-rerun.log",
+      "kind": "evidence/documentation",
+      "sha256": "e388fd0cb679f39cff9ea28cb638e02e1ef0bb14bd3e4f3723995b7f7b375aa2"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/regression-browser.log",
+      "kind": "evidence/documentation",
+      "sha256": "51c25fe0a9f39c9b57325a21f36d8c7a3febd9aaf5ebd31b63c182961d9ef5eb"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/regression-domain.log",
+      "kind": "evidence/documentation",
+      "sha256": "e92a2a13f9f02d10836bc9d35226b462878398e21821fbb356df471922ec49fc"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/regression-reviews/browser-evidence.json",
+      "kind": "evidence/documentation",
+      "sha256": "86e45bfa7cb62e35aeb46f918c08aaa9607acf433acdd8213cafb0b49fa30b61"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/regression-reviews/screenshots/fix-adopted-preview-replies-en.png",
+      "kind": "evidence/documentation",
+      "sha256": "8c017833de9c16344c4f1059e5a50c0a50e5bfb9f4d2e27604bcf409f569134a"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/regression-reviews/screenshots/fix-adopted-preview-reviews-en.png",
+      "kind": "evidence/documentation",
+      "sha256": "f95ac041d6f8065ff4a81417ecc6593cf70baf56f2978715e68086608c57da90"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/regression-reviews/screenshots/fix-first-reply-preview-en.png",
+      "kind": "evidence/documentation",
+      "sha256": "bc2c9d35c414a502edeea483273c8244a9cf2f38f17dc00723aa700f502012aa"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/regression-reviews/screenshots/fix-late-account-response-en.png",
+      "kind": "evidence/documentation",
+      "sha256": "0969e37628928f3e22a69101ca80e4c554213b17cde4269c073c09dfd356b33e"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/regression-reviews/screenshots/fix-paginated-reply-preview-en.png",
+      "kind": "evidence/documentation",
+      "sha256": "1674f32d72b850c77cedea9069c8c7edd6ed99587dec7fbaa7424d13fc24b3eb"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/regression-reviews/screenshots/fix-readable-reply-preview-en.png",
+      "kind": "evidence/documentation",
+      "sha256": "1891b4ea68e18aee5e1d116ba88c988423917fb7ecfbe17fdea6be941b1d03f3"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/regression-reviews/screenshots/fix-save-input-replies-en.png",
+      "kind": "evidence/documentation",
+      "sha256": "e1f66d0f1fa6fde7014e121762feeba9c4f447244418cc159266c47956e2191f"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/regression-reviews/screenshots/fix-save-input-reviews-en.png",
+      "kind": "evidence/documentation",
+      "sha256": "b6b16ef7cd660dd4219bc0d2ca05e6dfad475422a8836a8d8b22287b52718194"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/regression-reviews/screenshots/loading-en-1100.png",
+      "kind": "evidence/documentation",
+      "sha256": "fb2fcd114ca2d36e2d5114a8aac9dbf82d522387f8753c7cdc8318d405c30641"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/regression-reviews/screenshots/network-error-en-1100.png",
+      "kind": "evidence/documentation",
+      "sha256": "aedd155972bc21b4b8b1d7ccc948a1234eabbd517e8acf49fe3332ab6e5ad09b"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/regression-reviews/screenshots/received-list-en-1440.png",
+      "kind": "evidence/documentation",
+      "sha256": "28b72e966bf5e5c063593d0555cadfcd1537ffaf34916fd0dc50506b00ee74b4"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/regression-reviews/screenshots/received-list-en-390.png",
+      "kind": "evidence/documentation",
+      "sha256": "1ac4698e6498ff607ef03b2f3db7428b413a38ea1bec81b3e87a1ad25e574b30"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/regression-reviews/screenshots/received-list-zh-1440.png",
+      "kind": "evidence/documentation",
+      "sha256": "f1d63440666de8900ebede2df625402f642e73f2b212472c91990b39cef9fe52"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/regression-reviews/screenshots/received-list-zh-390.png",
+      "kind": "evidence/documentation",
+      "sha256": "65b5481c9c60ab26c6d310445c567aa65e9f07bfa5cc0769008608432b681f7c"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/regression-reviews/screenshots/reply-edit-en-1100.png",
+      "kind": "evidence/documentation",
+      "sha256": "7118d7c0a8938091194d8eace5d6405174556da96276ccdf0f879fc256deba29"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/regression-reviews/screenshots/reply-edit-en-1440.png",
+      "kind": "evidence/documentation",
+      "sha256": "a21ceb54d8b3c19b8ccba95484a866a84749cc825a4071f02a3543fda079ec1f"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/regression-reviews/screenshots/reply-edit-en-360.png",
+      "kind": "evidence/documentation",
+      "sha256": "705a2ecae781194968c438720b59cb37bf357eb5422b5096f4c1429536daff25"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/regression-reviews/screenshots/reply-edit-en-390.png",
+      "kind": "evidence/documentation",
+      "sha256": "a0a822e6a6af58296a9587fd966f78e393eafd96489040728b764d7e7cb9e9c2"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/regression-reviews/screenshots/reply-edit-zh-1440.png",
+      "kind": "evidence/documentation",
+      "sha256": "a01a57628c0ae26dbb57c70c14080a48f71672b7ef5f448c1f7a45e27aee7994"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/regression-reviews/screenshots/reply-edit-zh-390.png",
+      "kind": "evidence/documentation",
+      "sha256": "c7e5997f00b4ef783899fb60b70aed8aad959fc5a355409fca68fe7e1096d9d0"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/regression-reviews/screenshots/reply-history-en-1440.png",
+      "kind": "evidence/documentation",
+      "sha256": "23588638be896b35da7242b947c3cd1bb1adad268de685ef678c808f46cd307a"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/regression-reviews/screenshots/reviews-list-en-1440.png",
+      "kind": "evidence/documentation",
+      "sha256": "3ce1796b9940ac5a13072e285219009d7f2e1c7b44e050fef53d4f25539f500a"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/regression-reviews/screenshots/reviews-list-en-200-percent.png",
+      "kind": "evidence/documentation",
+      "sha256": "2dcd93aceaca0af4a25a6b9e6df9d9ae3298344e6a3dc9f04bfdc47e4f836c06"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/regression-reviews/screenshots/reviews-list-en-390.png",
+      "kind": "evidence/documentation",
+      "sha256": "f9f9c049cf080e285d199e588c32bc2950daca10b15c4211856534a75b0ce54f"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/regression-reviews/screenshots/reviews-list-zh-1440.png",
+      "kind": "evidence/documentation",
+      "sha256": "6c74b9b08cdaaa2efa8f50c402899ab53dd02aff50028b897f49ea8060f26d6b"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/regression-reviews/screenshots/reviews-list-zh-390.png",
+      "kind": "evidence/documentation",
+      "sha256": "7357885a97d4c784f496539a194429786a8a7a78465fa7439fe65fc9156367b6"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/regression-summary.json",
+      "kind": "evidence/documentation",
+      "sha256": "7f20f20395279629eee83f6167361df32a8122ef0ac8656044a3b10b1ad6138b"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/screenshots/create-en-1100.png",
+      "kind": "evidence/documentation",
+      "sha256": "5665df097cb302499c824908c4a515b29d155c7c5a330fa2f71210d8c498e281"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/screenshots/create-en-1440.png",
+      "kind": "evidence/documentation",
+      "sha256": "ec6581307a951330ceb188993baae3df68d6759e3c794774f52bb513ef111009"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/screenshots/create-en-360-font200.png",
+      "kind": "evidence/documentation",
+      "sha256": "5af96f46e9bcfcd173ca77253198e6eea6970e9a4661bdab748575fed3b408ae"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/screenshots/create-en-360.png",
+      "kind": "evidence/documentation",
+      "sha256": "4f1f659269e7e98df2d65ca033b0bcc55cef4c439ad25eff3f4fad4f3db79627"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/screenshots/create-en-390.png",
+      "kind": "evidence/documentation",
+      "sha256": "c6e3d7c283ba439fc57259f9af6315a3c5586031fb6838166b2063256b1280b1"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/screenshots/create-network-error.png",
+      "kind": "evidence/documentation",
+      "sha256": "cbd259c34047ced88317cb61450a06b59bf39a866016b65a3a2d3a6b3960335d"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/screenshots/create-no-persona.png",
+      "kind": "evidence/documentation",
+      "sha256": "31c19b5162580f0a920c5a2ec834664f20c6c7303b634ac771e23377467e66a7"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/screenshots/create-no-world.png",
+      "kind": "evidence/documentation",
+      "sha256": "c4b11048be46ecae692bb2ca10b2dc051db621b9ee1c10163cf9dd5fdc276c88"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/screenshots/create-required-errors.png",
+      "kind": "evidence/documentation",
+      "sha256": "6621d7fe12ce88bd50e9780386c614843838a97120c3e1c9ad2c9909ccc2a6b5"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/screenshots/create-zh-1100.png",
+      "kind": "evidence/documentation",
+      "sha256": "b9445ab4a5f2486412b119fbf53f291b7b1a120a774c0c91609f25f88251fd90"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/screenshots/create-zh-1440.png",
+      "kind": "evidence/documentation",
+      "sha256": "5318e4480832e76b8e759bd6e936a9463575a43e3cf0729648a5ee291b6a2163"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/screenshots/create-zh-360-font200.png",
+      "kind": "evidence/documentation",
+      "sha256": "4c044ce7be2980d2900522cda60b92540e38689088f4e6a6bce3ef875ed094e8"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/screenshots/create-zh-360.png",
+      "kind": "evidence/documentation",
+      "sha256": "a8512111d71563ca829f9a36dc2561b60d766bc4a5d163aa1c5af8be02cea092"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/screenshots/create-zh-390.png",
+      "kind": "evidence/documentation",
+      "sha256": "d00a494b9f6e974ed021e0fe5bd655e62b833e8fba011664a3554d5294a96613"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/screenshots/create-zh-legal-prefill.png",
+      "kind": "evidence/documentation",
+      "sha256": "dd5644653aee07cf7724d466fbdbea0d91a4334159963b92803aaaa6cd767dc9"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/screenshots/create-zh-mobile-persona-options.png",
+      "kind": "evidence/documentation",
+      "sha256": "8477a115d40a9a6f24af60fc2aaedd0377beb8e8355347c349a374c775765fcc"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/screenshots/editor-first-save-zh-360.png",
+      "kind": "evidence/documentation",
+      "sha256": "cf3530a86fc7ed7071026291d80118ef607552cb7fe024117c41092ddf764cdc"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/screenshots/editor-input-during-save-zh.png",
+      "kind": "evidence/documentation",
+      "sha256": "e952a54b8f6ef3392780fd92da9b794b1a599ff8c4fb05cd605c69301a30a9e9"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/screenshots/private-saved-preview-en.png",
+      "kind": "evidence/documentation",
+      "sha256": "c25eeae4a5c5dfd62a40ed0b0f4306bef21d5c73b4e216864d946b3559b95972"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/screenshots/works-admin-managed.png",
+      "kind": "evidence/documentation",
+      "sha256": "aa24ea5b3c78380b9f6902d304831fea096be72cc2e8b330de3eaf7a218d7371"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/screenshots/works-empty.png",
+      "kind": "evidence/documentation",
+      "sha256": "f907e9201ab96f6f4b2a3cf6af57406801bc38bf329afe1cfd961d55a9298801"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/screenshots/works-en-1100.png",
+      "kind": "evidence/documentation",
+      "sha256": "79618a35850504b665a2d52de38435a41678fb08d6a59971a545cdc37feb5406"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/screenshots/works-en-1440.png",
+      "kind": "evidence/documentation",
+      "sha256": "1c15dfeb452656f59a3469462ccc3aa427a569e32ac2b77ec5edf87926fcd083"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/screenshots/works-en-360-cards.png",
+      "kind": "evidence/documentation",
+      "sha256": "7c31d8bde9a3e9641cc4aaf092ff0aca11dc353fbcfea1e9ff1364f9a67546da"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/screenshots/works-en-360-font200.png",
+      "kind": "evidence/documentation",
+      "sha256": "a6e7af723adfe705d648b3b89dacaf12d3a7c9873d2ca5352fbf645b34f32a2c"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/screenshots/works-en-360.png",
+      "kind": "evidence/documentation",
+      "sha256": "d124465ee7e26eed73d684c94a7023c57dcdb802738118afe39eba55d3b41b4f"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/screenshots/works-en-390-cards.png",
+      "kind": "evidence/documentation",
+      "sha256": "1cde6a7285801ae612700aa2c333ed75eb5fced4437026d3ba0b4355853c0a01"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/screenshots/works-en-390.png",
+      "kind": "evidence/documentation",
+      "sha256": "e770d421b5735d4666034ac4e0edff0571af8d3450ee14e5525deb931c200f7d"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/screenshots/works-en-mobile-menu.png",
+      "kind": "evidence/documentation",
+      "sha256": "683673baf0b9acfd989643026204956ccd56e9180b2fa111dfd667de9d2e54d9"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/screenshots/works-en-mobile-more.png",
+      "kind": "evidence/documentation",
+      "sha256": "35d276b3866a1b8535009cebee9fee929e0aa15d73502462098751716f06cf2b"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/screenshots/works-en-mobile-persona-options.png",
+      "kind": "evidence/documentation",
+      "sha256": "8cb5f3072283edb6d60b67c94f3628a3b90b8bce8532ccb0ab5817212215ea3f"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/screenshots/works-loading-with-input.png",
+      "kind": "evidence/documentation",
+      "sha256": "40b348c183a72252b401190d3460b3662c56917bf215e78614080b2fe3efea1c"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/screenshots/works-network-error.png",
+      "kind": "evidence/documentation",
+      "sha256": "32575a4de78a4a9bffc56e1e9e3b5d12701083b6f87da2cb6f1edc5de6221fcf"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/screenshots/works-public-plus-new-draft.png",
+      "kind": "evidence/documentation",
+      "sha256": "e18fafbee2e9dfdfe813488a1be02998f1f635f40506c00452e86709ec2aaf67"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/screenshots/works-public-plus-returned.png",
+      "kind": "evidence/documentation",
+      "sha256": "7dfa5c9dcdfd5d118150d3424de836d23cddb4084afdd06d7f8ddf9d557fc93e"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/screenshots/works-public-plus-submitted.png",
+      "kind": "evidence/documentation",
+      "sha256": "8d1a46324f4fef768d74b36244bd52d4c631a9add00f761dd9c99c951b824566"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/screenshots/works-revoked-permission.png",
+      "kind": "evidence/documentation",
+      "sha256": "1b23c919f7f19375091e8cde97474ccc921de0305ca860310e2027b590fbc088"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/screenshots/works-zh-1100.png",
+      "kind": "evidence/documentation",
+      "sha256": "d60797ff0afc039b0bcceef44f6cf571fd402b1815403f53394d4e006479b3dc"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/screenshots/works-zh-1440.png",
+      "kind": "evidence/documentation",
+      "sha256": "ad99a05f04606d3360625b81fd5fc5f9be3f33493dcd4e8a7d097aa3bc98cafb"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/screenshots/works-zh-360-cards.png",
+      "kind": "evidence/documentation",
+      "sha256": "897dbaede406f9d80b6dae037d7d7b2b8f024be7b0a10a7574eb6ced4fff4af0"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/screenshots/works-zh-360-font200.png",
+      "kind": "evidence/documentation",
+      "sha256": "a03724b9279668464e7558070b8092ad1cde7cd42a3165b46cee1f7560dbf266"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/screenshots/works-zh-360.png",
+      "kind": "evidence/documentation",
+      "sha256": "4fd216ec333f08347766e82139fbcc7a42eb918a8ed71ee027cb763f53ad792e"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/screenshots/works-zh-390-cards.png",
+      "kind": "evidence/documentation",
+      "sha256": "b64cce5e5881709dac12cac5718b57a17f6b174f94460c2059dec73845299c11"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/screenshots/works-zh-390.png",
+      "kind": "evidence/documentation",
+      "sha256": "c70493c5775788c4667523319a18f86e76e52187d2925e5fcbdb255f5c985031"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/starting-state.json",
+      "kind": "evidence/documentation",
+      "sha256": "e633d8c462284602da2f51ade128087071d407f78f88abd7f390fa73077044d2"
+    },
+    {
+      "path": "docs/workspace-handoff/works-implementation/web-check.log",
+      "kind": "evidence/documentation",
+      "sha256": "8d9f9573f03acc7fd381d41226ee173e0cdf4d66d528316c7856eaa0235c8912"
+    },
+    {
+      "path": "packages/database/migrations/013_work_authorship.sql",
+      "kind": "application/migration",
+      "sha256": "9a0ea0d1585b028cf013d5ed149fac6b6fec149fe5632b3e42e74d73ff77f108"
+    },
+    {
+      "path": "packages/domain/src/content.ts",
+      "kind": "application/migration",
+      "sha256": "9a53312e27e44776ab2d3d11262ce06b1413e8654c5ec40321e30ae3c4420e1c"
+    },
+    {
+      "path": "packages/domain/src/detail.ts",
+      "kind": "application/migration",
+      "sha256": "a3e563fe1fa20b0cc83342a64e5ea76dd1d4fd823707b1e40a20941aabb8ce9e"
+    },
+    {
+      "path": "packages/domain/src/persona-reviews.ts",
+      "kind": "application/migration",
+      "sha256": "0b05516bbc79bdb8e57b9ad951a742d4c29e298e7af4a5674ccc04cb79b00750"
+    },
+    {
+      "path": "packages/domain/src/read.ts",
+      "kind": "application/migration",
+      "sha256": "aafcc06a52b1c463d41a27a4cfdd9d41c86ca36d89870d241de915d8522be9e0"
+    },
+    {
+      "path": "packages/domain/src/review-workspace.ts",
+      "kind": "application/migration",
+      "sha256": "8cda132f7e1476ffcaa11d0cda659c8396f75295cb544a77d3666950d412cf79"
+    },
+    {
+      "path": "packages/domain/src/translation.ts",
+      "kind": "application/migration",
+      "sha256": "565e735cfc8cb5bcb5e836650c62c4477f6d0943e45e4387589e4dcf02e80325"
+    },
+    {
+      "path": "packages/domain/src/work-access.ts",
+      "kind": "application/migration",
+      "sha256": "8f718d1feda8bdbe9e61c9b1c71936a8bc03480c5b48d823c6611f2013751796"
+    },
+    {
+      "path": "packages/domain/src/works.ts",
+      "kind": "application/migration",
+      "sha256": "6de4d697efe913f328535f2cf4488f06b95beaa59b59a3a3e70b679e0911ef75"
+    },
+    {
+      "path": "scripts/seed-discovery.ts",
+      "kind": "application/migration",
+      "sha256": "ed7bef2c5f224e7dd1b53b6c0bd9aec7d10faecd3c0703fe168826ef55e0daf6"
+    },
+    {
+      "path": "scripts/seed.ts",
+      "kind": "application/migration",
+      "sha256": "e51dd2e315b4f58e496b95755595ac810126fea6e6fd017bc5f9536cbaa29db8"
+    },
+    {
+      "path": "tests/booking-e2e.test.ts",
+      "kind": "tests",
+      "sha256": "4c5bbd4c02f6d1e2bb01385ac8b455b164b1f911217b2cb0f863e0f46fec40aa"
+    },
+    {
+      "path": "tests/booking.test.ts",
+      "kind": "tests",
+      "sha256": "3222a4ad5b12990a2122422f85acfd92c210df452ce1ba18d127cbebbb91fd33"
+    },
+    {
+      "path": "tests/content-management-e2e.test.ts",
+      "kind": "tests",
+      "sha256": "2a3fd8bff93cbe2881b5039f8e69855eceb557e4966cc9be2d714447bf9f3443"
+    },
+    {
+      "path": "tests/content-management.test.ts",
+      "kind": "tests",
+      "sha256": "5ac615ae9b85829961ae0094f1a1bedbd7ac05767080db3b798d19a99b8272c4"
+    },
+    {
+      "path": "tests/detail-fixture.ts",
+      "kind": "tests",
+      "sha256": "f9261bd31fd309006f957ed63be6f0710e763571f699b8036bba4457bfa96a44"
+    },
+    {
+      "path": "tests/details-e2e.test.ts",
+      "kind": "tests",
+      "sha256": "3ad764db7a0c64db4e1b0903c1d14f22d83f5102084878abd8ad89ff34786f69"
+    },
+    {
+      "path": "tests/details.test.ts",
+      "kind": "tests",
+      "sha256": "7b2d212b2b6ff187fbeafe9f468f42a444589711753bdc41ce253fa27e83e48b"
+    },
+    {
+      "path": "tests/discovery-e2e.test.ts",
+      "kind": "tests",
+      "sha256": "ced6727f641800d2e86c54bc07c6e889b7ed07d8634bb7fc2f4840e6b76007cc"
+    },
+    {
+      "path": "tests/discovery.test.ts",
+      "kind": "tests",
+      "sha256": "9ccfa2ca9af3d78087787168c3ee81e35a2dbf625a16373a541ede5ba743a77a"
+    },
+    {
+      "path": "tests/foundation.test.ts",
+      "kind": "tests",
+      "sha256": "5557a74dc5707af480fe52529dd1908791ee804941e1fe1ed11ff180c9ed9553"
+    },
+    {
+      "path": "tests/management.test.ts",
+      "kind": "tests",
+      "sha256": "9875eab34e527e7039bfef84203ae862c894d45edeeb0a1e45a2553d43f03708"
+    },
+    {
+      "path": "tests/overview-e2e.test.ts",
+      "kind": "tests",
+      "sha256": "9470975a9dd7cd5419693dd8111515f54709640f2a37e10a0ef7ec7413a19254"
+    },
+    {
+      "path": "tests/overview-sources.test.ts",
+      "kind": "tests",
+      "sha256": "9b60cff442ff0e3308bc7b5cf590c703d2e5968ba80d14cc2a2a4b049d09aa4c"
+    },
+    {
+      "path": "tests/overview.test.ts",
+      "kind": "tests",
+      "sha256": "e7377b3ead87f7078327a904ec7dd743abf6cbccd6f6d9df69687fac742e02e7"
+    },
+    {
+      "path": "tests/persona-reviews-e2e.test.ts",
+      "kind": "tests",
+      "sha256": "9ca070eacebf461a437c3c1902e9156c27182ab8ab7418629e644b05d25b208b"
+    },
+    {
+      "path": "tests/persona-reviews.test.ts",
+      "kind": "tests",
+      "sha256": "d756c5276d9a209e73f96d8957909fb0f956c61ad324de8624a580face1c6a6c"
+    },
+    {
+      "path": "tests/persona-workspace-e2e.test.ts",
+      "kind": "tests",
+      "sha256": "e9cb40405ba40aea5399bfee9e2b0230e09271b96529672bac0ead596db72f2c"
+    },
+    {
+      "path": "tests/persona-workspace-races-e2e.test.ts",
+      "kind": "tests",
+      "sha256": "e4f9d9f10c0c9c772a8ab5438bde80621e5e3d8b4ed0f86f30a00299e3916af8"
+    },
+    {
+      "path": "tests/reviews-workspace-e2e.test.ts",
+      "kind": "tests",
+      "sha256": "80e060b19cb471c512f8c8034bed9b9b2e355f6a8c8aeea76c50bd71b64e1935"
+    },
+    {
+      "path": "tests/reviews-workspace.test.ts",
+      "kind": "tests",
+      "sha256": "0485a07137937085d78cdab6f48ed78007bce20f6640083d8eeafc34f1a15f2d"
+    },
+    {
+      "path": "tests/runtime.ts",
+      "kind": "tests",
+      "sha256": "23c5a9f413f2a1b8e8a95449c92330b3fb352e15d1bd29c3ee934ce6402fb66a"
+    },
+    {
+      "path": "tests/seo.test.ts",
+      "kind": "tests",
+      "sha256": "d03f63589dfed90043d6cc2d47f212ad86c913c8d14712bb9af7fff22f6eac8f"
+    },
+    {
+      "path": "tests/ssr.test.ts",
+      "kind": "tests",
+      "sha256": "99ceb248811377d5373ec3096870d20a5e555bedfca30e2aec4cc633469e7a97"
+    },
+    {
+      "path": "tests/translation.test.ts",
+      "kind": "tests",
+      "sha256": "3685bba55d3f0f376cf44295263dc16664c57370ce20f984e955b5cafa0a283b"
+    },
+    {
+      "path": "tests/work-fixtures.ts",
+      "kind": "tests",
+      "sha256": "270333e6396215684a7dc6c438fd11fa170a0b44b900919450bc8db346bf9f29"
+    },
+    {
+      "path": "tests/works-e2e.test.ts",
+      "kind": "tests",
+      "sha256": "be5bbba64c5cde1af5931db7449368fe90db734f539eebb6ff7629f454ab7cd3"
+    },
+    {
+      "path": "tests/works.test.ts",
+      "kind": "tests",
+      "sha256": "dc0aec329e71033890e7436fbb17a7c892350425de3454ae8e7147dc4da74dec"
+    },
+    {
+      "path": "tests/workspace-e2e.test.ts",
+      "kind": "tests",
+      "sha256": "6173b7f87aac7a00db788dc2c0c3b18470640f21daafd865ec7157dd528bec67"
+    }
+  ],
+  "excludedPreexistingFiles": [
+    "deploy/nginx/plotstay.xingwu.dev.conf",
+    "docs/operations.md",
+    "example_pages.zip",
+    "plotstay-works-create-developer-handoff.zip"
+  ],
+  "excludedPreexistingDirectory": "docs/workspace-handoff/works-stage-a-20261014/",
+  "note": "Manifest files exclude themselves; development-status preserves its preexisting entry and adds Phase B status."
+}

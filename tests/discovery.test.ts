@@ -1,8 +1,9 @@
+import {createFixtureContent as createContent,fixtureOperator} from './work-fixtures.ts';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { createContentSchema, editContentSchema, parseBrowse, browsePath, detailPath, detailReturn, fallbackLocales, textSchema, homeConfigSchema } from '@plotstay/contracts';
-import { browseWorld, createContent, getPublished, submitRevision, reviewRevision, editContent, restorePublication, unpublishContent,
+import { browseWorld,  getPublished, submitRevision, reviewRevision, editContent, restorePublication, unpublishContent,
   digest, publicHome, saveHomeDraft, publishHome, importContent, runTranslationOnce } from '@plotstay/domain';
 import { fixture, historyDigest } from './helpers.ts';
 import { seedDiscovery } from '../scripts/seed-discovery.ts';
@@ -74,7 +75,7 @@ test('phase 3 public data and service lifecycle', {timeout:120000}, async t=>{
    await restorePublication(f.db,f.data.owner,service,publication);
  });
  await t.test('legacy imports without optional fields retain idempotency',async()=>{
-   const content=input('legacy-import','stay');content.text.tags=[];content.translations['zh-CN']!.tags=[];
+   const content=input('legacy-import','stay');content.personaId=await fixtureOperator(f.db,f.data.owner,f.data.latheId);content.text.tags=[];content.translations['zh-CN']!.tags=[];
    const batch={worldId:f.data.latheId,source:'legacy-compat',items:[{externalId:'one',content}]};
    const first=await importContent(f.db,f.data.owner,batch,false);assert.equal(first.results[0]!.status,'created');
    const legacy=structuredClone(content) as any;
@@ -112,7 +113,7 @@ test('phase 3 public data and service lifecycle', {timeout:120000}, async t=>{
    assert.equal((await browseWorld(f.db,'en',state('view=results'))).listing.total,before-1);
    await restorePublication(f.db,f.data.owner,service,publication);
    assert.equal((await browseWorld(f.db,'en',state('view=results'))).listing.total,before);
-   const batch={worldId:f.data.latheId,source:'service-test',items:[{externalId:'one',content:input('import-service')}]};
+   const batch={worldId:f.data.latheId,source:'service-test',items:[{externalId:'one',content:{...input('import-service'),personaId:await fixtureOperator(f.db,f.data.owner,f.data.latheId)}}]};
    assert.equal((await importContent(f.db,f.data.owner,batch,true)).results[0]!.status,'valid');
    const imported=await importContent(f.db,f.data.owner,batch,false);assert.equal(imported.results[0]!.status,'created');
    const missing=await createContent(f.db,f.data.owner,{...input('translated-service'),translations:{}});

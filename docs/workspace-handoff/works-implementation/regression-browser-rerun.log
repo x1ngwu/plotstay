@@ -1,0 +1,345 @@
+TAP version 13
+# Subtest: phase 4 detail browser acceptance
+    # Subtest: expanded content has its collapse control at the bottom, including without JavaScript
+    ok 1 - expanded content has its collapse control at the bottom, including without JavaScript
+      ---
+      duration_ms: 38012.595353
+      type: 'test'
+      ...
+    # Subtest: each type renders published special modules, people and fictional notes
+    ok 2 - each type renders published special modules, people and fictional notes
+      ---
+      duration_ms: 889.859115
+      type: 'test'
+      ...
+    # Subtest: experience sample renders eight complete modules, illustrated steps and useful demo interactions
+    ok 3 - experience sample renders eight complete modules, illustrated steps and useful demo interactions
+      ---
+      duration_ms: 8853.650865
+      type: 'test'
+      ...
+    # Subtest: service has eight complete modules, sample dates, rated reviews and reference layout
+    ok 4 - service has eight complete modules, sample dates, rated reviews and reference layout
+      ---
+      duration_ms: 9101.51322
+      type: 'test'
+      ...
+    # Subtest: gallery opens any thumbnail, wraps with keys, traps focus and restores trigger
+    ok 5 - gallery opens any thumbnail, wraps with keys, traps focus and restores trigger
+      ---
+      duration_ms: 1131.187779
+      type: 'test'
+      ...
+    # Subtest: notes pagination, related navigation and language keep browse and trip context
+    ok 6 - notes pagination, related navigation and language keep browse and trip context
+      ---
+      duration_ms: 1490.393093
+      type: 'test'
+      ...
+    # Subtest: existing demo, long content and every language/font fit desktop and mobile
+    ok 7 - existing demo, long content and every language/font fit desktop and mobile
+      ---
+      duration_ms: 23689.974108
+      type: 'test'
+      ...
+    # Subtest: no-script gallery links, notes and related content remain reachable
+    ok 8 - no-script gallery links, notes and related content remain reachable
+      ---
+      duration_ms: 799.831831
+      type: 'test'
+      ...
+    # Subtest: all ten stay groups remain visible, including legacy empty data
+    ok 9 - all ten stay groups remain visible, including legacy empty data
+      ---
+      duration_ms: 790.551028
+      type: 'test'
+      ...
+    # Subtest: complete stay content, expansions and nearby routes work in both languages and without scripts
+    ok 10 - complete stay content, expansions and nearby routes work in both languages and without scripts
+      ---
+      duration_ms: 11945.678185
+      type: 'test'
+      ...
+    # Subtest: admin editing preserves nested stay data and visitor profiles in new drafts
+    ok 11 - admin editing preserves nested stay data and visitor profiles in new drafts
+      ---
+      duration_ms: 6996.050781
+      type: 'test'
+      ...
+    1..11
+ok 1 - phase 4 detail browser acceptance
+  ---
+  duration_ms: 109871.562028
+  type: 'test'
+  ...
+# Subtest: phase 3 discovery, crawlability, trip, SEO and browser acceptance
+    # Subtest: no-script traversal starts at homepage, covers 55 plus demo and services without duplicates
+    ok 1 - no-script traversal starts at homepage, covers 55 plus demo and services without duplicates
+      ---
+      duration_ms: 8278.446449
+      type: 'test'
+      ...
+    # Subtest: paged SEO is self-referencing, reciprocal and included in sitemap; filtered/trip states noindex
+    ok 2 - paged SEO is self-referencing, reciprocal and included in sitemap; filtered/trip states noindex
+      ---
+      duration_ms: 1365.493214
+      type: 'test'
+      ...
+    # Subtest: trip survives pagination, language, detail and back; keyword language resets page
+    ok 3 - trip survives pagination, language, detail and back; keyword language resets page
+      ---
+      duration_ms: 6014.112041
+      type: 'test'
+      ...
+    # Subtest: desktop, tablet, mobile, keyboard, search types, image errors and action targets are usable
+    ok 4 - desktop, tablet, mobile, keyboard, search types, image errors and action targets are usable
+      ---
+      duration_ms: 8489.991315
+      type: 'test'
+      ...
+    # Subtest: existing account manages a service with translated tags and category; anonymous and role menus work
+    ok 5 - existing account manages a service with translated tags and category; anonymous and role menus work
+      ---
+      duration_ms: 3657.610577
+      type: 'test'
+      ...
+    # Subtest: live unpublish and restore update page count, homepage and sitemap without rebuild
+    ok 6 - live unpublish and restore update page count, homepage and sitemap without rebuild
+      ---
+      duration_ms: 1228.877678
+      type: 'test'
+      ...
+    1..6
+ok 2 - phase 3 discovery, crawlability, trip, SEO and browser acceptance
+  ---
+  duration_ms: 33567.017355
+  type: 'test'
+  ...
+# SSR links reached 73 distinct published entries, including 55 added bilingual homes/experiences and 2 services.
+# Runtime publish/unpublish/restore preserved Web artifact SHA-256 c23f3f9cda337c69cf5bbd49c79078fd70a8a0b979070467043e9429b882ab54
+# Subtest: phase 5.6 ordinary account accommodation journey
+    # Subtest: normal login, bilingual persona, stay draft and private preview
+    ok 1 - normal login, bilingual persona, stay draft and private preview
+      ---
+      duration_ms: 3954.126567
+      type: 'test'
+      ...
+    # Subtest: joint moderation publishes signature and score without world access for author
+    ok 2 - joint moderation publishes signature and score without world access for author
+      ---
+      duration_ms: 1869.433727
+      type: 'test'
+      ...
+    # Subtest: experience and service reviews, blocked provider reassignment and historical bilingual reply moderation
+    ok 3 - experience and service reviews, blocked provider reassignment and historical bilingual reply moderation
+      ---
+      duration_ms: 13673.791261
+      type: 'test'
+      ...
+    # Subtest: expired session preserves input, bilingual mobile and no horizontal overflow
+    ok 4 - expired session preserves input, bilingual mobile and no horizontal overflow
+      ---
+      duration_ms: 2321.943183
+      type: 'test'
+      ...
+    1..4
+ok 3 - phase 5.6 ordinary account accommodation journey
+  ---
+  duration_ms: 25607.185069
+  type: 'test'
+  ...
+# Subtest: SEO configuration rejects unsafe or missing origins and never infers indexing from production
+ok 4 - SEO configuration rejects unsafe or missing origins and never infers indexing from production
+  ---
+  duration_ms: 2.462262
+  type: 'test'
+  ...
+# Subtest: SEO-01–05: live API, built SSR, XML and publication lifecycle
+    # Subtest: one-hop GET/HEAD normalization preserves query, slug case and API/write paths
+    ok 1 - one-hop GET/HEAD normalization preserves query, slug case and API/write paths
+      ---
+      duration_ms: 2190.898778
+      type: 'test'
+      ...
+    # Subtest: SSR canonical, reciprocal actual-language hreflang, parameters and trusted origin
+    ok 2 - SSR canonical, reciprocal actual-language hreflang, parameters and trusted origin
+      ---
+      duration_ms: 2636.112452
+      type: 'test'
+      ...
+    # Subtest: SSR descriptions use published text in the page language when summaries are empty
+    ok 3 - SSR descriptions use published text in the page language when summaries are empty
+      ---
+      duration_ms: 371.106056
+      type: 'test'
+      ...
+    # Subtest: preview is noindex with empty sitemap; invalid indexed config fails explicitly
+    ok 4 - preview is noindex with empty sitemap; invalid indexed config fails explicitly
+      ---
+      duration_ms: 945.249595
+      type: 'test'
+      ...
+    # Subtest: new locale and drafts never claim a complete translation; UI and body languages are distinct
+    ok 5 - new locale and drafts never claim a complete translation; UI and body languages are distinct
+      ---
+      duration_ms: 201.910833
+      type: 'test'
+      ...
+    # Subtest: missing translations, publish, restore, language enablement and restrictions change SEO without rebuilding
+    ok 6 - missing translations, publish, restore, language enablement and restrictions change SEO without rebuilding
+      ---
+      duration_ms: 968.140198
+      type: 'test'
+      ...
+    # Subtest: discovery covers more than 50 entries and every URL matches an indexable canonical
+    ok 7 - discovery covers more than 50 entries and every URL matches an indexable canonical
+      ---
+      duration_ms: 7410.254808
+      type: 'test'
+      ...
+    # Subtest: API outage remains 503 for pages, admin and sitemap with no public metadata
+    ok 8 - API outage remains 503 for pages, admin and sitemap with no public metadata
+      ---
+      duration_ms: 110.978426
+      type: 'test'
+      ...
+    1..8
+ok 5 - SEO-01–05: live API, built SSR, XML and publication lifecycle
+  ---
+  duration_ms: 16965.494391
+  type: 'test'
+  ...
+# 55 additional publications produce 110 detail URLs; every sitemap URL matches its SSR canonical. Web dist SHA-256 unchanged: c23f3f9cda337c69cf5bbd49c79078fd70a8a0b979070467043e9429b882ab54
+# Subtest: built PostgreSQL → standalone API → Astro → browser
+    # Subtest: cookie session failures do not invalidate cached Basic Auth credentials
+    ok 1 - cookie session failures do not invalidate cached Basic Auth credentials
+      ---
+      duration_ms: 2482.546365
+      type: 'test'
+      ...
+    # Subtest: SSR returns database text, expected routes, no-store headers and real status codes
+    ok 2 - SSR returns database text, expected routes, no-store headers and real status codes
+      ---
+      duration_ms: 526.082911
+      type: 'test'
+      ...
+    # Subtest: built server compresses responses and preserves cache, HEAD and byte-range semantics
+    ok 3 - built server compresses responses and preserves cache, HEAD and byte-range semantics
+      ---
+      duration_ms: 224.862037
+      type: 'test'
+      ...
+    # Subtest: browser language navigation keeps detail, world and query; desktop and mobile render
+    ok 4 - browser language navigation keeps detail, world and query; desktop and mobile render
+      ---
+      duration_ms: 3173.968263
+      type: 'test'
+      ...
+    # Subtest: browser management uses same-origin cookies and preserves conflicting input
+    not ok 5 - browser management uses same-origin cookies and preserves conflicting input
+      ---
+      duration_ms: 10050.567959
+      type: 'test'
+      location: '/data/apps/plotstay/tests/ssr.test.ts:188:11'
+      failureType: 'testCodeFailure'
+      error: |-
+        expect(locator).toContainText(expected) failed
+        
+        Locator: locator('#import-results')
+        Timeout: 5000ms
+        - Expected substring  - 1
+        + Received string     + 7
+        
+        - valid
+        + [
+        +   {
+        +     "externalId": "example-room-1",
+        +     "status": "error",
+        +     "message": "Choose an operating persona before saving or importing."
+        +   }
+        + ]
+        
+        Call log:
+          - Expect "toContainText" locator('#import-results') with timeout 5000ms
+          - waiting for locator('#import-results')
+            - locator resolved to <pre id="import-results"></pre>
+            - unexpected value ""
+            13 × locator resolved to <pre id="import-results">[↵  {↵    "externalId": "example-room-1",↵    "st…</pre>
+               - unexpected value "[
+          {
+            "externalId": "example-room-1",
+            "status": "error",
+            "message": "Choose an operating persona before saving or importing."
+          }
+        ]"
+        
+      code: 'ERR_TEST_FAILURE'
+      stack: |-
+        captureRawStack (/data/apps/plotstay/node_modules/playwright-core/lib/coreBundle.js:8588:17)
+        callMatcherAsStep (/data/apps/plotstay/node_modules/playwright/lib/matchers/expect.js:13310:57)
+        Object.toContainText (/data/apps/plotstay/node_modules/playwright/lib/matchers/expect.js:13302:23)
+        TestContext.<anonymous> (/data/apps/plotstay/tests/ssr.test.ts:242:53)
+        async TestContext.<anonymous> (/data/apps/plotstay/tests/ssr.test.ts:188:3)
+      ...
+    # Subtest: publishing changed or newly created content appears without rebuilding or restarting
+    ok 6 - publishing changed or newly created content appears without rebuilding or restarting
+      ---
+      duration_ms: 374.776408
+      type: 'test'
+      ...
+    # Subtest: adding an optional locale after build renders only published fallback text
+    ok 7 - adding an optional locale after build renders only published fallback text
+      ---
+      duration_ms: 257.442726
+      type: 'test'
+      ...
+    # Subtest: unpublishing takes effect immediately and API downtime returns an honest 503
+    ok 8 - unpublishing takes effect immediately and API downtime returns an honest 503
+      ---
+      duration_ms: 121.813241
+      type: 'test'
+      ...
+    1..8
+not ok 6 - built PostgreSQL → standalone API → Astro → browser
+  ---
+  duration_ms: 19862.790688
+  type: 'test'
+  location: '/data/apps/plotstay/tests/ssr.test.ts:14:1'
+  failureType: 'subtestsFailed'
+  error: '1 subtest failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# Subtest: workspace checkpoint shares the saved stay draft with the previous admin
+not ok 7 - workspace checkpoint shares the saved stay draft with the previous admin
+  ---
+  duration_ms: 6481.876387
+  type: 'test'
+  location: '/data/apps/plotstay/tests/workspace-e2e.test.ts:11:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    2 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/data/apps/plotstay/tests/workspace-e2e.test.ts:22:85)
+    runNextTicks (node:internal/process/task_queues:64:5)
+    process.processImmediate (node:internal/timers:452:9)
+    process.callbackTrampoline (node:internal/async_hooks:130:17)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..7
+# tests 44
+# suites 0
+# pass 41
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 221907.571874

@@ -1,0 +1,71 @@
+TAP version 13
+# Subtest: built PostgreSQL → standalone API → Astro → browser
+    # Subtest: cookie session failures do not invalidate cached Basic Auth credentials
+    ok 1 - cookie session failures do not invalidate cached Basic Auth credentials
+      ---
+      duration_ms: 3723.007891
+      type: 'test'
+      ...
+    # Subtest: SSR returns database text, expected routes, no-store headers and real status codes
+    ok 2 - SSR returns database text, expected routes, no-store headers and real status codes
+      ---
+      duration_ms: 746.64458
+      type: 'test'
+      ...
+    # Subtest: built server compresses responses and preserves cache, HEAD and byte-range semantics
+    ok 3 - built server compresses responses and preserves cache, HEAD and byte-range semantics
+      ---
+      duration_ms: 351.430036
+      type: 'test'
+      ...
+    # Subtest: browser language navigation keeps detail, world and query; desktop and mobile render
+    ok 4 - browser language navigation keeps detail, world and query; desktop and mobile render
+      ---
+      duration_ms: 5186.107223
+      type: 'test'
+      ...
+    # Subtest: browser management uses same-origin cookies and preserves conflicting input
+    ok 5 - browser management uses same-origin cookies and preserves conflicting input
+      ---
+      duration_ms: 12126.369273
+      type: 'test'
+      ...
+    # Subtest: publishing changed or newly created content appears without rebuilding or restarting
+    ok 6 - publishing changed or newly created content appears without rebuilding or restarting
+      ---
+      duration_ms: 951.93456
+      type: 'test'
+      ...
+    # Subtest: adding an optional locale after build renders only published fallback text
+    ok 7 - adding an optional locale after build renders only published fallback text
+      ---
+      duration_ms: 540.154028
+      type: 'test'
+      ...
+    # Subtest: unpublishing takes effect immediately and API downtime returns an honest 503
+    ok 8 - unpublishing takes effect immediately and API downtime returns an honest 503
+      ---
+      duration_ms: 527.447956
+      type: 'test'
+      ...
+    1..8
+ok 1 - built PostgreSQL → standalone API → Astro → browser
+  ---
+  duration_ms: 28175.499454
+  type: 'test'
+  ...
+# Subtest: workspace checkpoint shares the saved stay draft with the previous admin
+ok 2 - workspace checkpoint shares the saved stay draft with the previous admin
+  ---
+  duration_ms: 31719.926341
+  type: 'test'
+  ...
+1..2
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 66050.304406

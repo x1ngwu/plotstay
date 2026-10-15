@@ -1,10 +1,12 @@
+import {createFixtureContent as createContent} from './work-fixtures.ts';
+import {testEntry} from './runtime.ts';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { chromium, expect, type Page } from '@playwright/test';
 import { createContentSchema } from '@plotstay/contracts';
-import { createContent, submitRevision, reviewRevision, unpublishContent, restorePublication, digest, browseWorld } from '@plotstay/domain';
+import { submitRevision, reviewRevision, unpublishContent, restorePublication, digest, browseWorld } from '@plotstay/domain';
 import { parseBrowse } from '@plotstay/contracts';
 import { fixture } from './helpers.ts';
 import { seedDiscovery } from '../scripts/seed-discovery.ts';
@@ -20,7 +22,7 @@ test('phase 3 discovery, crawlability, trip, SEO and browser acceptance', {timeo
  }
  const apiPort=await unusedPort(),webPort=await unusedPort();const apiUrl=`http://127.0.0.1:${apiPort}`,webUrl=`http://127.0.0.1:${webPort}`,origin='https://plotstay-phase3.invalid';
  const env={...process.env,PGOPTIONS:f.options,NODE_ENV:'production',SITE_INDEXABLE:'true',SITE_URL:origin,API_PORT:String(apiPort),API_HOST:'127.0.0.1',HOST:'127.0.0.1',PORT:String(webPort),WEB_ORIGIN:webUrl,API_INTERNAL_URL:apiUrl};
- const launch=(entry:string)=>{const child=spawn(process.execPath,[entry],{env,stdio:['ignore','pipe','pipe']});let logs='';child.stdout!.on('data',d=>logs+=d);child.stderr!.on('data',d=>logs+=d);t.after(()=>stop(child));return {child,logs:()=>logs};};
+ const launch=(entry:string)=>{const child=spawn(process.execPath,[testEntry(entry)],{env,stdio:['ignore','pipe','pipe']});let logs='';child.stdout!.on('data',d=>logs+=d);child.stderr!.on('data',d=>logs+=d);t.after(()=>stop(child));return {child,logs:()=>logs};};
  const api=launch('apps/api/dist/server.mjs');await waitFor(apiUrl+'/api/health',api.child,api.logs);
  const web=launch('apps/web/server.mjs');await waitFor(webUrl+'/en',web.child,web.logs);
  const hash=await artifactHash();const browser=await chromium.launch({headless:true});t.after(()=>browser.close());
@@ -100,13 +102,13 @@ test('phase 3 discovery, crawlability, trip, SEO and browser acceptance', {timeo
  await t.test('existing account manages a service with translated tags and category; anonymous and role menus work',async()=>{
    const context=await browser.newContext();const page=await context.newPage();await page.goto(webUrl+'/zh');await menu(page);await expect(page.locator('[data-sign-in]')).toBeVisible();await expect(page.locator('[data-manage]')).toBeHidden();
    await page.goto(webUrl+'/zh/admin');await page.locator('#login [name=email]').fill(f.credentials.email);await page.locator('#login [name=password]').fill(f.credentials.password);await page.locator('#login button').click();await expect(page.locator('#workspace')).toBeVisible();
-   await page.locator('#new').click();await page.locator('#toggle-mode').click();await page.locator('[name=kind]').selectOption('service');await page.locator('[name=slug]').fill('browser-service');await page.locator('[name=amount]').fill('88');await page.locator('[name=category]').selectOption('maintenance');
+   await page.locator('#new').click();await page.locator('[name=personaId]').selectOption(f.data.providerId!);await page.locator('#toggle-mode').click();await page.locator('[name=kind]').selectOption('service');await page.locator('[name=slug]').fill('browser-service');await page.locator('[name=amount]').fill('88');await page.locator('[name=category]').selectOption('maintenance');
    await page.locator('[name="en:title"]').fill('Browser service');await page.locator('[name="en:description"]').fill('Browser service description');await page.locator('[name="en:tags"]').fill('Browser tag');await page.locator('[name="en:hostName"]').fill('Browser provider');
    await page.locator('[name="en:serviceItems"]').fill('Inspection\nMaintenance report');
    await page.locator('[name="zh-CN:title"]').fill('浏览器服务');await page.locator('[name="zh-CN:description"]').fill('浏览器服务介绍');await page.locator('[name="zh-CN:tags"]').fill('浏览器标签');await page.locator('[name="zh-CN:hostName"]').fill('浏览器提供者');
    await page.locator('[name="zh-CN:serviceItems"]').fill('检查\n检修报告');
    await page.locator('#editor button[type=submit]').click();await expect(page.locator('#message')).toContainText('草稿已保存');await page.locator('#submit-revision').click();await expect(page.locator('#revision-state')).toContainText('待审核');await page.locator('#publish').click();await expect(page.locator('#revision-state')).toContainText('已审核');
-   await page.goto(webUrl+'/zh?view=results&type=services&q=浏览器标签');await page.locator('.results-grid h3 a').click();await expect(page.locator('h1')).toHaveText('浏览器服务');await expect(page.locator('.detail-panel')).toContainText('浏览器提供者');await expect(page.locator('.detail-panel')).toContainText('检修与仪式');await expect(page.locator('.detail-panel')).toContainText('/ 次');
+   await page.goto(webUrl+'/zh?view=results&type=services&q=浏览器标签');await page.locator('.results-grid h3 a').click();await expect(page.locator('h1')).toHaveText('浏览器服务');await expect(page.locator('.detail-panel')).toContainText('示例经营者');await expect(page.locator('.detail-panel')).toContainText('检修与仪式');await expect(page.locator('.detail-panel')).toContainText('/ 次');
    await expect(page.locator('#service-items')).toContainText('检修报告');
    await menu(page);await expect(page.locator('[data-manage]')).toBeVisible();await expect(page.locator('[data-sign-out]')).toBeVisible();await page.locator('[data-sign-out]').click();await menu(page);await expect(page.locator('[data-sign-in]')).toBeVisible();
    const {rows:[user]}=await f.db.query("INSERT INTO users(email,password_hash) VALUES ($1,'unused') RETURNING id",[randomUUID()+'@test.invalid']);const token=randomUUID();await f.db.query("INSERT INTO sessions(token_hash,user_id,expires_at) VALUES ($1,$2,now()+interval '1 hour')",[digest(token),user.id]);

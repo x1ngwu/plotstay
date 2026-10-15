@@ -1,3 +1,5 @@
+import {historicalProvider} from './work-fixtures.ts';
+import {testEntry} from './runtime.ts';
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
@@ -22,7 +24,7 @@ import {
   savePersonaNotes,
 } from "@plotstay/domain";
 const artifactDir = new URL(
-  "../docs/workspace-handoff/reviews-implementation/screenshots/",
+  "../docs/workspace-handoff/works-implementation/regression-reviews/screenshots/",
   import.meta.url,
 );
 const profile = (en: string, zh: string) => ({
@@ -154,7 +156,7 @@ test(
     for (let i = 0; i < 3; i++) {
       mineReviews.push(await createReview(owner, mine, entryIds[i]!, i));
       received.push(await createReview(other, guest, entryIds[i]!, i));
-      await bindProvider(db, data.admin, entryIds[i]!, host.id);
+      await historicalProvider(db, data.admin, entryIds[i]!, host.id);
     }
     const own = mineReviews[0]!;
     const response = await saveReply(db, owner, own.id, replyBody, null);
@@ -217,7 +219,7 @@ test(
       replyBody,
       null,
     );
-    await bindProvider(db, data.admin, entryIds[2]!, nextHost.id);
+    await historicalProvider(db, data.admin, entryIds[2]!, nextHost.id);
     await savePersonaNotes(db, owner, mine.id, {
       requestId: randomUUID(),
       baseVersion: null,
@@ -241,7 +243,7 @@ test(
       API_INTERNAL_URL: apiUrl,
     };
     const launch = (entry: string) => {
-      const child = spawn(process.execPath, [entry], {
+      const child = spawn(process.execPath, [testEntry(entry)], {
         env,
         stdio: ["ignore", "pipe", "pipe"],
       });
@@ -908,16 +910,16 @@ test(
       "reply previews use own readable revision after provider changes and baseline adoption",
       async () => {
         const id = received[2]!.id;
-        await bindProvider(db, data.admin, entryIds[2]!, host.id);
+        await historicalProvider(db, data.admin, entryIds[2]!, host.id);
         await page.goto(route("en", "replies", id, true));
         await expect(page.locator("#editor")).toBeVisible();
         const ownBefore = await replyDetail(db, owner, id);
-        await bindProvider(db, data.admin, entryIds[2]!, nextHost.id);
+        await historicalProvider(db, data.admin, entryIds[2]!, nextHost.id);
         const foreign = await saveReply(db, other, id, {
           sourceLocale: "en",
           texts: { en: "Foreign private draft sentinel", "zh-CN": "对方私稿" },
         }, ownBefore.baseRevisionId);
-        await bindProvider(db, data.admin, entryIds[2]!, host.id);
+        await historicalProvider(db, data.admin, entryIds[2]!, host.id);
         await page.locator("[data-action=save]").first().click();
         await expect(page.locator("[data-action=compare]")).toBeVisible();
         await page.locator("[data-action=compare]").click();
@@ -960,14 +962,14 @@ test(
         const id = received[2]!.id;
         const before = await replyDetail(db, owner, id);
         const editable = before.revisions.find((r: any) => r.id === before.editRevisionId);
-        await bindProvider(db, data.admin, entryIds[2]!, mine.id);
+        await historicalProvider(db, data.admin, entryIds[2]!, mine.id);
         let base = before.baseRevisionId;
         for (let i = 0; i < 21; i++) {
           base = (await saveReply(db, owner, id, {
             sourceLocale: "en", texts: { en: `Alternate persona draft ${i}` },
           }, base, mine.id)).revisionId;
         }
-        await bindProvider(db, data.admin, entryIds[2]!, host.id);
+        await historicalProvider(db, data.admin, entryIds[2]!, host.id);
         for (const historyPage of [1, 2]) {
           const paged = await replyDetail(db, owner, id, false, { page: historyPage });
           assert.equal(paged.editRevisionId, before.editRevisionId);
@@ -1072,7 +1074,7 @@ test(
     assert.deepEqual(errors, []);
     await writeFile(
       new URL(
-        "../docs/workspace-handoff/reviews-implementation/browser-evidence.json",
+        "../docs/workspace-handoff/works-implementation/regression-reviews/browser-evidence.json",
         import.meta.url,
       ),
       JSON.stringify(

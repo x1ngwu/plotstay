@@ -1,3 +1,4 @@
+import {createFixtureContent as createContent,fixtureOperator} from './work-fixtures.ts';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
@@ -7,12 +8,13 @@ import {seedStayDetails} from '../scripts/seed-stay-details.ts';
 import {seedExperienceDetails} from '../scripts/seed-experience-details.ts';
 import {seedServiceDetails} from '../scripts/seed-service-details.ts';
 import {createApp} from '../apps/api/src/app.ts';
-import {initializeSettings,listSettings,settingDetail,saveSetting,settingAction,publicDetailCopy,adminDetail,adminList,editContent,previewDetail,getPublished,submitRevision,reviewRevision,restorePublication,createContent,createGuest,quoteBooking,createBooking,getReceipt,saveTranslation,adminHome,saveHomeDraft,reviewHome,importContent,runTranslationOnce} from '@plotstay/domain';
+import {initializeSettings,listSettings,settingDetail,saveSetting,settingAction,publicDetailCopy,adminDetail,adminList,editContent,previewDetail,getPublished,submitRevision,reviewRevision,restorePublication,createGuest,quoteBooking,createBooking,getReceipt,saveTranslation,adminHome,saveHomeDraft,reviewHome,importContent,runTranslationOnce} from '@plotstay/domain';
 import {textSchema,attributesSchema,editContentSchema,createContentSchema,detailCopyDefaults,copySchema,type QuoteInput} from '@plotstay/contracts';
 const rejected=(fn:()=>Promise<unknown>,code:string)=>assert.rejects(fn,(e:any)=>e.code===code);
 test('phase 5.5 persistent content management',async t=>{
  const f=await detailFixture();t.after(f.cleanup);const {db,data}=f;
  await seedStayDetails(db,data.admin,true);await seedExperienceDetails(db,data.admin,true);await seedServiceDetails(db,data.admin,true);
+ const formalText=async(id:string,text:any,locale='en')=>{const p=(await db.query('SELECT p.profiles FROM provider_bindings b JOIN personas p ON p.id=b.persona_id WHERE b.content_id=$1',[id])).rows[0]?.profiles?.[locale];return p?{...text,hostName:p.name,hostBio:p.bio}:text;};
  const publish=async(id:string,revisionId:string)=>{await submitRevision(db,data.owner,id,revisionId);return reviewRevision(db,data.owner,id,revisionId,'publish','5.5 isolated acceptance');};
  await t.test('bootstrap is explicit, idempotent and preserves all original business rows',async()=>{
   const before=await historyDigest(db);assert.ok((await initializeSettings(db,data.admin)).missing.length>0);assert.equal((await db.query('SELECT * FROM detail_settings')).rowCount,0);
@@ -30,8 +32,8 @@ test('phase 5.5 persistent content management',async t=>{
    const saved=await editContent(db,data.owner,c.id,edit);const actual=await adminDetail(db,data.owner,c.id);
    assert.deepEqual(actual.revisions[0].translations.en,edit.text);assert.deepEqual(actual.revisions[0].translations['zh-CN'],edit.translations['zh-CN']);assert.deepEqual(actual.revisions[0].attributes,attributes);
    assert.deepEqual(await getPublished(db,'en',{id:c.id}),old);await rejected(()=>editContent(db,data.owner,c.id,edit),'REVISION_CONFLICT');
-   const preview=await previewDetail(db,data.owner,c.id,saved.revisionId,actual.content.draft_token,'en');assert.deepEqual(preview.content.text,edit.text);assert.equal(preview.content.preview,true);assert.equal(preview.content.publicationId,'');
-   await publish(c.id,saved.revisionId);assert.deepEqual((await getPublished(db,'en',{id:c.id}))!.text,edit.text);
+   const preview=await previewDetail(db,data.owner,c.id,saved.revisionId,actual.content.draft_token,'en');assert.deepEqual(preview.content.text,await formalText(c.id,edit.text));assert.equal(preview.content.preview,true);assert.equal(preview.content.publicationId,'');
+   await publish(c.id,saved.revisionId);assert.deepEqual((await getPublished(db,'en',{id:c.id}))!.text,await formalText(c.id,edit.text));
    await restorePublication(db,data.owner,c.id,old!.publicationId);assert.deepEqual((await getPublished(db,'en',{id:c.id}))!.text,old!.text);assert.equal((await adminDetail(db,data.owner,c.id)).content.head_revision_id,saved.revisionId);
   }
  });
@@ -54,7 +56,7 @@ test('phase 5.5 persistent content management',async t=>{
    const zh=structuredClone(text);zh.title='中文 '+kind;zh.rules.reverse();
    const input=createContentSchema.parse({worldId:data.latheId,kind,slug:'every-field-'+kind,sourceLocale:'en',text,translations:{'zh-CN':zh},attributes,parentContentId:kind==='review'?data.ids['observation-room']:null});
    const c=await createContent(db,data.owner,input);const loaded=await adminDetail(db,data.owner,c.id);assert.deepEqual(loaded.revisions[0].translations,{en:input.text,'zh-CN':input.translations['zh-CN']});assert.deepEqual(loaded.revisions[0].attributes,input.attributes);
-   await publish(c.id,c.revisionId);assert.deepEqual((await getPublished(db,'en',{id:c.id}))!.text,input.text);assert.deepEqual((await getPublished(db,'zh-CN',{id:c.id}))!.text,input.translations['zh-CN']);
+   await publish(c.id,c.revisionId);assert.deepEqual((await getPublished(db,'en',{id:c.id}))!.text,await formalText(c.id,input.text));assert.deepEqual((await getPublished(db,'zh-CN',{id:c.id}))!.text,await formalText(c.id,input.translations['zh-CN'],'zh-CN'));
   }
  });
  await t.test('configuration publication is reviewed, atomic, scoped, concurrent and historical',async()=>{
@@ -89,7 +91,7 @@ test('phase 5.5 persistent content management',async t=>{
   await assert.rejects(()=>quoteBooking(db,{contentId:id,locale:'en',trip:{kind:'stay',start:'2030-01-01',end:'2030-01-02',guests:1,rooms:1},preview:true}));
  });
  await t.test('new map and clear metadata survive import and translation jobs without publishing drafts',async()=>{
-  const content=createContentSchema.parse({worldId:data.latheId,kind:'stay',slug:'import-detail-fields',sourceLocale:'en',text:{title:'Imported stay',description:'Original text',map:{center:'',transit:'Original stop'},stay:{space:''},clearedFields:['stay.space']},attributes:{price:{amount:0,unit:'night'},stay:{bedrooms:0}}});
+  const content=createContentSchema.parse({worldId:data.latheId,kind:'stay',personaId:await fixtureOperator(db,data.owner,data.latheId),slug:'import-detail-fields',sourceLocale:'en',text:{title:'Imported stay',description:'Original text',map:{center:'',transit:'Original stop'},stay:{space:''},clearedFields:['stay.space']},attributes:{price:{amount:0,unit:'night'},stay:{bedrooms:0}}});
   const batch={worldId:data.latheId,source:'phase55-fields',items:[{externalId:'one',content}]};assert.equal((await importContent(db,data.owner,batch,true)).results[0]!.status,'valid');const result=await importContent(db,data.owner,batch,false),id=result.results[0]!.contentId!;assert.equal((await importContent(db,data.owner,batch,false)).results[0]!.status,'unchanged');
   const detail=await adminDetail(db,data.owner,id),revision=detail.revisions[0],provider=randomUUID();await db.query('UPDATE translation_jobs SET provider=$2 WHERE revision_id=$1',[revision.id,provider]);await runTranslationOnce(db,{id:provider,translate:async request=>{assert.deepEqual(request.text.map,content.text.map);assert.deepEqual(request.text.clearedFields,['stay.space']);return {...request.text,title:'导入译文'};}});
   const translated=await adminDetail(db,data.owner,id);assert.deepEqual(translated.revisions[0].translations['zh-CN'].map,content.text.map);assert.deepEqual(translated.revisions[0].translations['zh-CN'].clearedFields,['stay.space']);assert.equal(await getPublished(db,'en',{id}),null);

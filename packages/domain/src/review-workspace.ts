@@ -77,7 +77,7 @@ const base = `WITH permitted AS (
  CASE WHEN $2='reviews' AND r.status IN ('draft','rejected') THEN r.id
   WHEN $2='replies' AND own_status.action IN ('draft','reject') THEN p.own_reply_id END AS draft_revision_id,
  CASE WHEN $2='reviews' THEN r.status='rejected' ELSE own_status.action='reject' END AS rejected,
- p.context_available AND CASE WHEN $2='reviews' THEN NOT p.reviewer_disabled ELSE p.provider_owner=$1 AND NOT p.provider_disabled END AS can_edit,
+ p.context_available AND CASE WHEN $2='reviews' THEN NOT p.reviewer_disabled ELSE p.provider_owner=$1 AND NOT p.provider_disabled AND NOT EXISTS(SELECT 1 FROM work_eligibilities e WHERE e.world_id=p.world_id AND e.user_id=$1 AND e.status='revoked') END AS can_edit,
  CASE WHEN $2='reviews' THEN p.persona_id ELSE coalesce(CASE WHEN p.provider_owner=$1 THEN p.provider_id END,p.own_reply_persona) END AS focus_persona_id,
  CASE WHEN $2='replies' AND p.own_reply_id IS NOT NULL THEN left(coalesce(p.own_reply_body->$3,p.own_reply_body->p.own_reply_source)#>>'{}',400)
  WHEN p.context_available THEN left(coalesce(p.public_reply_body->$3,p.public_reply_body->p.public_reply_source)#>>'{}',400) END AS reply_excerpt,

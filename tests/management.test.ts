@@ -1,3 +1,4 @@
+import {fixtureOperator} from './work-fixtures.ts';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
@@ -16,14 +17,15 @@ test('content management HTTP workflows', async t => {
   const post = (path: string, payload: Record<string, unknown>, token = ownerCookie) => app.inject({ method: 'POST', url: '/api/admin' + path,
     headers: { origin: 'http://localhost:4321', cookie: token }, payload });
   const read = async (id: string) => (await app.inject({ url: '/api/admin/contents/' + id, headers: { cookie: ownerCookie } })).json();
-  const input = (slug: string) => ({ worldId: f.data.latheId, kind: 'stay', slug, sourceLocale: 'en',
+  const ownerProvider=await fixtureOperator(f.db,f.data.owner,f.data.latheId),editorProvider=await fixtureOperator(f.db,f.data.editor,f.data.latheId);
+  const input = (slug: string) => ({personaId:ownerProvider, worldId: f.data.latheId, kind: 'stay', slug, sourceLocale: 'en',
     text: { title: 'Management source', description: 'English source' }, translations: { 'zh-CN': { title: '管理中文', description: '中文说明' } },
     attributes: { price: { amount: 10, unit: 'night' } } });
   let id: string, oldPublication: string;
   await t.test('authenticated create, save, conflict, review, reject and publish', async () => {
     assert.equal((await post('/contents', input('unauthorized'), '')).statusCode, 401);
     assert.equal((await post('/contents', input('wrong-world'), foreignCookie)).statusCode, 403);
-    const response = await post('/contents', input('managed-room'), editorCookie);
+    const response = await post('/contents', {...input('managed-room'),personaId:editorProvider}, editorCookie);
     assert.equal(response.statusCode, 201); id = response.json().id;
     assert.equal((await post('/contents', input('managed-room'))).statusCode, 409);
     let detail = await read(id);

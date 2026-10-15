@@ -1,0 +1,41 @@
+---
+import Base from '../../../../../layouts/Base.astro';
+import DetailBody from '../../../../../components/DetailBody.astro';
+import ReviewCard from '../../../../../components/detail/stay/ReviewCard.astro';
+import {getLocales,getWorlds} from '../../../../../lib/api';
+import {fallbackLocales,resolveLocale,parseBrowse,type ContentDetail} from '@plotstay/contracts';
+import {noIndex} from '../../../../../lib/seo';
+import '../../../../../styles/detail.css';
+import '../../../../../styles/stay.css';
+import '../../../../../styles/service.css';
+import '../../../../../styles/experience.css';
+let detail:ContentDetail|undefined,world;
+let previewErrorCode:string|undefined;
+const locales=(await getLocales()).locales;
+const locale=resolveLocale(Astro.params.locale??'',locales)??fallbackLocales[0]!;
+try{
+ const url=new URL(`/api/me/works/${encodeURIComponent(Astro.params.id??'')}/preview`,process.env.API_INTERNAL_URL??'http://127.0.0.1:4310');
+ for(const key of ['revisionId','token'])url.searchParams.set(key,Astro.url.searchParams.get(key)??'');url.searchParams.set('locale',locale.code);for(const key of ['settingId','settingRevision','homeRevision'])if(Astro.url.searchParams.has(key))url.searchParams.set(key,Astro.url.searchParams.get(key)!);
+ const response=await fetch(url,{headers:{cookie:Astro.request.headers.get('cookie')??''},cache:'no-store'});
+ Astro.response.status=response.status;
+ if(response.ok){detail=await response.json();world=(await getWorlds(locale.code)).worlds.find(w=>w.id===detail!.content.worldId);}
+ else{const failure=await response.json().catch(()=>null);previewErrorCode=failure?.error?.code;}
+}catch{Astro.response.status=503;}
+if(detail?.previewSetting?.kind==='copy')Astro.locals.detailCopy=detail.previewSetting.body;
+if(detail?.previewSetting?.kind==='world'&&world){const text=detail.previewSetting.body[locale.code]??detail.previewSetting.body[world.sourceLocale];if(text)world={...world,...text};}
+Astro.response.headers.set('Cache-Control','private, no-store');Astro.response.headers.set('X-Robots-Tag','noindex, nofollow, noarchive');
+let returnTo=`/${locale.pathPrefix}/workspace?view=works`;
+try{const target=new URL(Astro.url.searchParams.get('returnTo')??returnTo,Astro.url);if(target.origin===Astro.url.origin&&target.pathname===`/${locale.pathPrefix}/workspace`&&target.searchParams.get('view')==='works')returnTo=target.pathname+target.search;}catch{}
+const state=parseBrowse(new URLSearchParams());
+const unavailableMessage=previewErrorCode==='PARENT_UNPUBLISHED'
+ ? locale.code==='zh-CN'
+   ? '手记所属条目尚未公开，因此当前无法预览这篇手记。请检查所属条目的发布状态。'
+   : 'This note cannot be previewed because its parent entry is not published. Check the parent entry’s publication status.'
+ : '预览不可用：请登录后台并重新打开当前已保存版本。 / Sign in and reopen the saved version.';
+---
+<Base title="Draft preview" locale={locale} locales={locales} world={world} seo={noIndex()}>
+ <a href={returnTo} data-preview-return>{locale.code==='zh-CN'?'返回内容列表':'Back to content list'}</a>
+ <p class="notice" data-preview-banner>草稿预览 / Draft preview · {Astro.url.searchParams.get('revisionId')} · {locale.name} · {detail?.previewSetting ? `配置预览 / Configuration: ${detail.previewSetting.revisionId}` : ''} · 不可预订 / Booking disabled</p>
+ {!detail||!world?<h1>{unavailableMessage}</h1>:detail.content.kind==='review'?<section class="detail-page stay-detail"><h1>{detail.content.text.title}</h1><p class="notice">{locale.code==='zh-CN'?'评价草稿卡片；不计入公开评分。':'Draft review card; it does not count towards public ratings.'}</p><div class="stay-review-grid"><ReviewCard review={detail.content} locale={locale} preview={true}/></div></section>:<div class:list={['detail-page',`${detail.content.kind}-detail`]}><DetailBody detail={detail} locale={locale} world={world} state={state}/></div>}
+</Base>
+<script>import '../../../../../lib/preview-bridge';</script>

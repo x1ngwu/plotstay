@@ -1,3 +1,5 @@
+import {historicalProvider} from './work-fixtures.ts';
+import {testEntry} from './runtime.ts';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
@@ -32,7 +34,7 @@ test('phase 5.6 ordinary account accommodation journey', { timeout: 180000 }, as
     API_INTERNAL_URL: apiUrl,
   };
   const launch = (entry: string) => {
-    const child = spawn(process.execPath, [entry], { env, stdio: ['ignore', 'pipe', 'pipe'] });
+    const child = spawn(process.execPath, [testEntry(entry)], { env, stdio: ['ignore', 'pipe', 'pipe'] });
     let logs = '';
     child.stdout!.on('data', (d) => (logs += d));
     child.stderr!.on('data', (d) => (logs += d));
@@ -116,7 +118,7 @@ test('phase 5.6 ordinary account accommodation journey', { timeout: 180000 }, as
     await expect(page.locator(`[data-note-id="${reviewId}"] img`)).toBeVisible();
   });
   await t.test(
-    'experience and service reviews, explicit provider binding and bilingual reply moderation',
+    'experience and service reviews, blocked provider reassignment and historical bilingual reply moderation',
     async () => {
       const mod = await browser.newPage();
       await mod.goto(webUrl + '/en/account?view=moderation');
@@ -169,7 +171,8 @@ test('phase 5.6 ordinary account accommodation journey', { timeout: 180000 }, as
         await mod.locator('[name=bindingEntry]').selectOption(target);
         await mod.locator('[name=bindingPersona]').selectOption(persona);
         await mod.getByRole('button', { name: 'Assign provider', exact: true }).click();
-        await expect(mod.locator('#persona-message')).toContainText('Provider assigned');
+        await expect(mod.locator('#persona-message')).toContainText('permanently locked');
+        await historicalProvider(f.db,f.data.admin,target,persona);
         await page.goto(webUrl + path);
         const card = page.locator('[data-note-id="' + id + '"]');
         await card.locator('[data-provider-reply]').click();

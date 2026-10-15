@@ -1,0 +1,107 @@
+{
+  "results": [
+    {
+      "name": "works/zh/1440",
+      "passed": true
+    },
+    {
+      "name": "create/zh/1440",
+      "passed": true
+    },
+    {
+      "name": "works/zh/1100",
+      "passed": true
+    },
+    {
+      "name": "create/zh/1100",
+      "passed": true
+    },
+    {
+      "name": "works/zh/390",
+      "passed": true
+    },
+    {
+      "name": "create/zh/390",
+      "passed": true
+    },
+    {
+      "name": "works/zh/360",
+      "passed": true
+    },
+    {
+      "name": "create/zh/360",
+      "passed": true
+    },
+    {
+      "name": "works/en/1440",
+      "passed": true
+    },
+    {
+      "name": "create/en/1440",
+      "passed": true
+    },
+    {
+      "name": "works/en/1100",
+      "passed": true
+    },
+    {
+      "name": "create/en/1100",
+      "passed": true
+    },
+    {
+      "name": "works/en/390",
+      "passed": true
+    },
+    {
+      "name": "create/en/390",
+      "passed": true
+    },
+    {
+      "name": "works/en/360",
+      "passed": true
+    },
+    {
+      "name": "create/en/360",
+      "passed": true
+    },
+    {
+      "name": "public/new/submitted/returned double states; real public page and private saved preview have distinct titles",
+      "passed": true
+    },
+    {
+      "name": "works/zh/360/font200",
+      "passed": true
+    },
+    {
+      "name": "create/zh/360/font200",
+      "passed": true
+    },
+    {
+      "name": "works/en/360/font200",
+      "passed": true
+    },
+    {
+      "name": "create/en/360/font200",
+      "passed": true
+    },
+    {
+      "name": "200% text, mobile menu/signout, keyboard combo, combined filters, legal prefill, language retention, modal apply/focus, empty, network retry",
+      "passed": true
+    },
+    {
+      "name": "search, pagination, modal cancel, required errors, unapproved persona, zero-write entry, real first save and preview, return feedback",
+      "passed": true
+    },
+    {
+      "name": "ordinary author input during save, truthful old preview, expired session, account mismatch, same-account recovery, unapproved gate and permanent binding UI",
+      "passed": true
+    },
+    {
+      "name": "saved preview return, revoked eligibility, no persona, administrator mine/managed separation",
+      "passed": true
+    }
+  ],
+  "errors": [],
+  "scope": "Real isolated PostgreSQL/API/Web; ordinary author without world_members",
+  "finishedAt": "2026-10-15T05:43:04.209Z"
+}

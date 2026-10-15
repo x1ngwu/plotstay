@@ -1,3 +1,4 @@
+import {testEntry} from './runtime.ts';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {spawn} from 'node:child_process';
@@ -14,7 +15,7 @@ test('phase 5.5 section forms and protected preview',{timeout:180000},async t=>{
  const f=await detailFixture();t.after(f.cleanup);await seedStayDetails(f.db,f.data.admin,true);await seedExperienceDetails(f.db,f.data.admin,true);await seedExperienceReviews(f.db,f.data.admin,true);await seedServiceDetails(f.db,f.data.admin,true);await initializeSettings(f.db,f.data.admin,true);
  const apiPort=await unusedPort(),webPort=await unusedPort(),apiUrl=`http://127.0.0.1:${apiPort}`,webUrl=`http://127.0.0.1:${webPort}`;
  const env={...process.env,PGOPTIONS:f.options,NODE_ENV:'production',SITE_INDEXABLE:'false',API_PORT:String(apiPort),API_HOST:'127.0.0.1',HOST:'127.0.0.1',PORT:String(webPort),WEB_ORIGIN:webUrl,API_INTERNAL_URL:apiUrl};
- const launch=(entry:string)=>{const child=spawn(process.execPath,[entry],{env,stdio:['ignore','pipe','pipe']});let logs='';child.stdout!.on('data',d=>logs+=d);child.stderr!.on('data',d=>logs+=d);t.after(()=>stop(child));return {child,logs:()=>logs};};
+ const launch=(entry:string)=>{const child=spawn(process.execPath,[testEntry(entry)],{env,stdio:['ignore','pipe','pipe']});let logs='';child.stdout!.on('data',d=>logs+=d);child.stderr!.on('data',d=>logs+=d);t.after(()=>stop(child));return {child,logs:()=>logs};};
  const api=launch('apps/api/dist/server.mjs');await waitFor(apiUrl+'/api/health',api.child,api.logs);const web=launch('apps/web/server.mjs');await waitFor(webUrl+'/en',web.child,web.logs);
  const browser=await chromium.launch({headless:true});t.after(()=>browser.close());const context=await browser.newContext();const page=await context.newPage();const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));page.on('dialog',dialog=>dialog.accept());
  await page.goto(webUrl+'/en/admin');await page.locator('#login [name=email]').fill(f.credentials.email);await page.locator('#login [name=password]').fill(f.credentials.password);await page.locator('#login button').click();await expect(page.locator('#workspace')).toBeVisible();

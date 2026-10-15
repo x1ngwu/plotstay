@@ -1,7 +1,9 @@
+import {historicalProvider} from './work-fixtures.ts';
+import {createFixtureContent as createContent} from './work-fixtures.ts';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {fixture} from './helpers.ts';
-import {workspaceOverview,workspaceWorlds,createContent,editContent,submitRevision,reviewRevision} from '@plotstay/domain';
+import {workspaceOverview,workspaceWorlds,editContent,submitRevision,reviewRevision} from '@plotstay/domain';
 import {createContentSchema} from '@plotstay/contracts';
 
 test('overview summary is bounded, scoped and uses current edits instead of management access',async t=>{
@@ -36,7 +38,7 @@ test('overview follows reply state transitions, current provider binding and vis
  const profiles={en:{name:'Moss',bio:'An explorer',avatar:'mint'},'zh-CN':{name:'苔',bio:'探索者',avatar:'mint'}};
  const p=await d.savePersona(db,author,profiles),hp=await d.savePersona(db,host,profiles);
  await d.submitOwnPersona(db,host,hp.id,hp.revisionId);await d.moderatePersona(db,data.admin,hp.revisionId,'approved','');
- const target=data.ids['observation-room']!;await d.bindProvider(db,data.admin,target,hp.id);
+ const target=data.ids['observation-room']!;await historicalProvider(db,data.admin,target,hp.id);
  const review=await d.startReview(db,author,target,p.id);const revision=(await d.reviewDetail(db,author,review.id)).revisions[0];
  const saved=await d.saveReview(db,author,review.id,revision.id,{sourceLocale:'en',texts:{en:{title:'A tide',description:'A quiet night'},'zh-CN':{title:'潮汐',description:'安静的一夜'}}});
  await d.submitReview(db,author,review.id,saved.revisionId);await d.reviewRevision(db,data.admin,review.id,saved.revisionId,'publish','');

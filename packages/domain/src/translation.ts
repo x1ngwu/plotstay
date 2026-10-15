@@ -68,7 +68,13 @@ export async function runTranslationOnce(db: Database, adapter: TranslationAdapt
     if (currentJob.status !== 'running' || currentJob.lease_token !== job.lease_token || new Date(currentJob.leased_until).getTime() <= Date.now()) return;
     const { rows: [currentRevision] } = await client.query('SELECT status FROM content_revisions WHERE id=$1', [revision.id]);
     const existing = await client.query('SELECT 1 FROM revision_locales WHERE revision_id=$1 AND locale=$2', [revision.id, job.locale]);
-    if (staleAtStart || content.head_revision_id !== revision.id || !['draft', 'rejected'].includes(currentRevision.status) || existing.rowCount) {
+    let unavailable=false;
+    if(['stay','service','experience'].includes(content.kind)){
+      const {workOwner,qualification}=await import('./work-access.ts');const owner=await workOwner(client,content.id);
+      if(!owner)unavailable=true;
+      else {const active=(await client.query('SELECT active FROM users WHERE id=$1 FOR SHARE',[owner])).rows[0]?.active;const q=await qualification(client,content.world_id,owner,true);const world=(await client.query('SELECT visible,site_blocked FROM worlds WHERE id=$1 FOR SHARE',[content.world_id])).rows[0];unavailable=!active||q.status==='revoked'||content.site_blocked||!world?.visible||world.site_blocked;}
+    }
+    if (unavailable || staleAtStart || content.head_revision_id !== revision.id || !['draft', 'rejected'].includes(currentRevision.status) || existing.rowCount) {
       await client.query("UPDATE translation_jobs SET status='superseded',lease_token=NULL,leased_until=NULL,completed_at=now() WHERE id=$1", [job.id]);
     } else if (failure) {
       await client.query(`UPDATE translation_jobs SET status=$2,last_error=$3,lease_token=NULL,leased_until=NULL,
@@ -85,13 +91,14 @@ export async function runTranslationOnce(db: Database, adapter: TranslationAdapt
   return true;
 }
 
-export async function retryTranslation(db: Database, actor: Actor, jobId: string) {
+export async function retryTranslation(db: Database, actor: Actor, jobId: string, ownContentId?:string) {
   return transaction(db, async client => {
     const { rows: [job] } = await client.query(`SELECT j.*,r.content_id FROM translation_jobs j
-      JOIN content_revisions r ON r.id=j.revision_id WHERE j.id=$1`, [jobId]);
+      JOIN content_revisions r ON r.id=j.revision_id WHERE j.id=$1 AND ($2::uuid IS NULL OR r.content_id=$2)`, [jobId,ownContentId??null]);
     assert(job, 404, 'NOT_FOUND', 'Translation task not found.');
     const { rows: [content] } = await client.query('SELECT * FROM contents WHERE id=$1 FOR UPDATE', [job.content_id]);
-    await requireWorld(client, actor, content.world_id);
+    if(ownContentId)await (await import('./work-access.ts')).readWork(client,actor,content.id);else await requireWorld(client, actor, content.world_id);
+    await (await import('./work-access.ts')).writeWork(client,actor,content);
     const { rows: [revision] } = await client.query('SELECT status FROM content_revisions WHERE id=$1', [job.revision_id]);
     assert(content.head_revision_id === job.revision_id && ['draft', 'rejected'].includes(revision.status), 409, 'REVISION_LOCKED', 'Only the current editable draft can be translated.');
     assert(!(await client.query('SELECT 1 FROM revision_locales WHERE revision_id=$1 AND locale=$2', [job.revision_id, job.locale])).rowCount,

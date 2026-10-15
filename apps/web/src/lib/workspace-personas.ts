@@ -105,7 +105,7 @@ export async function initWorkspacePersonas(root: HTMLElement) {
         if (raw)
             try {
                 const u = new URL(raw, location.origin);
-                if (u.origin === location.origin && /^\/(zh|en)\/workspace$/.test(u.pathname) && ['overview', 'personas'].includes(u.searchParams.get('view') ?? 'overview'))
+                if (u.origin === location.origin && /^\/(zh|en)\/workspace$/.test(u.pathname) && ['overview', 'personas', 'create'].includes(u.searchParams.get('view') ?? 'overview'))
                     return u.pathname + u.search;
             }
             catch { }
@@ -118,6 +118,8 @@ export async function initWorkspacePersonas(root: HTMLElement) {
         context.textContent = editing ? l('对外资料与私人笔记分别保存。角色可以跨世界使用。', 'Save public profiles and private notes separately. A persona can travel across worlds.') : l('管理你在不同世界中使用的角色。创建新角色，编辑资料，开始新的故事。', 'Manage the personas you use across worlds. Create a persona, update a profile, begin a new story.');
         back.href = editing ? returnUrl() : `/${prefix()}/workspace`;
         back.textContent = '← ' + (editing ? new URL(back.href).searchParams.get('view') === 'personas' ? l('返回角色列表', 'Back to personas') : l('返回工作台首页', 'Back to overview') : l('返回工作台', 'Back to workspace'));
+        if(!editing&&new URL(returnUrl(),location.origin).searchParams.get('view')==='create'){back.href=returnUrl();back.textContent='← '+l('返回创建内容','Back to Create content');}
+        if(editing&&new URL(back.href).searchParams.get('view')==='create')back.textContent='← '+l('返回创建内容','Back to Create content');
         document.getElementById('ws-crumb-tail')!.innerHTML = editing ? `<a href="${listUrl()}">${l('我的角色', 'My personas')}</a> / ${esc(title)}` : esc(title);
         action.hidden = editing;
         action.href = listUrl() + '&new=1&returnTo=' + encodeURIComponent(location.pathname + location.search);

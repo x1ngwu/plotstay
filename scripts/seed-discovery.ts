@@ -73,7 +73,7 @@ export async function seedDiscovery(db: Database, data: Awaited<ReturnType<typeo
         const translated = { title: zh, summary: kind === 'stay' ? '在不曾真正入眠的世界里，留一个安静角落。' : kind === 'service' ? '本地人的手艺，和让人安心的工具数量。' : '给轮班以外的生活，留一点时间。',
           description: '一段想象中的拉斯世界之旅。这是双语演示内容，所有体验与报价均为虚构，等待日后填入正式故事。',
           hostName: kind === 'service' ? '下班后的检修台' : '你的本地房东', tags: ['慢旅行', '虚构旅程'], imageAlts: { cover: kind === 'stay' ? '安静舱室的插画。' : kind === 'service' ? '检修台插画。' : '轨道铸造城插画。' } };
-        const created = await createContent(db, data.admin, createContentSchema.parse({ worldId: data.latheId, placeId: placeIds[place!], kind, slug,
+        const created = await createContent(db, data.admin, createContentSchema.parse({ worldId: data.latheId, placeId: placeIds[place!], kind, slug, personaId: data.providerId,
           sourceLocale: 'en', text, translations: { 'zh-CN': translated }, attributes: { category,
             images: i === 5 ? [] : [{ id: 'cover', url: kind === 'stay' ? '/media/quarters.svg' : kind === 'service' ? '/media/maintenance.svg' : '/media/lathe-orbit.svg' }],
             price: { amount: kind === 'stay' ? 80 + i * 25 : 30 + i * 15, unit: kind === 'stay' ? 'night' : kind === 'service' ? 'session' : 'person' },

@@ -1,0 +1,11 @@
+{
+  "head": "8b783e4f0a698320387cb2bab7f0ce298c086b92",
+  "preexistingFiles": {
+    "deploy/nginx/plotstay.xingwu.dev.conf": "23b5c37f188323400b0308158d75170e5209268ef0df720841d80a32bcaaaf3a",
+    "docs/operations.md": "fd9367fb8567e0609e54881198174e9d313eeac4089800745ceb87fae551522c",
+    "docs/development-status.md": "a8c3ffd25bba3a0287e7929bd119044718104b315391ba40a0435cb0b6ed5c5b",
+    "example_pages.zip": "2338ebbf7ead485b3842e0d8eb3204da83dfd52c4eb8994c85c2daa232b72d26",
+    "plotstay-works-create-developer-handoff.zip": "28b0cfcbcda414cff8b2a8a4dc61d07ce8be8e8c9a456948d672219a0c02c778"
+  },
+  "otherSessions": "No additional worktree; no new app changes at intake. Process listing alone cannot prove absence of external sessions."
+}

@@ -5,7 +5,7 @@ import type { APIRoute } from 'astro';
 export const ALL: APIRoute = async ({ request, url }) => {
   if (!['GET', 'HEAD', 'POST', 'PUT'].includes(request.method)) return new Response(null, { status: 405 });
   const headers = new Headers();
-  for (const key of ['cookie', 'content-type', 'origin']) {
+  for (const key of ['cookie', 'content-type', 'origin', 'x-plotstay-actor']) {
     const value = request.headers.get(key);
     if (value) headers.set(key, value);
   }

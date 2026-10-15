@@ -1,3 +1,4 @@
+import {historicalProvider} from './work-fixtures.ts';
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { fixture } from "./helpers.ts";
@@ -106,7 +107,7 @@ test("reply P/A/B: draft does not revoke submitted version, approval leaves late
   const p = await saveReview(db, data.admin, id, f.base, body);
   await submitReview(db, data.admin, id, p.revisionId);
   await reviewRevision(db, data.admin, id, p.revisionId, "publish", "");
-  await bindProvider(db, data.admin, data.ids["observation-room"]!, f.p.id);
+  await historicalProvider(db, data.admin, data.ids["observation-room"]!, f.p.id);
   const input = {
     sourceLocale: "en",
     texts: { en: "Thank you.", "zh-CN": "谢谢。" },
@@ -211,7 +212,7 @@ test("old provider reads own history, new provider cannot inherit private drafts
   const p = await saveReview(db, data.admin, id, f.base, body);
   await submitReview(db, data.admin, id, p.revisionId);
   await reviewRevision(db, data.admin, id, p.revisionId, "publish", "");
-  await bindProvider(db, data.admin, data.ids["observation-room"]!, f.p.id);
+  await historicalProvider(db, data.admin, data.ids["observation-room"]!, f.p.id);
   const old = await saveReply(
     db,
     data.admin,
@@ -219,7 +220,7 @@ test("old provider reads own history, new provider cannot inherit private drafts
     { sourceLocale: "en", texts: { en: "Old private sentinel" } },
     null,
   );
-  await bindProvider(db, data.admin, data.ids["observation-room"]!, np.id);
+  await historicalProvider(db, data.admin, data.ids["observation-room"]!, np.id);
   const oldDetail = await replyDetail(db, data.admin, id);
   assert.equal(oldDetail.canEdit, false);
   assert.equal(oldDetail.revisions[0].id, old.revisionId);
@@ -258,7 +259,7 @@ test("old provider reads own history, new provider cannot inherit private drafts
   const np2 = await savePersona(db, other, profiles);
   await submitOwnPersona(db, other, np2.id, np2.revisionId);
   await moderatePersona(db, data.admin, np2.revisionId, "approved", "");
-  await bindProvider(db, data.admin, data.ids["observation-room"]!, np2.id);
+  await historicalProvider(db, data.admin, data.ids["observation-room"]!, np2.id);
   await assert.rejects(
     () => replyAction(db, other, id, "submit", next.revisionId),
     (e: any) => e.code === "PROVIDER_FORBIDDEN",
@@ -372,7 +373,7 @@ test("45 reviews: full-scope count/search/order, visible reply activity, no priv
   const hp = await savePersona(db, host, profiles);
   await submitOwnPersona(db, host, hp.id, hp.revisionId);
   await moderatePersona(db, data.admin, hp.revisionId, "approved", "");
-  await bindProvider(db, data.admin, data.ids["observation-room"]!, hp.id);
+  await historicalProvider(db, data.admin, data.ids["observation-room"]!, hp.id);
   const before = await reviewWorkspaceList(db, data.admin, {});
   const privateReply = await saveReply(
     db,
@@ -775,7 +776,7 @@ test("reply command fixed results and replacement of a former provider submissio
   const p = await saveReview(db, data.admin, id, f.base, body);
   await submitReview(db, data.admin, id, p.revisionId);
   await reviewRevision(db, data.admin, id, p.revisionId, "publish", "");
-  await bindProvider(db, data.admin, data.ids["observation-room"]!, f.p.id);
+  await historicalProvider(db, data.admin, data.ids["observation-room"]!, f.p.id);
   const a = await saveReply(
     db,
     data.admin,
@@ -792,7 +793,7 @@ test("reply command fixed results and replacement of a former provider submissio
   const np = await savePersona(db, actor, profiles);
   await submitOwnPersona(db, actor, np.id, np.revisionId);
   await moderatePersona(db, data.admin, np.revisionId, "approved", "");
-  await bindProvider(db, data.admin, data.ids["observation-room"]!, np.id);
+  await historicalProvider(db, data.admin, data.ids["observation-room"]!, np.id);
   const d = await reviewWorkspaceDetail(db, actor, id, "replies", "en");
   assert.equal(d.submissionGuard, a.revisionId);
   assert.equal(d.submittedRevisionId, null);
@@ -873,7 +874,7 @@ test("reply visibility events preserve submission and draft states across modera
             "publish",
             "",
           );
-          await bindProvider(
+          await historicalProvider(
             db,
             data.admin,
             data.ids["observation-room"]!,

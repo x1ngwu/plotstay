@@ -2,9 +2,10 @@ import { defineConfig } from 'astro/config';
 import node from '@astrojs/node';
 import { config } from 'dotenv';
 
-config({ path: new URL('../../.env', import.meta.url), quiet: true });
+config({ path: process.env.DOTENV_CONFIG_PATH ?? new URL('../../.env', import.meta.url), quiet: true });
 export default defineConfig({
   output: 'server',
+  ...(process.env.PLOTSTAY_TEST_OUT_DIR ? {outDir:process.env.PLOTSTAY_TEST_OUT_DIR}:{}),
   // Middleware combines legacy prefixes and slash cleanup into a single 308.
   trailingSlash: 'ignore',
   adapter: node({ mode: 'standalone' }),

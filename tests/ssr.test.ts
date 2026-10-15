@@ -1,3 +1,5 @@
+import {createFixtureContent as createContent} from './work-fixtures.ts';
+import {testEntry} from './runtime.ts';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
@@ -5,7 +7,7 @@ import { createServer, get, request } from 'node:http';
 import { brotliDecompressSync, gunzipSync } from 'node:zlib';
 import { chromium, expect } from '@playwright/test';
 import { createContentSchema, editContentSchema } from '@plotstay/contracts';
-import { createContent, editContent, getPublished, reviewRevision, submitRevision, unpublishContent } from '@plotstay/domain';
+import { editContent, getPublished, reviewRevision, submitRevision, unpublishContent } from '@plotstay/domain';
 import { fixture } from './helpers.ts';
 import { unusedPort, stop, waitFor, artifactHash } from './runtime.ts';
 
@@ -17,7 +19,7 @@ test('built PostgreSQL → standalone API → Astro → browser', { timeout: 120
   const env = { ...process.env, PGOPTIONS: f.options, NODE_ENV: 'production', SITE_INDEXABLE: 'false', SITE_URL: '', API_HOST: '127.0.0.1', API_PORT: String(apiPort),
     HOST: '127.0.0.1', PORT: String(webPort), WEB_ORIGIN: webUrl, API_INTERNAL_URL: apiUrl };
   const launch = (entry: string) => {
-    const child = spawn(process.execPath, [entry], { env, stdio: ['ignore', 'pipe', 'pipe'] });
+    const child = spawn(process.execPath, [testEntry(entry)], { env, stdio: ['ignore', 'pipe', 'pipe'] });
     let output = '';
     child.stdout!.on('data', chunk => { output += String(chunk); });
     child.stderr!.on('data', chunk => { output += String(chunk); });
@@ -198,7 +200,7 @@ test('built PostgreSQL → standalone API → Astro → browser', { timeout: 120
       await expect(page.locator('#content-list tr')).toHaveCount(7);
       const cookies = await context.cookies(webUrl + '/api/auth/me');
       assert.ok(cookies.some(cookie => cookie.name === 'plotstay_session' && cookie.httpOnly && cookie.path === '/api'));
-      await page.locator('#new').click();
+      await page.locator('#new').click();await page.locator('[name=personaId]').selectOption(f.data.providerId!);
       await page.locator('#toggle-mode').click();
       await page.locator('[name=slug]').fill('browser-managed-room');
       await page.locator('[name=amount]').fill('42');
@@ -235,7 +237,7 @@ test('built PostgreSQL → standalone API → Astro → browser', { timeout: 120
       await expect(page.locator('#unpublish')).toBeEnabled();
       assert.equal((await fetch(publicPath)).status, 200);
       await page.locator('#import-panel summary').first().click();
-      await page.locator('#import-example').click();
+      await page.locator('#import-example').click();const example=JSON.parse(await page.locator('#import-json').inputValue());example.items[0].content.personaId=f.data.providerId;await page.locator('#import-json').fill(JSON.stringify(example));
       await page.locator('#import-preview').click();
       await expect(page.locator('#import-results')).toContainText('valid');
       await page.locator('#import-apply').click();

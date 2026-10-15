@@ -609,23 +609,11 @@ export function bindProvider(db: Database, actor: Actor, contentId: string, pers
     ).rows[0];
     assert(target, 404, 'NOT_FOUND', 'Entry not found.');
     await requireWorld(c, actor, target.world_id, true);
-    const p = (await c.query('SELECT * FROM personas WHERE id=$1 FOR UPDATE', [personaId])).rows[0];
-    assert(
-      p && p.approved && !p.disabled && (actor.siteRole === 'admin' || p.owner_id === actor.id),
-      403,
-      'PERSONA_FORBIDDEN',
-      'Assign an approved persona you own, or ask a site administrator.',
-    );
-    await c.query(
-      'INSERT INTO provider_bindings(content_id,persona_id,assigned_by)VALUES($1,$2,$3)ON CONFLICT(content_id)DO UPDATE SET persona_id=excluded.persona_id,assigned_by=excluded.assigned_by,assigned_at=now()',
-      [contentId, personaId, actor.id],
-    );
-    await c.query('INSERT INTO provider_binding_events(content_id,persona_id,actor_id)VALUES($1,$2,$3)', [
-      contentId,
-      personaId,
-      actor.id,
-    ]);
-    return { bound: true };
+    const {writeWork,bindWorkProvider}=await import('./work-access.ts');
+    await writeWork(c,actor,target);
+    await bindWorkProvider(c,actor,target,personaId);
+    return {bound:true};
+
   });
 }
 async function providerFor(c: Connection, reviewId: string) {
@@ -647,6 +635,9 @@ async function providerAccess(c: Connection, actor: Actor, reviewId: string) {
     'Only the assigned provider persona owner may reply.',
   );
   assert(!r.provider_disabled, 403, 'PERSONA_DISABLED', 'This provider persona is disabled.');
+  const {qualification}=await import('./work-access.ts');
+  const eligibility=await qualification(c,r.world_id,actor.id,true);
+  assert(eligibility.status!=='revoked',403,'ELIGIBILITY_REVOKED','Operating eligibility was revoked.');
   assert(
     await getPublished(c, 'en', { id: reviewId }),
     409,
@@ -680,7 +671,8 @@ export async function replyDetail(db: Connection, actor: Actor, reviewId: string
   const ownIds=revisions.filter((r:any)=>moderate||r.created_by===actor.id).map((r:any)=>r.id);
   const publications=reply?(await db.query('SELECT * FROM reply_publications WHERE reply_id=$1 AND ($2 OR revision_id=ANY($3::uuid[]) OR id=$4) ORDER BY published_at DESC,id DESC LIMIT $5',[reply.id,moderate,ownIds,reply.hidden||!contextAvailable?null:reply.published_id,history?100:null])).rows:[];
   const events=reply?(await db.query(`SELECT * FROM reply_events WHERE reply_id=$1 AND ($2 OR revision_id=ANY($3::uuid[])) ORDER BY created_at DESC,id DESC LIMIT $4`,[reply.id,moderate,ownIds,history?100:null])).rows:[];
-  const canEdit=contextAvailable&&target.provider_owner===actor.id&&!target.provider_disabled;
+  const eligibility=await (await import('./work-access.ts')).qualification(db,target.world_id,actor.id);
+  const canEdit=contextAvailable&&target.provider_owner===actor.id&&!target.provider_disabled&&eligibility.status!=='revoked';
   // A head ID is only a concurrency token, never a reason to return its private body.
   const safeReply=reply?{...reply,submitted_revision_id:moderate||ownIds.includes(reply.submitted_revision_id)?reply.submitted_revision_id:null}:null;
   const historyTotal=history&&reply?(await db.query('SELECT count(*)::int n FROM reply_revisions WHERE reply_id=$1 AND created_by=$2',[reply.id,actor.id])).rows[0].n:revisions.length;

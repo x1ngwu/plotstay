@@ -59,7 +59,8 @@ export const publicSelect = `SELECT c.id,c.world_id,c.slug,c.kind,w.slug AS worl
   t.locale,t.body,r.attributes,p.id AS publication_id,p.published_at,
   (SELECT language_tag FROM locales WHERE code=t.locale) AS language_tag,
   ${publishedLocales} AS available_locales,
-  coalesce(sig.profiles->$1,sig.profiles->r.source_locale,person.profiles->$1,person.profiles->r.source_locale)->>'name' AS persona_name,
+  CASE WHEN c.kind='review' THEN coalesce(sig.profiles->$1,sig.profiles->r.source_locale,person.profiles->$1,person.profiles->r.source_locale)->>'name'
+  ELSE coalesce(provider.profiles->$1,provider.profiles->r.source_locale)->>'name' END AS persona_name,
   sig.profiles AS signature_profiles,sig.managed AS persona_managed,provider.profiles AS provider_profiles
   ${publicFrom}
   JOIN LATERAL (

@@ -1,8 +1,9 @@
+import {createFixtureContent as createContent} from './work-fixtures.ts';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { createContentSchema, editContentSchema, type QuoteInput, type BookingSnapshot } from '@plotstay/contracts';
-import { createContent, editContent, getPublished, submitRevision, reviewRevision, unpublishContent, createGuest, createBooking, quoteBooking, getReceipt, digest } from '@plotstay/domain';
+import {  editContent, getPublished, submitRevision, reviewRevision, unpublishContent, createGuest, createBooking, quoteBooking, getReceipt, digest } from '@plotstay/domain';
 import { createApp } from '../apps/api/src/app.ts';
 import { fixture } from './helpers.ts';
 

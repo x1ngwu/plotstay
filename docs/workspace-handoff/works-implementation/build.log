@@ -1,0 +1,17 @@
+npm notice run @plotstay/web@0.1.0 build
+npm notice run astro build
+14:41:46 [types] Generated 108ms
+14:41:46 [build] output: "server"
+14:41:46 [build] mode: "server"
+14:41:46 [build] directory: /tmp/plotstay-works-b-final/web/
+14:41:46 [build] adapter: @astrojs/node
+14:41:46 [build] Collecting build info...
+14:41:46 [build] ✓ Completed in 196ms.
+14:41:46 [build] Building server entrypoints...
+14:41:46 [vite] ✓ built in 207ms
+14:41:46 [vite] ✓ built in 620ms
+14:41:47 [vite] ✓ built in 351ms
+14:41:47 [build] Rearranging server assets...
+14:41:47 [build] ✓ Completed in 1.24s.
+14:41:47 [build] Server built in 1.46s
+14:41:47 [build] Complete!

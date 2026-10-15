@@ -1,0 +1,194 @@
+TAP version 13
+# Subtest: phase 5.5 persistent content management
+    # Subtest: bootstrap is explicit, idempotent and preserves all original business rows
+    ok 1 - bootstrap is explicit, idempotent and preserves all original business rows
+      ---
+      duration_ms: 152.030283
+      type: 'test'
+      ...
+# (node:3054614) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+# (Use `node --trace-deprecation ...` to show where the warning was created)
+    # Subtest: all three full documents round trip, keep independent language order, zero, clear and restore
+    ok 2 - all three full documents round trip, keep independent language order, zero, clear and restore
+      ---
+      duration_ms: 702.444779
+      type: 'test'
+      ...
+    # Subtest: every contract leaf has a persisted bilingual round trip, including full review and map metadata
+    ok 3 - every contract leaf has a persisted bilingual round trip, including full review and map metadata
+      ---
+      duration_ms: 244.533993
+      type: 'test'
+      ...
+    # Subtest: configuration publication is reviewed, atomic, scoped, concurrent and historical
+    ok 4 - configuration publication is reviewed, atomic, scoped, concurrent and historical
+      ---
+      duration_ms: 104.381456
+      type: 'test'
+      ...
+    # Subtest: shared changes preserve signed receipts and category history uses the home authority
+    ok 5 - shared changes preserve signed receipts and category history uses the home authority
+      ---
+      duration_ms: 219.001404
+      type: 'test'
+      ...
+    # Subtest: preview API refuses anonymous/foreign/stale and translation changes invalidate links
+    ok 6 - preview API refuses anonymous/foreign/stale and translation changes invalidate links
+      ---
+      duration_ms: 381.42134
+      type: 'test'
+      ...
+    # Subtest: new map and clear metadata survive import and translation jobs without publishing drafts
+    ok 7 - new map and clear metadata survive import and translation jobs without publishing drafts
+      ---
+      duration_ms: 110.047787
+      type: 'test'
+      ...
+    # Subtest: management pagination finds entries beyond 200 and filters notes by parent
+    ok 8 - management pagination finds entries beyond 200 and filters notes by parent
+      ---
+      duration_ms: 3551.396088
+      type: 'test'
+      ...
+    1..8
+ok 1 - phase 5.5 persistent content management
+  ---
+  duration_ms: 9745.025076
+  type: 'test'
+  ...
+# Subtest: phase 4 published detail contracts and visibility
+    # Subtest: legacy publications read with empty new fields without changing history
+    ok 1 - legacy publications read with empty new fields without changing history
+      ---
+      duration_ms: 106.715956
+      type: 'test'
+      ...
+    # Subtest: three types expose translated fields, same-place priority and paged notes
+    ok 2 - three types expose translated fields, same-place priority and paged notes
+      ---
+      duration_ms: 225.518102
+      type: 'test'
+      ...
+    # Subtest: draft additions stay private; publication, translation and restore are complete snapshots
+    ok 3 - draft additions stay private; publication, translation and restore are complete snapshots
+      ---
+      duration_ms: 134.311925
+      type: 'test'
+      ...
+    # Subtest: unpublished and blocked relations disappear; invisible parents hide notes and detail
+    ok 4 - unpublished and blocked relations disappear; invisible parents hide notes and detail
+      ---
+      duration_ms: 134.94493
+      type: 'test'
+      ...
+    # Subtest: old import hashes remain unchanged while new detail text causes conflict
+    ok 5 - old import hashes remain unchanged while new detail text causes conflict
+      ---
+      duration_ms: 75.153994
+      type: 'test'
+      ...
+    # Subtest: translation adapters receive and validate new fixed fields
+    ok 6 - translation adapters receive and validate new fixed fields
+      ---
+      duration_ms: 47.812308
+      type: 'test'
+      ...
+    # Subtest: third-language fallback is whole-publication and does not invent a translation
+    ok 7 - third-language fallback is whole-publication and does not invent a translation
+      ---
+      duration_ms: 20.350302
+      type: 'test'
+      ...
+    1..7
+ok 2 - phase 4 published detail contracts and visibility
+  ---
+  duration_ms: 3218.581019
+  type: 'test'
+  ...
+# Subtest: B01-B06 ownership and cross-world filtering: ordinary author never acquires world management
+ok 3 - B01-B06 ownership and cross-world filtering: ordinary author never acquires world management
+  ---
+  duration_ms: 1748.072712
+  type: 'test'
+  ...
+# Subtest: B08-B12 create options and first save are atomic, unapproved own role works; entry has no writes; retry is idempotent
+ok 4 - B08-B12 create options and first save are atomic, unapproved own role works; entry has no writes; retry is idempotent
+  ---
+  duration_ms: 931.988475
+  type: 'test'
+  ...
+# Subtest: G01 participation precedes eligibility, only world admin or site admin may approve; revoke invalidates old pending submission
+ok 5 - G01 participation precedes eligibility, only world admin or site admin may approve; revoke invalidates old pending submission
+  ---
+  duration_ms: 819.026183
+  type: 'test'
+  ...
+# Subtest: B15-B19 all old and new rebind paths lock forever after successful submit; failed submit does not lock
+ok 6 - B15-B19 all old and new rebind paths lock forever after successful submit; failed submit does not lock
+  ---
+  duration_ms: 910.453281
+  type: 'test'
+  ...
+# Subtest: G03 locked disabled persona permits body draft; revoked eligibility blocks saves and restores
+ok 7 - G03 locked disabled persona permits body draft; revoked eligibility blocks saves and restores
+  ---
+  duration_ms: 716.254781
+  type: 'test'
+  ...
+# Subtest: B29-B31 narrow preview uses saved version, token and object authorization and does not mutate timestamps
+ok 8 - B29-B31 narrow preview uses saved version, token and object authorization and does not mutate timestamps
+  ---
+  duration_ms: 706.018609
+  type: 'test'
+  ...
+# Subtest: B24 genuinely overlapping submit and rebind serialize on content; stale save cannot change checked provider
+ok 9 - B24 genuinely overlapping submit and rebind serialize on content; stale save cannot change checked provider
+  ---
+  duration_ms: 878.835638
+  type: 'test'
+  ...
+# Subtest: B34 old create cannot omit provider, admin cannot use another owner role; unauthenticated API denied
+ok 10 - B34 old create cannot omit provider, admin cannot use another owner role; unauthenticated API denied
+  ---
+  duration_ms: 1037.175937
+  type: 'test'
+  ...
+# Subtest: B03 B07 B20 B22 B30 B32 API forgery, save timestamps and approved profile projection
+not ok 11 - B03 B07 B20 B22 B30 B32 API forgery, save timestamps and approved profile projection
+  ---
+  duration_ms: 954.844439
+  type: 'test'
+  location: '/data/apps/plotstay/tests/works.test.ts:49:1'
+  failureType: 'testCodeFailure'
+  error: 'Persona changed. Your input is preserved; reload before saving.'
+  code: 'REVISION_CONFLICT'
+  stack: |-
+    assert (/data/apps/plotstay/packages/domain/src/errors.ts:5:25)
+    savePersonaInTransaction (/data/apps/plotstay/packages/domain/src/persona-reviews.ts:126:5)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async transaction (/data/apps/plotstay/packages/database/src/index.ts:15:52)
+    async TestContext.<anonymous> (/data/apps/plotstay/tests/works.test.ts:55:2)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: B10 B11 rollback after insertion, canonical retry and concurrent stale saves
+ok 12 - B10 B11 rollback after insertion, canonical retry and concurrent stale saves
+  ---
+  duration_ms: 812.063759
+  type: 'test'
+  ...
+# Subtest: B13 B16 B18 B21 B35 revoked submission needs explicit resubmit; hidden world, disabled provider, restore and legacy history are guarded
+ok 13 - B13 B16 B18 B21 B35 revoked submission needs explicit resubmit; hidden world, disabled provider, restore and legacy history are guarded
+  ---
+  duration_ms: 684.252613
+  type: 'test'
+  ...
+1..13
+# tests 28
+# suites 0
+# pass 27
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 27207.030188

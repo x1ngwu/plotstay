@@ -1,3 +1,4 @@
+import {testEntry} from './runtime.ts';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { randomUUID } from 'node:crypto';
@@ -22,7 +23,7 @@ try {
  await savePersonaNotes(f.db,owner,b.id,{body:'Beta private',baseVersion:null,requestId:randomUUID()});
  const apiPort=await unusedPort(),webPort=await unusedPort(),apiUrl=`http://127.0.0.1:${apiPort}`,webUrl=`http://127.0.0.1:${webPort}`;
  const env={...process.env,PGOPTIONS:f.options,NODE_ENV:'production',SITE_INDEXABLE:'false',COOKIE_SECURE:'false',API_PORT:String(apiPort),API_HOST:'127.0.0.1',HOST:'127.0.0.1',PORT:String(webPort),WEB_ORIGIN:webUrl,API_INTERNAL_URL:apiUrl};
- const launch=(entry:string)=>{const child=spawn(process.execPath,[entry],{env,stdio:['ignore','pipe','pipe']});children.push(child);let logs='';child.stdout!.on('data',d=>logs+=d);child.stderr!.on('data',d=>logs+=d);return {child,logs:()=>logs};};
+ const launch=(entry:string)=>{const child=spawn(process.execPath,[testEntry(entry)],{env,stdio:['ignore','pipe','pipe']});children.push(child);let logs='';child.stdout!.on('data',d=>logs+=d);child.stderr!.on('data',d=>logs+=d);return {child,logs:()=>logs};};
  const api=launch('apps/api/dist/server.mjs'); await waitFor(apiUrl+'/api/health',api.child,api.logs);
  const web=launch('apps/web/server.mjs'); await waitFor(webUrl+'/en',web.child,web.logs);
  browser=await chromium.launch(); const context=await browser.newContext();

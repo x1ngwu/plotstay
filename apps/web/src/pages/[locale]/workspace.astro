@@ -1,6 +1,7 @@
 ---
 import '../../styles/workspace-overview.css';
 import '../../styles/workspace-reviews.css';
+import '../../styles/workspace-works.css';
 import WorkspaceLayout from '../../layouts/WorkspaceLayout.astro';
 import AdminConsole from '../../components/workspace/AdminConsole.astro';
 import { fallbackLocales } from '@plotstay/contracts';
@@ -12,9 +13,9 @@ const failed = localeFailure || !selectedLocale;
 if (failed) Astro.response.status = localeFailure ? 503 : 404;
 Astro.response.headers.set('Cache-Control','private, no-store');
 const view = Astro.url.searchParams.get('view') ?? 'overview';
-const adminViews = ['works','editor','world-content','world-settings','world-tools','world-review'];
+const adminViews = ['editor','world-content','world-settings','world-tools','world-review'];
 const accountViews = ['personas','reviews','replies','moderation','site'];
-const title = ({overview:t('今天，从这里继续','Today, pick up where you left off'),works:t('我管理的内容','Content I manage'),editor:t('内容编辑','Edit content'),personas:t('我的角色','My personas'),reviews:t('我的评价','My reviews'),replies:t('收到的评价','Received reviews'),worlds:t('我管理的世界','Worlds I manage'),'world-content':t('世界内容','World content'),'world-settings':t('世界设定','World settings'),'world-tools':t('管理工具','Management tools'),'world-review':t('世界审核','World moderation'),'shared-settings':t('共享资料','Shared settings'),'world-members':t('成员','Members'),moderation:t('评价与回复审核','Review moderation'),site:t('网站审核','Site moderation'),settings:t('账号设置','Account settings')} as Record<string,string>)[view] ?? t('概览','Overview');
+const title = ({create:t('创建内容','Create content'),overview:t('今天，从这里继续','Today, pick up where you left off'),works:t('我管理的内容','Content I manage'),editor:t('内容编辑','Edit content'),personas:t('我的角色','My personas'),reviews:t('我的评价','My reviews'),replies:t('收到的评价','Received reviews'),worlds:t('我管理的世界','Worlds I manage'),'world-content':t('世界内容','World content'),'world-settings':t('世界设定','World settings'),'world-tools':t('管理工具','Management tools'),'world-review':t('世界审核','World moderation'),'shared-settings':t('共享资料','Shared settings'),'world-members':t('成员','Members'),moderation:t('评价与回复审核','Review moderation'),site:t('网站审核','Site moderation'),settings:t('账号设置','Account settings')} as Record<string,string>)[view] ?? t('概览','Overview');
 const worldId = Astro.url.searchParams.get('world');
 const oldAccountView = view==='site'?'moderation':view==='settings'?'personas':view;
 const oldQuery=new URLSearchParams();
@@ -23,7 +24,7 @@ const legacyTarget=accountViews.includes(view)||view==='settings'?`/${locale.pat
 ---
 <WorkspaceLayout title={title} locale={locale}>
 {failed ? <h1>{localeFailure ? messages(locale.code).unavailable : messages(locale.code).notFound}</h1> :
-<div id="new-workspace" data-locale={locale.code} data-prefix={locale.pathPrefix} data-view={view}>
+<div id="new-workspace" data-locale={locale.code} data-prefix={locale.pathPrefix} data-view={view} data-works={['works','create'].includes(view)?'true':undefined}>
   <div class="ws-utility"><strong>{t('Plotstay · 私人工作台','Plotstay · Private workspace')}</strong><span>{t('创作与管理','Create and manage')}</span><nav aria-label={t('语言','Language')}>{locales.map(item => <a href={`/${item.pathPrefix}/workspace${Astro.url.search}`} lang={item.languageTag} aria-current={item.code===locale.code?'page':undefined}>{item.code==='zh-CN'?'中文':'English'}</a>)}</nav></div>
   <div class="ws-shell">
   <aside class="ws-sidebar">
@@ -43,7 +44,7 @@ const legacyTarget=accountViews.includes(view)||view==='settings'?`/${locale.pat
       <a class="ws-moderation-link" hidden href={`/${locale.pathPrefix}/workspace?view=moderation`}><span aria-hidden="true">☷</span>{t('评价与回复审核','Review moderation')}</a>
       <a class="ws-site-link" hidden href={`/${locale.pathPrefix}/workspace?view=site`}><span aria-hidden="true">◇</span>{t('网站审核','Site moderation')}</a>
     </nav>
-    <div class="ws-sidebar-footer"><div class="ws-account-mark" aria-hidden="true">P</div><div><strong id="ws-account-name">{t('私人工作台','Private workspace')}</strong><small>{t('使用现有账号','Existing account')}</small></div><a class="ws-legacy" href={legacyTarget}>{t('旧版 ↗','Previous ↗')}</a></div>
+    <div class="ws-sidebar-footer"><div class="ws-account-mark" aria-hidden="true">P</div><div><strong id="ws-account-name">{t('私人工作台','Private workspace')}</strong><small>{t('使用现有账号','Existing account')}</small></div><a class="ws-legacy" href={legacyTarget}>{t('旧版 ↗','Previous ↗')}</a>{['works','create'].includes(view)&&<button id="works-signout" type="button">{t('退出登录','Sign out')}</button>}</div>
   </aside>
   <main id="main" class="ws-main">
     <div class="ws-page-navigation"><a id="ws-back" href={`/${locale.pathPrefix}/workspace`}>← {t('返回工作台','Back to workspace')}</a><nav class="ws-crumbs" aria-label={t('面包屑','Breadcrumb')}><a href={`/${locale.pathPrefix}/workspace`}>{t('我的工作台','My workspace')}</a><span id="ws-crumb-tail"></span></nav></div>
@@ -56,6 +57,7 @@ const legacyTarget=accountViews.includes(view)||view==='settings'?`/${locale.pat
     <section id="ws-worlds" hidden><div id="ws-world-list"></div></section>
     <section id="ws-members" hidden><div id="ws-member-list"></div></section>
     <section id="ws-settings" hidden><div id="ws-account"></div></section>
+    {['works','create'].includes(view) && <section id="workspace-works" aria-live="polite"></section>}
     {adminViews.includes(view) && <AdminConsole locale={locale} mode="workspace" />}
     {accountViews.includes(view) && <div id="persona-workspace" data-locale={locale.code} data-prefix={locale.pathPrefix}>
       <p id="persona-message" role="status" aria-live="polite"></p>

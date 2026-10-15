@@ -47,11 +47,11 @@ export function publishedDetail(db: Database, locale: string,
 }
 
 // A preview is tied to the saved head AND its translation token. No public lookup accepts these IDs.
-export async function previewDetail(db: Database, actor: import('./auth.ts').Actor, id: string, revisionId: string, token: string, locale: string): Promise<ContentDetail> {
+export async function previewDetail(db: Database, actor: import('./auth.ts').Actor, id: string, revisionId: string, token: string, locale: string, own = false): Promise<ContentDetail> {
   return transaction(db, async client => {
     await client.query('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY');
     const { adminDetail, listWorlds, listLocales } = await import('./read.ts');
-    const data = await adminDetail(client, actor, id);
+    const data = own?await (await import('./works.ts')).workDetail(client,actor,id):await adminDetail(client, actor, id);
     const c = data.content;
     assert(c.head_revision_id === revisionId && c.draft_token === token, 409, 'REVISION_CONFLICT', 'This preview is out of date. Save or reload the editor.');
     const worlds = await listWorlds(client, locale);
@@ -61,7 +61,7 @@ export async function previewDetail(db: Database, actor: import('./auth.ts').Act
     const r=data.revisions[0];const actual=r.translations[locale]?locale:r.source_locale;
     const languages=await listLocales(client);
     const place=c.place_id?(await client.query('SELECT slug,names FROM places WHERE id=$1',[c.place_id])).rows[0]:null;
-    const persona=c.persona_id?(await client.query('SELECT profiles FROM personas WHERE id=$1 AND approved',[c.persona_id])).rows[0]:null;
+    const persona=c.kind==='review'&&c.persona_id?(await client.query('SELECT profiles FROM personas WHERE id=$1 AND approved',[c.persona_id])).rows[0]:null;
     let result:ContentDetail={content:null as any,related:[],reviews:{total:0,page:1,pageSize:6,pages:1,contents:[]},reviewSummary:{rating:null,ratedCount:0,mentions:[],distribution:[],dimensions:{}}};
     if(c.published_publication_id && c.kind!=='review') result=await publishedDetail(db,locale,{world:world.slug,kind:c.kind,slug:c.slug});
     result.content={id:c.id,worldId:c.world_id,worldSlug:world.slug,kind:c.kind,slug:c.slug,placeId:c.place_id,placeSlug:place?.slug??null,placeName:place?.names[locale]??place?.names[r.source_locale]??null,personaName:persona?.profiles[locale]?.name??null,locale:actual,requestedLocale:locale,isFallback:actual!==locale,languageTag:languages.find(l=>l.code===actual)!.languageTag,availableLocales:Object.keys(r.translations),text:r.translations[actual],attributes:r.attributes,publicationId:'',publishedAt:r.created_at.toISOString(),preview:true};

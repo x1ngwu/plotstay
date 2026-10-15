@@ -1,0 +1,11 @@
+npm notice run plotstay@0.1.0 check
+npm notice run tsc --noEmit && npm run check --workspace @plotstay/web
+npm notice run @plotstay/web@0.1.0 check
+npm notice run astro check
+14:40:17 [types] Generated 93ms
+14:40:17 [check] Getting diagnostics for Astro files in /data/apps/plotstay/apps/web...
+Result (70 files): 
+- 0 errors
+- 0 warnings
+- 0 hints
+

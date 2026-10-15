@@ -58,6 +58,7 @@ const hasTools = mode !== 'workspace' || workspaceView === 'world-tools';
             <label>{label('手记所属内容', 'Parent entry for a note')}<select name="parentContentId"></select></label>
             <label>{label('虚构人物', 'Narrative persona')}<select name="personaId"></select></label>
           </fieldset>
+          <label id="work-provider-label" hidden>{label('经营角色','Provider persona')}<select name="providerId"></select><span id="work-provider-note"></span></label>
           <label>{label('源语言', 'Source language')}<select name="sourceLocale"></select></label>
           <p>{label('修改源文后，请同时校订译文。也可清空译文并保存，让缺译语言进入任务队列；真实翻译服务暂未启用。', 'After changing the source, review its translations too. Clear translations and save to queue missing languages; the live translation service is not enabled yet.')}</p>
           <button id="clear-translations" type="button">{label('保留源文并清空译文', 'Keep source and clear translations')}</button>

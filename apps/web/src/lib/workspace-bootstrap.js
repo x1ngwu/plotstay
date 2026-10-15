@@ -40,7 +40,8 @@
   };
   const query = new URLSearchParams(location.search);
   const view = query.get('view') || 'overview';
-  const admin = ['works', 'editor', 'world-content', 'world-review', 'world-settings', 'world-tools'].includes(view);
+  const authorEditor=view==='editor'&&query.get('author')==='1';
+  const admin = ['editor', 'world-content', 'world-review', 'world-settings', 'world-tools'].includes(view)&&!authorEditor;
   const account = ['personas', 'reviews', 'replies', 'moderation', 'site'].includes(view);
   start('/auth/me');
   if (admin) start('/locales');
@@ -74,6 +75,6 @@
       });
     }
   };
-  if (query.get('world')) loadWorld(query.get('world'));
+  if (query.get('world')&&admin) loadWorld(query.get('world'));
   else if (admin && worlds) void worlds.then(data => loadWorld((data?.worlds?.find(world => world.slug === 'lathe-worlds') || data?.worlds?.[0])?.id));
 })();

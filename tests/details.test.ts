@@ -1,8 +1,9 @@
+import {createFixtureContent as createContent} from './work-fixtures.ts';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { createContentSchema, editContentSchema, textSchema } from '@plotstay/contracts';
-import { publishedDetail, createContent, editContent, restorePublication, unpublishContent, importContent, digest, runTranslationOnce } from '@plotstay/domain';
+import { publishedDetail,  editContent, restorePublication, unpublishContent, importContent, digest, runTranslationOnce } from '@plotstay/domain';
 import { createApp } from '../apps/api/src/app.ts';
 import { detailFixture } from './detail-fixture.ts';
 import { historyDigest } from './helpers.ts';

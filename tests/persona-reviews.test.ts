@@ -1,3 +1,5 @@
+import {historicalProvider} from './work-fixtures.ts';
+import {createFixtureContent as createContent} from './work-fixtures.ts';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { fixture } from './helpers.ts';
@@ -193,7 +195,6 @@ test('phase 5.6 provider replies and all entry types', async (t) => {
     replyDetail,
     providerInbox,
     unpublishContent,
-    createContent,
     createContentSchema,
     submitRevision,
   } = await (async () => ({
@@ -260,8 +261,8 @@ test('phase 5.6 provider replies and all entry types', async (t) => {
       );
       await submitReview(db, author, c.id, r.revisionId);
       await reviewRevision(db, data.admin, c.id, r.revisionId, 'publish', '');
-      await rejected(() => bindProvider(db, author, target.id, hp.id), 'WORLD_FORBIDDEN');
-      await bindProvider(db, data.admin, target.id, hp.id);
+      await rejected(() => historicalProvider(db, author, target.id, hp.id), 'WORLD_FORBIDDEN');
+      await historicalProvider(db, data.admin, target.id, hp.id);
       await rejected(
         () =>
           saveReply(db, author, c.id, { sourceLocale: 'en', texts: { en: 'Forged', 'zh-CN': '冒用' } }, null),
@@ -532,7 +533,7 @@ test('phase 5.6 multiple personas, self-authored reviews, shared previews and re
   const receipt = (
     await createBooking(db, owner, { ...input, quoteHash: quote.quoteHash, idempotencyKey: randomUUID() })
   ).receipt;
-  await bindProvider(db, data.owner, input.contentId, self.id);
+  await historicalProvider(db, data.owner, input.contentId, self.id);
   const c = await adminDetail(db, data.owner, input.contentId);
   const preview = await previewDetail(
     db,

@@ -1,9 +1,11 @@
+import {createFixtureContent as createContent} from './work-fixtures.ts';
+import {testEntry} from './runtime.ts';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { chromium } from '@playwright/test';
 import { createContentSchema, editContentSchema } from '@plotstay/contracts';
-import { createContent, editContent, getPublished, reviewRevision, submitRevision, restorePublication, unpublishContent } from '@plotstay/domain';
+import { editContent, getPublished, reviewRevision, submitRevision, restorePublication, unpublishContent } from '@plotstay/domain';
 import { fixture } from './helpers.ts';
 import { unusedPort, stop, waitFor, artifactHash } from './runtime.ts';
 import { siteConfig } from '../apps/web/src/lib/seo.ts';
@@ -26,7 +28,7 @@ test('SEO-01–05: live API, built SSR, XML and publication lifecycle', { timeou
   const env = { ...process.env, PGOPTIONS: f.options, NODE_ENV: 'production', API_HOST: '127.0.0.1', API_PORT: String(apiPort),
     HOST: '127.0.0.1', PORT: String(webPort), WEB_ORIGIN: webUrl, API_INTERNAL_URL: apiUrl, SITE_INDEXABLE: 'true', SITE_URL: origin };
   const launch = (entry: string, extra = {}) => {
-    const child = spawn(process.execPath, [entry], { env: { ...env, ...extra }, stdio: ['ignore', 'pipe', 'pipe'] });
+    const child = spawn(process.execPath, [testEntry(entry)], { env: { ...env, ...extra }, stdio: ['ignore', 'pipe', 'pipe'] });
     let output = ''; child.stdout!.on('data', chunk => { output += String(chunk); }); child.stderr!.on('data', chunk => { output += String(chunk); });
     t.after(() => stop(child)); return { child, logs: () => output };
   };

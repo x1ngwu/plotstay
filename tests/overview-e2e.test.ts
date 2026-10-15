@@ -1,3 +1,5 @@
+import {createFixtureContent as createContent} from './work-fixtures.ts';
+import {testEntry} from './runtime.ts';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {spawn} from 'node:child_process';
@@ -5,7 +7,7 @@ import {mkdir} from 'node:fs/promises';
 import {chromium,expect} from '@playwright/test';
 import {fixture} from './helpers.ts';
 import {unusedPort,waitFor,stop} from './runtime.ts';
-import {createContent,editContent,savePersona,initializeSettings,saveSetting,settingDetail} from '@plotstay/domain';
+import {editContent,savePersona,initializeSettings,saveSetting,settingDetail} from '@plotstay/domain';
 import {createContentSchema} from '@plotstay/contracts';
 
 test('overview renders live summaries, isolates preferences and preserves precise object returns', {timeout:180000},async t=>{
@@ -17,7 +19,7 @@ test('overview renders live summaries, isolates preferences and preserves precis
  await saveSetting(db,data.admin,setting.id,settingsBody,setting.head_revision_id);
  const apiPort=await unusedPort(),webPort=await unusedPort(),apiUrl=`http://127.0.0.1:${apiPort}`,webUrl=`http://127.0.0.1:${webPort}`;
  const env={...process.env,PGOPTIONS:f.options,NODE_ENV:'production',SITE_INDEXABLE:'false',COOKIE_SECURE:'false',API_PORT:String(apiPort),API_HOST:'127.0.0.1',HOST:'127.0.0.1',PORT:String(webPort),WEB_ORIGIN:webUrl,API_INTERNAL_URL:apiUrl};
- const launch=(entry:string)=>{const child=spawn(process.execPath,[entry],{env,stdio:['ignore','pipe','pipe']});let logs='';child.stdout!.on('data',d=>logs+=d);child.stderr!.on('data',d=>logs+=d);t.after(()=>stop(child));return {child,logs:()=>logs};};
+ const launch=(entry:string)=>{const child=spawn(process.execPath,[testEntry(entry)],{env,stdio:['ignore','pipe','pipe']});let logs='';child.stdout!.on('data',d=>logs+=d);child.stderr!.on('data',d=>logs+=d);t.after(()=>stop(child));return {child,logs:()=>logs};};
  const api=launch('apps/api/dist/server.mjs');await waitFor(apiUrl+'/api/health',api.child,api.logs);const web=launch('apps/web/server.mjs');await waitFor(webUrl+'/en',web.child,web.logs);
  const browser=await chromium.launch({headless:true});t.after(()=>browser.close());const context=await browser.newContext();const page=await context.newPage();const errors:string[]=[],requests:string[]=[];page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>{if(new URL(r.url()).pathname.startsWith('/api/'))requests.push(new URL(r.url()).pathname);});
  const login=await context.request.post(webUrl+'/api/auth/login',{headers:{Origin:webUrl},data:f.credentials});assert.equal(login.status(),200);

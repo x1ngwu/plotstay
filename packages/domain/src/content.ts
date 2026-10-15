@@ -4,15 +4,16 @@ import { textSchema, type ContentText, type CreateContentInput, type EditContent
 import { requireWorld, type Actor } from './auth.ts';
 import { assert, DomainError } from './errors.ts';
 import {recordReviewSubmission,checkReviewSubmission} from './review-submissions.ts';
+import {isWork,prepareWork,writeWork,selectableProvider,formalWork,bindWorkProvider,readWork} from './work-access.ts';
 
 async function event(db: PoolClient, actor: Actor, content: any, action: string, revisionId?: string, note = '') {
   await db.query(`INSERT INTO moderation_events(content_id,revision_id,world_id,actor_id,action,note)
     VALUES ($1,$2,$3,$4,$5,$6)`, [content.id, revisionId ?? null, content.world_id, actor.id, action, note]);
 }
-export async function lockContent(db: PoolClient, actor: Actor, id: string, manage = false) {
+export async function lockContent(db: PoolClient, actor: Actor, id: string, manage = false, own = false) {
   const { rows: [content] } = await db.query('SELECT * FROM contents WHERE id=$1 FOR UPDATE', [id]);
   assert(content, 404, 'NOT_FOUND', 'Content not found.');
-  const world = await requireWorld(db, actor, content.world_id, manage);
+  const world = own&&!manage&&isWork(content)?(await readWork(db,actor,id), (await db.query('SELECT * FROM worlds WHERE id=$1',[content.world_id])).rows[0]):await requireWorld(db, actor, content.world_id, manage);
   return { content, world };
 }
 async function putTranslation(db: PoolClient, revisionId: string, locale: string, body: ContentText, origin: string, actorId: string) {
@@ -69,8 +70,10 @@ export async function appendRevision(db: PoolClient, actor: Actor, content: any,
   await event(db, actor, content, 'draft_saved', revision.id);
   return revision;
 }
-export async function createContentInTransaction(db: PoolClient, actor: Actor, input: CreateContentInput) {
-  await requireWorld(db, actor, input.worldId);
+export async function createContentInTransaction(db: PoolClient, actor: Actor, input: CreateContentInput, own = false) {
+  const works=isWork(input)&&Boolean((await db.query("SELECT to_regclass('work_ownership') AS t")).rows[0].t);
+  if(works){if(!own)await requireWorld(db,actor,input.worldId);await prepareWork(db,actor,input.worldId);assert(input.personaId,400,'PROVIDER_REQUIRED','Choose an operating persona before saving or importing.');await selectableProvider(db,actor,input.personaId);}
+  else await requireWorld(db, actor, input.worldId);
   if (input.placeId) {
     const place = await db.query('SELECT id FROM places WHERE id=$1 AND world_id=$2', [input.placeId, input.worldId]);
     assert(place.rowCount, 400, 'INVALID_PLACE', 'The place must belong to this world.');
@@ -79,22 +82,24 @@ export async function createContentInTransaction(db: PoolClient, actor: Actor, i
     const parent = await db.query("SELECT id FROM contents WHERE id=$1 AND world_id=$2 AND kind IN ('stay','experience','service')", [input.parentContentId, input.worldId]);
     assert(parent.rowCount, 400, 'INVALID_PARENT', 'A review needs a stay, experience or service in this world.');
   } else assert(!input.parentContentId, 400, 'INVALID_PARENT', 'Only reviews have a parent entry.');
-  if (input.personaId) {
+  if (input.personaId && !works) {
     const persona = await db.query('SELECT id FROM personas WHERE id=$1 AND approved AND (owner_id=$2 OR $3)', [input.personaId, actor.id, actor.siteRole === 'admin']);
     assert(persona.rowCount, 403, 'PERSONA_FORBIDDEN', 'This persona is not available to you.');
   }
   const { rows: [content] } = await db.query(`INSERT INTO contents(world_id,place_id,kind,slug,parent_content_id,persona_id,author_id)
     VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING *`, [input.worldId, input.placeId, input.kind, input.slug, input.parentContentId, input.personaId, actor.id]);
   const revision = await appendRevision(db, actor, content, input);
+  if(works){await db.query("INSERT INTO work_ownership(content_id,owner_id,source)VALUES($1,$2,'self_create')",[content.id,actor.id]);await bindWorkProvider(db,actor,content,input.personaId!);}
   if(input.kind==='review' && input.personaId && (await db.query("SELECT to_regclass('review_signatures') AS t")).rows[0].t) { const p=(await db.query('SELECT profiles FROM personas WHERE id=$1',[input.personaId])).rows[0]; await db.query('INSERT INTO review_signatures(revision_id,persona_id,profiles,managed)VALUES($1,$2,$3,false)',[revision.id,input.personaId,p.profiles]); }
   return { id: content.id as string, revisionId: revision.id as string, number: revision.number as number };
 }
 export function createContent(db: Database, actor: Actor, input: CreateContentInput) {
   return transaction(db, client => createContentInTransaction(client, actor, input));
 }
-export function editContent(db: Database, actor: Actor, id: string, input: EditContentInput) {
+export function editContent(db: Database, actor: Actor, id: string, input: EditContentInput, own = false) {
   return transaction(db, async client => {
-    const { content } = await lockContent(client, actor, id);
+    const { content } = await lockContent(client, actor, id,false,own);
+    await writeWork(client,actor,content);
     assert(!(await client.query('SELECT 1 FROM review_signatures s JOIN content_revisions r ON r.id=s.revision_id WHERE r.content_id=$1 AND s.managed',[id])).rowCount,409,'PERSONA_EDITOR_REQUIRED','Use the persona review editor for this entry.');
     assert(content.head_revision_id === input.baseRevisionId, 409, 'REVISION_CONFLICT', 'Another editor saved a new version. Your changes have not been overwritten.');
     assert(!input.baseDraftToken || content.draft_token === input.baseDraftToken, 409, 'REVISION_CONFLICT', 'Draft translations changed. Your input is preserved; reload before saving.');
@@ -106,6 +111,7 @@ export function editContent(db: Database, actor: Actor, id: string, input: EditC
 export function saveTranslation(db: Database, actor: Actor, id: string, revisionId: string, locale: string, body: ContentText, baseTranslationId?: string | null) {
   return transaction(db, async client => {
     const { content } = await lockContent(client, actor, id);
+    await writeWork(client,actor,content);
     assert(!(await client.query('SELECT 1 FROM review_signatures s JOIN content_revisions r ON r.id=s.revision_id WHERE r.content_id=$1 AND s.managed',[id])).rowCount,409,'PERSONA_EDITOR_REQUIRED','Use the persona review editor for this entry.');
     assert(content.head_revision_id === revisionId, 409, 'REVISION_CONFLICT', 'This is no longer the current draft.');
     const { rows: [revision] } = await client.query('SELECT * FROM content_revisions WHERE id=$1', [revisionId]);
@@ -124,15 +130,18 @@ export function saveTranslation(db: Database, actor: Actor, id: string, revision
     return { saved: true };
   });
 }
-export function submitRevision(db: Database, actor: Actor, id: string, revisionId: string, draftToken?: string) {
+export function submitRevision(db: Database, actor: Actor, id: string, revisionId: string, draftToken?: string, own = false) {
   return transaction(db, async client => {
-    const { content } = await lockContent(client, actor, id);
+    const { content } = await lockContent(client, actor, id,false,own);
+    const epoch=await formalWork(client,actor,content);
     if(content.kind==='review' && Object.hasOwn(content,'submitted_revision_id'))assert(!(await client.query('SELECT 1 FROM review_signatures WHERE revision_id=$1 AND managed',[content.head_revision_id])).rowCount,409,'PERSONA_EDITOR_REQUIRED','Submit personal reviews through the author endpoint.');
     assert(!draftToken || content.draft_token === draftToken,409,'REVISION_CONFLICT','Draft translations changed. Reload before submitting.');
     assert(content.head_revision_id === revisionId, 409, 'REVISION_CONFLICT', 'Submit the current draft.');
-    const result = await client.query("UPDATE content_revisions SET status='submitted' WHERE id=$1 AND (status='draft' OR status='rejected' AND $2<>'review') RETURNING id", [revisionId,content.kind]);
+    const expired=isWork(content)&&!(await client.query('SELECT 1 FROM work_submission_eligibilities WHERE content_id=$1 AND revision_id=$2 AND epoch=$3',[id,revisionId,epoch])).rowCount;
+    const result = await client.query("UPDATE content_revisions SET status='submitted' WHERE id=$1 AND (status='draft' OR status='rejected' AND $2<>'review' OR status='submitted' AND $3) RETURNING id", [revisionId,content.kind,expired]);
     assert(result.rowCount, 409, 'REVISION_LOCKED', 'This version cannot be submitted.');
     if(content.kind==='review' && Object.hasOwn(content,'submitted_revision_id'))await recordReviewSubmission(client,actor,content,revisionId);
+    if(isWork(content))await client.query('INSERT INTO work_submission_eligibilities(content_id,revision_id,epoch)VALUES($1,$2,$3) ON CONFLICT(content_id,revision_id)DO UPDATE SET epoch=excluded.epoch,submitted_at=now()',[id,revisionId,epoch]);
     await event(client, actor, content, 'submitted', revisionId);
     return { submitted: true };
   });
@@ -154,6 +163,7 @@ export function reviewRevision(db: Database, actor: Actor, id: string, revisionI
       return { published: false };
     }
     assert(!world.site_blocked && !content.site_blocked, 403, 'SITE_BLOCKED', 'Site moderation prevents publication.');
+    await formalWork(client,actor,content,revisionId,true);
     await (await import('./persona-reviews.ts')).validateReviewPublication(client,actor,content,revisionId);
     const localeTable=content.kind==='review' && Object.hasOwn(content,'submitted_revision_id')?'review_submission_locales':'revision_locales';
     const localeCondition=content.kind==='review' && Object.hasOwn(content,'submitted_revision_id')?'rl.submission_id=$1':'rl.revision_id=$1';
@@ -178,6 +188,7 @@ export function restorePublication(db: Database, actor: Actor, id: string, publi
     assert(!world.site_blocked && !content.site_blocked, 403, 'SITE_BLOCKED', 'Site moderation prevents publication.');
     const { rows: [previous] } = await client.query('SELECT * FROM publications WHERE id=$1 AND content_id=$2', [publicationId, id]);
     assert(previous, 404, 'NOT_FOUND', 'Published version not found.');
+    await formalWork(client,actor,content);
     if(content.kind==='review' && Object.hasOwn(content,'submitted_revision_id'))assert(await (await import('./read.ts')).getPublished(client,'en',{id:content.parent_content_id}),409,'TARGET_UNAVAILABLE','The entry is not visible.');
     const next = randomUUID();
     await client.query('INSERT INTO publications(id,content_id,revision_id,published_by,restored_from) VALUES ($1,$2,$3,$4,$5)', [next, id, previous.revision_id, actor.id, publicationId]);

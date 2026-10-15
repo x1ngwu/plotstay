@@ -1,0 +1,14 @@
+npm notice run @plotstay/web@0.1.0 check
+npm notice run astro check
+12:48:00 [types] Generated 183ms
+12:48:01 [check] Getting diagnostics for Astro files in /data/apps/plotstay/apps/web...
+[96msrc/lib/workspace-works.js[0m:[93m6[0m:[93m70[0m - [93mwarning[0m[90m ts(6133): [0m'actor' is declared but its value is never read.
+
+[7m6[0m let q=new URLSearchParams(location.search),lang=shell.dataset.prefix,actor=account.siteRole,scenario='loading';
+[7m [0m [93m                                                                     ~~~~~[0m
+
+Result (70 files): 
+- 0 errors
+- 0 warnings
+- 1 hint
+

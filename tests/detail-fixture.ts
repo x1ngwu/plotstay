@@ -1,5 +1,6 @@
+import {createFixtureContent as createContent,fixtureOperator} from './work-fixtures.ts';
 import { createContentSchema } from '@plotstay/contracts';
-import { createContent, submitRevision, reviewRevision } from '@plotstay/domain';
+import { submitRevision, reviewRevision } from '@plotstay/domain';
 import { fixture } from './helpers.ts';
 import { seedDiscovery } from '../scripts/seed-discovery.ts';
 
@@ -13,8 +14,10 @@ export async function detailFixture() {
     };
     const entries = [];
     for (const kind of ['stay', 'experience', 'service'] as const) {
+      await fixtureOperator(f.db,f.data.owner,f.data.latheId);
+      const provider=(await f.db.query('INSERT INTO personas(owner_id,approved,profiles)VALUES($1,true,$2)RETURNING id',[f.data.owner.id,{en:{name:`Test ${kind} host`,bio:'An introduction from the published version.'},'zh-CN':{name:`测试人物${kind}`,bio:'来自已发布版本的人物介绍。'}}])).rows[0];
       const input = createContentSchema.parse({
-        worldId: f.data.latheId, placeId: f.data.forgePlace, kind, slug: `detail-${kind}`, sourceLocale: 'en',
+        worldId: f.data.latheId, personaId:provider.id, placeId: f.data.forgePlace, kind, slug: `detail-${kind}`, sourceLocale: 'en',
         text: { title: `Detail ${kind}`, summary: 'A short introduction.', description: 'Published description.\nSecond paragraph.' + (kind === 'service' ? '\n' + 'Long detail paragraph for responsive reading. '.repeat(15) + 'X'.repeat(180) : ''),
           tags: ['Test journey'], hostName: `Test ${kind} host`, hostBio: 'An introduction from the published version.',
           facilities: ['A reading lamp', 'A quiet desk'], rules: ['Bring your imagination.'],

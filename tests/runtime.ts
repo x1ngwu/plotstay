@@ -34,3 +34,12 @@ export async function artifactHash() {
   for (const file of files) hash.update(file).update(await readFile(file));
   return hash.digest('hex');
 }
+
+// Optional isolated build directory. Production artifacts are never overwritten by this test run.
+export function testEntry(entry:string){
+ const root=process.env.PLOTSTAY_TEST_BUILD;
+ if(!root)return entry;
+ if(entry==='apps/api/dist/server.mjs')return root+'/api/server.mjs';
+ if(entry==='apps/web/server.mjs')return root+'/web-server.mjs';
+ return entry;
+}

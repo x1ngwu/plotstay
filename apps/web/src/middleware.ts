@@ -35,6 +35,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   response.headers.set('Cache-Control', 'no-store');
   response.headers.set('X-Content-Type-Options', 'nosniff');
   if (!indexable || response.status >= 400 || prefix === 'api') response.headers.set('X-Robots-Tag', 'noindex, follow');
-  if(context.url.pathname.startsWith('/api/admin/preview/')){response.headers.set('X-Robots-Tag','noindex, nofollow, noarchive');response.headers.set('Cache-Control','private, no-store');}
+  const workPrivate=context.url.pathname.startsWith('/api/me/works')||context.url.pathname.startsWith('/api/me/work-preview/')||(context.url.pathname.endsWith('/workspace')&&(['works','create'].includes(context.url.searchParams.get('view')??'')||context.url.searchParams.get('author')==='1'));
+  if(workPrivate||context.url.pathname.startsWith('/api/admin/preview/')){response.headers.set('X-Robots-Tag','noindex, nofollow, noarchive');response.headers.set('Cache-Control','private, no-store');}
   return response;
 });

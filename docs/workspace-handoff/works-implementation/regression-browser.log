@@ -1,0 +1,792 @@
+TAP version 13
+# Subtest: phase 5 complete booking browser flows
+    # Subtest: three types in both languages preserve selections, persist, refresh and download valid PNGs at desktop and mobile widths
+    ok 1 - three types in both languages preserve selections, persist, refresh and download valid PNGs at desktop and mobile widths
+      ---
+      duration_ms: 29184.603531
+      type: 'test'
+      ...
+    # Subtest: language switching preserves historical issue language; copy links, revisit and deliberate new bookings work
+    ok 2 - language switching preserves historical issue language; copy links, revisit and deliberate new bookings work
+      ---
+      duration_ms: 2055.510824
+      type: 'test'
+      ...
+    # Subtest: a second browser cannot access a receipt by URL and receives no private snapshot
+    ok 3 - a second browser cannot access a receipt by URL and receives no private snapshot
+      ---
+      duration_ms: 330.542169
+      type: 'test'
+      ...
+    # Subtest: a committed request with a lost response recovers on refresh without a duplicate
+    ok 4 - a committed request with a lost response recovers on refresh without a duplicate
+      ---
+      duration_ms: 1904.594547
+      type: 'test'
+      ...
+    # Subtest: a request interrupted before reaching the backend keeps the same key across reload and retry
+    ok 5 - a request interrupted before reaching the backend keeps the same key across reload and retry
+      ---
+      duration_ms: 2008.845362
+      type: 'test'
+      ...
+    # Subtest: expired dates and unmatched preferences show actionable states in both languages
+    ok 6 - expired dates and unmatched preferences show actionable states in both languages
+      ---
+      duration_ms: 1704.912032
+      type: 'test'
+      ...
+    # Subtest: withdrawal after review prevents creation; historical receipt still loads
+    ok 7 - withdrawal after review prevents creation; historical receipt still loads
+      ---
+      duration_ms: 1827.600653
+      type: 'test'
+      ...
+    # Subtest: download and clipboard failures leave the saved receipt intact and offer recovery
+    ok 8 - download and clipboard failures leave the saved receipt intact and offer recovery
+      ---
+      duration_ms: 263.536687
+      type: 'test'
+      ...
+    # Subtest: 320 and 768 pixel layouts remain usable and no client exceptions occur
+    ok 9 - 320 and 768 pixel layouts remain usable and no client exceptions occur
+      ---
+      duration_ms: 2871.470305
+      type: 'test'
+      ...
+    1..9
+ok 1 - phase 5 complete booking browser flows
+  ---
+  duration_ms: 45012.05943
+  type: 'test'
+  ...
+# Subtest: phase 5.5 section forms and protected preview
+    # Subtest: save and preview shows the saved draft, language, width and unsaved state
+    ok 1 - save and preview shows the saved draft, language, width and unsaved state
+      ---
+      duration_ms: 4479.913176
+      type: 'test'
+      ...
+    # Subtest: stay checkpoint: bilingual form save, clear, reorder, preview, publish and restore
+    ok 2 - stay checkpoint: bilingual form save, clear, reorder, preview, publish and restore
+      ---
+      duration_ms: 6807.281859
+      type: 'test'
+      ...
+    # Subtest: experience and service bilingual forms, UTC sessions, lists and preview use saved values
+    ok 3 - experience and service bilingual forms, UTC sessions, lists and preview use saved values
+      ---
+      duration_ms: 12814.510144
+      type: 'test'
+      ...
+    # Subtest: shared copy form publishes without rebuilding and keeps type boundaries
+    ok 4 - shared copy form publishes without rebuilding and keeps type boundaries
+      ---
+      duration_ms: 7997.6907
+      type: 'test'
+      ...
+    # Subtest: save errors and expired sessions preserve form input, with reauthentication
+    ok 5 - save errors and expired sessions preserve form input, with reauthentication
+      ---
+      duration_ms: 2948.244242
+      type: 'test'
+      ...
+    # Subtest: editorial notes stay under their parent and affect public ratings only after publication
+    ok 6 - editorial notes stay under their parent and affect public ratings only after publication
+      ---
+      duration_ms: 5274.966424
+      type: 'test'
+      ...
+    1..6
+ok 2 - phase 5.5 section forms and protected preview
+  ---
+  duration_ms: 45412.135798
+  type: 'test'
+  ...
+# Subtest: phase 4 detail browser acceptance
+    # Subtest: expanded content has its collapse control at the bottom, including without JavaScript
+    ok 1 - expanded content has its collapse control at the bottom, including without JavaScript
+      ---
+      duration_ms: 39619.723917
+      type: 'test'
+      ...
+    # Subtest: each type renders published special modules, people and fictional notes
+    not ok 2 - each type renders published special modules, people and fictional notes
+      ---
+      duration_ms: 5561.475562
+      type: 'test'
+      location: '/data/apps/plotstay/tests/details-e2e.test.ts:60:11'
+      failureType: 'testCodeFailure'
+      error: |-
+        expect(locator).toContainText(expected) failed
+        
+        Locator: locator('#host')
+        Expected substring: "Test stay host"
+        Received string:    "Meet your hostRegression operator 397aeb7d-fab3-4637-970a-b8d294dc2068Status to be addedReviews—Rating— ★Years hosting—About the hostHost status details will be added.Synthetic regression profileThe host’s introduction will be added.Host detailsResponse rate: To be addedResponse time will be added.Message hostShow less↓Contact informationContact details will be added. Messaging is not available yet."
+        Timeout: 5000ms
+        
+        Call log:
+          - Expect "toContainText" locator('#host') with timeout 5000ms
+          - waiting for locator('#host')
+            14 × locator resolved to <section id="host" aria-labelledby="host-heading" class="detail-section content-section">…</section>
+               - unexpected value "Meet your hostRegression operator 397aeb7d-fab3-4637-970a-b8d294dc2068Status to be addedReviews—Rating— ★Years hosting—About the hostHost status details will be added.Synthetic regression profileThe host’s introduction will be added.Host detailsResponse rate: To be addedResponse time will be added.Message hostShow less↓Contact informationContact details will be added. Messaging is not available yet."
+        
+      code: 'ERR_TEST_FAILURE'
+      stack: |-
+        captureRawStack (/data/apps/plotstay/node_modules/playwright-core/lib/coreBundle.js:8588:17)
+        callMatcherAsStep (/data/apps/plotstay/node_modules/playwright/lib/matchers/expect.js:13310:57)
+        Object.toContainText (/data/apps/plotstay/node_modules/playwright/lib/matchers/expect.js:13302:23)
+        TestContext.<anonymous> (/data/apps/plotstay/tests/details-e2e.test.ts:64:43)
+        async TestContext.<anonymous> (/data/apps/plotstay/tests/details-e2e.test.ts:60:3)
+      ...
+    # Subtest: experience sample renders eight complete modules, illustrated steps and useful demo interactions
+    ok 3 - experience sample renders eight complete modules, illustrated steps and useful demo interactions
+      ---
+      duration_ms: 10024.441509
+      type: 'test'
+      ...
+    # Subtest: service has eight complete modules, sample dates, rated reviews and reference layout
+    ok 4 - service has eight complete modules, sample dates, rated reviews and reference layout
+      ---
+      duration_ms: 9415.684558
+      type: 'test'
+      ...
+    # Subtest: gallery opens any thumbnail, wraps with keys, traps focus and restores trigger
+    ok 5 - gallery opens any thumbnail, wraps with keys, traps focus and restores trigger
+      ---
+      duration_ms: 1074.149493
+      type: 'test'
+      ...
+    # Subtest: notes pagination, related navigation and language keep browse and trip context
+    ok 6 - notes pagination, related navigation and language keep browse and trip context
+      ---
+      duration_ms: 1530.93806
+      type: 'test'
+      ...
+    # Subtest: existing demo, long content and every language/font fit desktop and mobile
+    ok 7 - existing demo, long content and every language/font fit desktop and mobile
+      ---
+      duration_ms: 19246.255878
+      type: 'test'
+      ...
+    # Subtest: no-script gallery links, notes and related content remain reachable
+    ok 8 - no-script gallery links, notes and related content remain reachable
+      ---
+      duration_ms: 904.094167
+      type: 'test'
+      ...
+    # Subtest: all ten stay groups remain visible, including legacy empty data
+    ok 9 - all ten stay groups remain visible, including legacy empty data
+      ---
+      duration_ms: 516.726142
+      type: 'test'
+      ...
+    # Subtest: complete stay content, expansions and nearby routes work in both languages and without scripts
+    ok 10 - complete stay content, expansions and nearby routes work in both languages and without scripts
+      ---
+      duration_ms: 14054.381332
+      type: 'test'
+      ...
+    # Subtest: admin editing preserves nested stay data and visitor profiles in new drafts
+    ok 11 - admin editing preserves nested stay data and visitor profiles in new drafts
+      ---
+      duration_ms: 7527.521784
+      type: 'test'
+      ...
+    1..11
+not ok 3 - phase 4 detail browser acceptance
+  ---
+  duration_ms: 115792.201228
+  type: 'test'
+  location: '/data/apps/plotstay/tests/details-e2e.test.ts:14:1'
+  failureType: 'subtestsFailed'
+  error: '1 subtest failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# Subtest: phase 3 discovery, crawlability, trip, SEO and browser acceptance
+    # Subtest: no-script traversal starts at homepage, covers 55 plus demo and services without duplicates
+    ok 1 - no-script traversal starts at homepage, covers 55 plus demo and services without duplicates
+      ---
+      duration_ms: 5751.585727
+      type: 'test'
+      ...
+    # Subtest: paged SEO is self-referencing, reciprocal and included in sitemap; filtered/trip states noindex
+    ok 2 - paged SEO is self-referencing, reciprocal and included in sitemap; filtered/trip states noindex
+      ---
+      duration_ms: 813.701392
+      type: 'test'
+      ...
+    # Subtest: trip survives pagination, language, detail and back; keyword language resets page
+    ok 3 - trip survives pagination, language, detail and back; keyword language resets page
+      ---
+      duration_ms: 3132.413834
+      type: 'test'
+      ...
+    # Subtest: desktop, tablet, mobile, keyboard, search types, image errors and action targets are usable
+    ok 4 - desktop, tablet, mobile, keyboard, search types, image errors and action targets are usable
+      ---
+      duration_ms: 7542.353237
+      type: 'test'
+      ...
+    # Subtest: existing account manages a service with translated tags and category; anonymous and role menus work
+    not ok 5 - existing account manages a service with translated tags and category; anonymous and role menus work
+      ---
+      duration_ms: 6560.159092
+      type: 'test'
+      location: '/data/apps/plotstay/tests/discovery-e2e.test.ts:102:10'
+      failureType: 'testCodeFailure'
+      error: |-
+        expect(locator).toContainText(expected) failed
+        
+        Locator: locator('#message')
+        Expected substring: "草稿已保存"
+        Received string:    "Choose an operating persona before saving or importing."
+        Timeout: 5000ms
+        
+        Call log:
+          - Expect "toContainText" locator('#message') with timeout 5000ms
+          - waiting for locator('#message')
+            - locator resolved to <p id="message" role="status" aria-live="polite"></p>
+            - unexpected value ""
+            13 × locator resolved to <p id="message" role="status" aria-live="polite">Choose an operating persona before saving or impo…</p>
+               - unexpected value "Choose an operating persona before saving or importing."
+        
+      code: 'ERR_TEST_FAILURE'
+      stack: |-
+        captureRawStack (/data/apps/plotstay/node_modules/playwright-core/lib/coreBundle.js:8588:17)
+        callMatcherAsStep (/data/apps/plotstay/node_modules/playwright/lib/matchers/expect.js:13310:57)
+        Object.toContainText (/data/apps/plotstay/node_modules/playwright/lib/matchers/expect.js:13302:23)
+        TestContext.<anonymous> (/data/apps/plotstay/tests/discovery-e2e.test.ts:110:101)
+        async TestContext.<anonymous> (/data/apps/plotstay/tests/discovery-e2e.test.ts:102:2)
+      ...
+    # Subtest: live unpublish and restore update page count, homepage and sitemap without rebuild
+    ok 6 - live unpublish and restore update page count, homepage and sitemap without rebuild
+      ---
+      duration_ms: 1359.435305
+      type: 'test'
+      ...
+    1..6
+not ok 4 - phase 3 discovery, crawlability, trip, SEO and browser acceptance
+  ---
+  duration_ms: 32164.320242
+  type: 'test'
+  location: '/data/apps/plotstay/tests/discovery-e2e.test.ts:15:1'
+  failureType: 'subtestsFailed'
+  error: '1 subtest failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# SSR links reached 73 distinct published entries, including 55 added bilingual homes/experiences and 2 services.
+# Runtime publish/unpublish/restore preserved Web artifact SHA-256 c23f3f9cda337c69cf5bbd49c79078fd70a8a0b979070467043e9429b882ab54
+# Subtest: overview renders live summaries, isolates preferences and preserves precise object returns
+ok 5 - overview renders live summaries, isolates preferences and preserves precise object returns
+  ---
+  duration_ms: 10825.463416
+  type: 'test'
+  ...
+# Subtest: phase 5.6 ordinary account accommodation journey
+    # Subtest: normal login, bilingual persona, stay draft and private preview
+    ok 1 - normal login, bilingual persona, stay draft and private preview
+      ---
+      duration_ms: 2774.88458
+      type: 'test'
+      ...
+    # Subtest: joint moderation publishes signature and score without world access for author
+    ok 2 - joint moderation publishes signature and score without world access for author
+      ---
+      duration_ms: 1190.245349
+      type: 'test'
+      ...
+    # Subtest: experience and service reviews, explicit provider binding and bilingual reply moderation
+    not ok 3 - experience and service reviews, explicit provider binding and bilingual reply moderation
+      ---
+      duration_ms: 5919.528937
+      type: 'test'
+      location: '/data/apps/plotstay/tests/persona-reviews-e2e.test.ts:119:11'
+      failureType: 'testCodeFailure'
+      error: |-
+        expect(locator).toContainText(expected) failed
+        
+        Locator: locator('#persona-message')
+        Expected substring: "Provider assigned"
+        Received string:    "The persona was permanently locked by a successful submission or publication."
+        Timeout: 5000ms
+        
+        Call log:
+          - Expect "toContainText" locator('#persona-message') with timeout 5000ms
+          - waiting for locator('#persona-message')
+            - locator resolved to <p role="status" aria-live="polite" id="persona-message"></p>
+            - unexpected value ""
+            13 × locator resolved to <p role="status" aria-live="polite" id="persona-message">The persona was permanently locked by a successfu…</p>
+               - unexpected value "The persona was permanently locked by a successful submission or publication."
+        
+      code: 'ERR_TEST_FAILURE'
+      stack: |-
+        captureRawStack (/data/apps/plotstay/node_modules/playwright-core/lib/coreBundle.js:8588:17)
+        callMatcherAsStep (/data/apps/plotstay/node_modules/playwright/lib/matchers/expect.js:13310:57)
+        Object.toContainText (/data/apps/plotstay/node_modules/playwright/lib/matchers/expect.js:13302:23)
+        TestContext.<anonymous> (/data/apps/plotstay/tests/persona-reviews-e2e.test.ts:173:55)
+        async TestContext.<anonymous> (/data/apps/plotstay/tests/persona-reviews-e2e.test.ts:119:3)
+      ...
+    # Subtest: expired session preserves input, bilingual mobile and no horizontal overflow
+    ok 4 - expired session preserves input, bilingual mobile and no horizontal overflow
+      ---
+      duration_ms: 2630.456446
+      type: 'test'
+      ...
+    1..4
+not ok 6 - phase 5.6 ordinary account accommodation journey
+  ---
+  duration_ms: 15220.667354
+  type: 'test'
+  location: '/data/apps/plotstay/tests/persona-reviews-e2e.test.ts:11:1'
+  failureType: 'subtestsFailed'
+  error: '1 subtest failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# Subtest: real persona workspace: language, independent saves, versions, navigation and responsive screenshots
+    # Subtest: filters, search, sorting, compound status and editor return persist
+    ok 1 - filters, search, sorting, compound status and editor return persist
+      ---
+      duration_ms: 398.385357
+      type: 'test'
+      ...
+    # Subtest: interface/content language and public/notes dirty states are independent
+    ok 2 - interface/content language and public/notes dirty states are independent
+      ---
+      duration_ms: 1003.321997
+      type: 'test'
+      ...
+    # Subtest: create once after lost response, save notes separately, long input retained
+    ok 3 - create once after lost response, save notes separately, long input retained
+      ---
+      duration_ms: 775.15088
+      type: 'test'
+      ...
+    # Subtest: return reasons and linked history refer to fixed versions; disabled notes remain editable
+    ok 4 - return reasons and linked history refer to fixed versions; disabled notes remain editable
+      ---
+      duration_ms: 708.359723
+      type: 'test'
+      ...
+    # Subtest: stale notes cannot overwrite another window; compare preserves local input
+    ok 5 - stale notes cannot overwrite another window; compare preserves local input
+      ---
+      duration_ms: 914.274122
+      type: 'test'
+      ...
+    # Subtest: loading failure, retry, empty search and session recovery isolate account buffers
+    ok 6 - loading failure, retry, empty search and session recovery isolate account buffers
+      ---
+      duration_ms: 1632.240051
+      type: 'test'
+      ...
+    # Subtest: real browser screenshot matrix and narrow layouts
+    ok 7 - real browser screenshot matrix and narrow layouts
+      ---
+      duration_ms: 4749.768557
+      type: 'test'
+      ...
+    # Subtest: site admin publish and moderation navigation; previous account stays intact
+    ok 8 - site admin publish and moderation navigation; previous account stays intact
+      ---
+      duration_ms: 1215.718771
+      type: 'test'
+      ...
+    # Subtest: a session changed in another tab clears private memory when focus returns
+    ok 9 - a session changed in another tab clears private memory when focus returns
+      ---
+      duration_ms: 387.353497
+      type: 'test'
+      ...
+    # Subtest: empty account has an honest create entry and no moderation access
+    ok 10 - empty account has an honest create entry and no moderation access
+      ---
+      duration_ms: 478.37383
+      type: 'test'
+      ...
+    1..10
+ok 7 - real persona workspace: language, independent saves, versions, navigation and responsive screenshots
+  ---
+  duration_ms: 14994.161328
+  type: 'test'
+  ...
+# Subtest: persona workspace async races
+    # Subtest: refresh cannot silently adopt another window’s public version
+    ok 1 - refresh cannot silently adopt another window’s public version
+      ---
+      duration_ms: 908.283426
+      type: 'test'
+      ...
+    # Subtest: old notes success cannot block or finish the next persona’s load
+    ok 2 - old notes success cannot block or finish the next persona’s load
+      ---
+      duration_ms: 587.883567
+      type: 'test'
+      ...
+    # Subtest: old notes failure cannot block or finish the next persona’s load
+    ok 3 - old notes failure cannot block or finish the next persona’s load
+      ---
+      duration_ms: 553.975784
+      type: 'test'
+      ...
+    # Subtest: new public input during navigation requires confirmation
+    ok 4 - new public input during navigation requires confirmation
+      ---
+      duration_ms: 370.736549
+      type: 'test'
+      ...
+    # Subtest: new notes input during navigation requires confirmation
+    ok 5 - new notes input during navigation requires confirmation
+      ---
+      duration_ms: 391.960578
+      type: 'test'
+      ...
+    # Subtest: failed navigation preserves the editor URL and both unsaved buffers
+    ok 6 - failed navigation preserves the editor URL and both unsaved buffers
+      ---
+      duration_ms: 403.234359
+      type: 'test'
+      ...
+    # Subtest: conflict recovery for user: retained input is different
+    ok 7 - conflict recovery for user: retained input is different
+      ---
+      duration_ms: 1004.497485
+      type: 'test'
+      ...
+    # Subtest: conflict recovery for user: retained input is identical
+    ok 8 - conflict recovery for user: retained input is identical
+      ---
+      duration_ms: 801.539593
+      type: 'test'
+      ...
+    # Subtest: conflict recovery for admin: retained input is different
+    ok 9 - conflict recovery for admin: retained input is different
+      ---
+      duration_ms: 1121.226925
+      type: 'test'
+      ...
+    # Subtest: conflict recovery for admin: retained input is identical
+    ok 10 - conflict recovery for admin: retained input is identical
+      ---
+      duration_ms: 741.379736
+      type: 'test'
+      ...
+    1..10
+ok 8 - persona workspace async races
+  ---
+  duration_ms: 8908.476103
+  type: 'test'
+  ...
+# Subtest: real reviews workspace: approved layout, live APIs, isolated data, input races and browser evidence
+    # Subtest: 16 real browser screenshots: bilingual desktop/mobile, lists and edit contexts
+    ok 1 - 16 real browser screenshots: bilingual desktop/mobile, lists and edit contexts
+      ---
+      duration_ms: 5706.118953
+      type: 'test'
+      ...
+    # Subtest: read-only history, new entry, role focus, full reading and return filters
+    ok 2 - read-only history, new entry, role focus, full reading and return filters
+      ---
+      duration_ms: 1685.844081
+      type: 'test'
+      ...
+    # Subtest: bilingual fields, source language and optional values survive; conflict comparison preserves dirty input
+    ok 3 - bilingual fields, source language and optional values survive; conflict comparison preserves dirty input
+      ---
+      duration_ms: 1270.247813
+      type: 'test'
+      ...
+    # Subtest: typing during slow save is preserved; response loss reuses the committed request
+    ok 4 - typing during slow save is preserved; response loss reuses the committed request
+      ---
+      duration_ms: 408.289642
+      type: 'test'
+      ...
+    # Subtest: navigation waits recheck new input and failure leaves the editor intact
+    ok 5 - navigation waits recheck new input and failure leaves the editor intact
+      ---
+      duration_ms: 313.252635
+      type: 'test'
+      ...
+    # Subtest: same-account reauthentication preserves input; switching accounts clears it
+    ok 6 - same-account reauthentication preserves input; switching accounts clears it
+      ---
+      duration_ms: 674.221015
+      type: 'test'
+      ...
+    # Subtest: 1100/360, 200 percent text, long content, empty/error/loading and keyboard controls
+    ok 7 - 1100/360, 200 percent text, long content, empty/error/loading and keyboard controls
+      ---
+      duration_ms: 3894.073659
+      type: 'test'
+      ...
+    # Subtest: save and submit freeze input before a slow identity check for reviews and replies
+    ok 8 - save and submit freeze input before a slow identity check for reviews and replies
+      ---
+      duration_ms: 4719.644661
+      type: 'test'
+      ...
+    # Subtest: matching conflict adoption previews the adopted review and reply revision
+    ok 9 - matching conflict adoption previews the adopted review and reply revision
+      ---
+      duration_ms: 2270.878776
+      type: 'test'
+      ...
+    # Subtest: reply previews use own readable revision after provider changes and baseline adoption
+    ok 10 - reply previews use own readable revision after provider changes and baseline adoption
+      ---
+      duration_ms: 2066.056548
+      type: 'test'
+      ...
+    # Subtest: current provider editable reply survives multiple history pages and persona changes
+    ok 11 - current provider editable reply survives multiple history pages and persona changes
+      ---
+      duration_ms: 1481.649135
+      type: 'test'
+      ...
+    # Subtest: first reply save and submit immediately enable preview of the persisted version
+    ok 12 - first reply save and submit immediately enable preview of the persisted version
+      ---
+      duration_ms: 947.720212
+      type: 'test'
+      ...
+    # Subtest: late previous-account detail response preserves the new account editor and save
+    ok 13 - late previous-account detail response preserves the new account editor and save
+      ---
+      duration_ms: 1192.160752
+      type: 'test'
+      ...
+    1..13
+ok 9 - real reviews workspace: approved layout, live APIs, isolated data, input races and browser evidence
+  ---
+  duration_ms: 29391.263681
+  type: 'test'
+  ...
+# Subtest: SEO configuration rejects unsafe or missing origins and never infers indexing from production
+ok 10 - SEO configuration rejects unsafe or missing origins and never infers indexing from production
+  ---
+  duration_ms: 2.23406
+  type: 'test'
+  ...
+# Subtest: SEO-01–05: live API, built SSR, XML and publication lifecycle
+    # Subtest: one-hop GET/HEAD normalization preserves query, slug case and API/write paths
+    ok 1 - one-hop GET/HEAD normalization preserves query, slug case and API/write paths
+      ---
+      duration_ms: 2264.162512
+      type: 'test'
+      ...
+    # Subtest: SSR canonical, reciprocal actual-language hreflang, parameters and trusted origin
+    ok 2 - SSR canonical, reciprocal actual-language hreflang, parameters and trusted origin
+      ---
+      duration_ms: 3766.937511
+      type: 'test'
+      ...
+    # Subtest: SSR descriptions use published text in the page language when summaries are empty
+    not ok 3 - SSR descriptions use published text in the page language when summaries are empty
+      ---
+      duration_ms: 9.893609
+      type: 'test'
+      location: '/data/apps/plotstay/tests/seo.test.ts:133:11'
+      failureType: 'testCodeFailure'
+      error: 'Choose an operating persona before saving or importing.'
+      code: 'PROVIDER_REQUIRED'
+      stack: |-
+        assert (/data/apps/plotstay/packages/domain/src/errors.ts:5:25)
+        createContentInTransaction (/data/apps/plotstay/packages/domain/src/content.ts:75:106)
+        process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        async transaction (/data/apps/plotstay/packages/database/src/index.ts:15:52)
+        async TestContext.<anonymous> (/data/apps/plotstay/tests/seo.test.ts:139:21)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/data/apps/plotstay/tests/seo.test.ts:133:3)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: preview is noindex with empty sitemap; invalid indexed config fails explicitly
+    ok 4 - preview is noindex with empty sitemap; invalid indexed config fails explicitly
+      ---
+      duration_ms: 1548.477088
+      type: 'test'
+      ...
+    # Subtest: new locale and drafts never claim a complete translation; UI and body languages are distinct
+    not ok 5 - new locale and drafts never claim a complete translation; UI and body languages are distinct
+      ---
+      duration_ms: 8.433955
+      type: 'test'
+      location: '/data/apps/plotstay/tests/seo.test.ts:191:11'
+      failureType: 'testCodeFailure'
+      error: 'Choose an operating persona before saving or importing.'
+      code: 'PROVIDER_REQUIRED'
+      stack: |-
+        assert (/data/apps/plotstay/packages/domain/src/errors.ts:5:25)
+        createContentInTransaction (/data/apps/plotstay/packages/domain/src/content.ts:75:106)
+        process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        async transaction (/data/apps/plotstay/packages/database/src/index.ts:15:52)
+        async TestContext.<anonymous> (/data/apps/plotstay/tests/seo.test.ts:193:19)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/data/apps/plotstay/tests/seo.test.ts:191:3)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: missing translations, publish, restore, language enablement and restrictions change SEO without rebuilding
+    not ok 6 - missing translations, publish, restore, language enablement and restrictions change SEO without rebuilding
+      ---
+      duration_ms: 8.603837
+      type: 'test'
+      location: '/data/apps/plotstay/tests/seo.test.ts:212:11'
+      failureType: 'testCodeFailure'
+      error: 'Choose an operating persona before saving or importing.'
+      code: 'PROVIDER_REQUIRED'
+      stack: |-
+        assert (/data/apps/plotstay/packages/domain/src/errors.ts:5:25)
+        createContentInTransaction (/data/apps/plotstay/packages/domain/src/content.ts:75:106)
+        process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        async transaction (/data/apps/plotstay/packages/database/src/index.ts:15:52)
+        async TestContext.<anonymous> (/data/apps/plotstay/tests/seo.test.ts:215:21)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/data/apps/plotstay/tests/seo.test.ts:212:3)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: discovery covers more than 50 entries and every URL matches an indexable canonical
+    not ok 7 - discovery covers more than 50 entries and every URL matches an indexable canonical
+      ---
+      duration_ms: 7.090863
+      type: 'test'
+      location: '/data/apps/plotstay/tests/seo.test.ts:258:11'
+      failureType: 'testCodeFailure'
+      error: 'Choose an operating persona before saving or importing.'
+      code: 'PROVIDER_REQUIRED'
+      stack: |-
+        assert (/data/apps/plotstay/packages/domain/src/errors.ts:5:25)
+        createContentInTransaction (/data/apps/plotstay/packages/domain/src/content.ts:75:106)
+        process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        async transaction (/data/apps/plotstay/packages/database/src/index.ts:15:52)
+        async TestContext.<anonymous> (/data/apps/plotstay/tests/seo.test.ts:259:48)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/data/apps/plotstay/tests/seo.test.ts:258:3)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: API outage remains 503 for pages, admin and sitemap with no public metadata
+    ok 8 - API outage remains 503 for pages, admin and sitemap with no public metadata
+      ---
+      duration_ms: 89.224676
+      type: 'test'
+      ...
+    1..8
+not ok 11 - SEO-01–05: live API, built SSR, XML and publication lifecycle
+  ---
+  duration_ms: 9754.702909
+  type: 'test'
+  location: '/data/apps/plotstay/tests/seo.test.ts:23:1'
+  failureType: 'subtestsFailed'
+  error: '4 subtests failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# Subtest: built PostgreSQL → standalone API → Astro → browser
+    # Subtest: cookie session failures do not invalidate cached Basic Auth credentials
+    ok 1 - cookie session failures do not invalidate cached Basic Auth credentials
+      ---
+      duration_ms: 2616.123565
+      type: 'test'
+      ...
+    # Subtest: SSR returns database text, expected routes, no-store headers and real status codes
+    ok 2 - SSR returns database text, expected routes, no-store headers and real status codes
+      ---
+      duration_ms: 451.412825
+      type: 'test'
+      ...
+    # Subtest: built server compresses responses and preserves cache, HEAD and byte-range semantics
+    ok 3 - built server compresses responses and preserves cache, HEAD and byte-range semantics
+      ---
+      duration_ms: 273.460238
+      type: 'test'
+      ...
+    # Subtest: browser language navigation keeps detail, world and query; desktop and mobile render
+    ok 4 - browser language navigation keeps detail, world and query; desktop and mobile render
+      ---
+      duration_ms: 3472.029235
+      type: 'test'
+      ...
+    # Subtest: browser management uses same-origin cookies and preserves conflicting input
+    not ok 5 - browser management uses same-origin cookies and preserves conflicting input
+      ---
+      duration_ms: 7436.06161
+      type: 'test'
+      location: '/data/apps/plotstay/tests/ssr.test.ts:187:11'
+      failureType: 'testCodeFailure'
+      error: |-
+        expect(locator).toContainText(expected) failed
+        
+        Locator: locator('#message')
+        Expected substring: "草稿已保存"
+        Received string:    "Choose an operating persona before saving or importing."
+        Timeout: 5000ms
+        
+        Call log:
+          - Expect "toContainText" locator('#message') with timeout 5000ms
+          - waiting for locator('#message')
+            - locator resolved to <p id="message" role="status" aria-live="polite"></p>
+            - unexpected value ""
+            13 × locator resolved to <p id="message" role="status" aria-live="polite">Choose an operating persona before saving or impo…</p>
+               - unexpected value "Choose an operating persona before saving or importing."
+        
+      code: 'ERR_TEST_FAILURE'
+      stack: |-
+        captureRawStack (/data/apps/plotstay/node_modules/playwright-core/lib/coreBundle.js:8588:17)
+        callMatcherAsStep (/data/apps/plotstay/node_modules/playwright/lib/matchers/expect.js:13310:57)
+        Object.toContainText (/data/apps/plotstay/node_modules/playwright/lib/matchers/expect.js:13302:23)
+        TestContext.<anonymous> (/data/apps/plotstay/tests/ssr.test.ts:211:46)
+        async TestContext.<anonymous> (/data/apps/plotstay/tests/ssr.test.ts:187:3)
+      ...
+    # Subtest: publishing changed or newly created content appears without rebuilding or restarting
+    not ok 6 - publishing changed or newly created content appears without rebuilding or restarting
+      ---
+      duration_ms: 257.930419
+      type: 'test'
+      location: '/data/apps/plotstay/tests/ssr.test.ts:254:11'
+      failureType: 'testCodeFailure'
+      error: 'Choose an operating persona before saving or importing.'
+      code: 'PROVIDER_REQUIRED'
+      stack: |-
+        assert (/data/apps/plotstay/packages/domain/src/errors.ts:5:25)
+        createContentInTransaction (/data/apps/plotstay/packages/domain/src/content.ts:75:106)
+        process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        async transaction (/data/apps/plotstay/packages/database/src/index.ts:15:52)
+        async TestContext.<anonymous> (/data/apps/plotstay/tests/ssr.test.ts:265:21)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/data/apps/plotstay/tests/ssr.test.ts:254:3)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+      ...
+    # Subtest: adding an optional locale after build renders only published fallback text
+    ok 7 - adding an optional locale after build renders only published fallback text
+      ---
+      duration_ms: 462.650004
+      type: 'test'
+      ...
+    # Subtest: unpublishing takes effect immediately and API downtime returns an honest 503
+    ok 8 - unpublishing takes effect immediately and API downtime returns an honest 503
+      ---
+      duration_ms: 350.927688
+      type: 'test'
+      ...
+    1..8
+not ok 12 - built PostgreSQL → standalone API → Astro → browser
+  ---
+  duration_ms: 17924.076476
+  type: 'test'
+  location: '/data/apps/plotstay/tests/ssr.test.ts:13:1'
+  failureType: 'subtestsFailed'
+  error: '2 subtests failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+1..12
+# tests 97
+# suites 0
+# pass 83
+# fail 14
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 361546.511013

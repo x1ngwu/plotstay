@@ -54,6 +54,16 @@ export async function seed(db: Database, options: { email: string; password: str
     await client.query(`INSERT INTO personas(id,owner_id,profiles,approved) VALUES ($1,$2,$3,true) ON CONFLICT(id) DO NOTHING`,
       [personaId, owner.id, { en: { name: 'Visitor 17', bio: 'A fictional traveller.' }, 'zh-CN': { name: '旅客十七', bio: '一位虚构旅客。' } }]);
     const ids: Record<string, string> = {};
+    const workSchema=Boolean((await client.query("SELECT to_regclass('work_ownership') AS t")).rows[0].t);
+    let providerId:string|null=null;
+    if(workSchema){
+      providerId='00100000-0000-4000-8000-000000000013';
+      await client.query('INSERT INTO personas(id,owner_id,profiles,approved)VALUES($1,$2,$3,true) ON CONFLICT(id)DO NOTHING',[providerId,admin.id,{en:{name:'Sample operator',bio:'Synthetic seed operator'},'zh-CN':{name:'示例经营者',bio:'合成样例身份'}}]);
+      for(const worldId of [latheId,harbourId]){
+        await client.query('INSERT INTO world_participations(world_id,user_id,joined,recorded_by)VALUES($1,$2,true,$2)ON CONFLICT DO NOTHING',[worldId,admin.id]);
+        await client.query("INSERT INTO work_eligibilities(world_id,user_id,status,updated_by)VALUES($1,$2,'approved',$2)ON CONFLICT DO NOTHING",[worldId,admin.id]);
+      }
+    }
     async function entry(slug: string, kind: 'stay' | 'experience' | 'review', titles: [string, string], settings: {
       worldId?: string; placeId?: string; parentId?: string; draft?: boolean; missingTranslation?: boolean;
     } = {}) {
@@ -69,7 +79,7 @@ export async function seed(db: Database, options: { email: string; password: str
         ...(kind === 'stay' ? { facilities: ['安静的观察窗', '一只坚持报时的钟'], rules: ['虚构住宿，请带上想象力。'] } : {}),
         ...(kind === 'experience' ? { itinerary: ['在示例大门集合', '参观虚构机械'], hostName: '示例向导', hostBio: '你的虚构本地向导。' } : {}) });
       const input = createContentSchema.parse({ worldId, placeId: settings.placeId ?? forgePlace, kind, slug,
-        parentContentId: settings.parentId ?? null, personaId: kind === 'review' ? personaId : null,
+        parentContentId: settings.parentId ?? null, personaId: kind === 'review' ? personaId : providerId,
         sourceLocale: 'en', text, translations: settings.missingTranslation ? {} : { 'zh-CN': chinese },
         attributes: kind === 'review' ? { rating: 5 } : { price: { amount: kind === 'stay' ? 120 : 45, unit: kind === 'stay' ? 'night' : 'person' },
           ...(kind === 'experience' ? { durationMinutes: 90 } : {}) } });
@@ -95,7 +105,7 @@ export async function seed(db: Database, options: { email: string; password: str
     await entry('harbour-room', 'stay', ['Harbour Room', '港湾客房'], { worldId: harbourId, placeId: harbourPlace });
     await entry('unpublished-room', 'stay', ['DRAFT — Unpublished Room', '草稿：未公开客房'], { draft: true });
     await entry('missing-translation', 'experience', ['DRAFT — Awaiting Translation', '草稿：等待翻译'], { draft: true, missingTranslation: true });
-    return { admin, owner, editor, secondOwner, latheId, harbourId, forgePlace, harbourPlace, ids };
+    return { admin, owner, editor, secondOwner, latheId, harbourId, forgePlace, harbourPlace, ids, providerId };
   });
 }
 

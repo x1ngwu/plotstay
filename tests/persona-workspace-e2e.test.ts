@@ -1,3 +1,4 @@
+import {testEntry} from './runtime.ts';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
@@ -27,7 +28,7 @@ test('real persona workspace: language, independent saves, versions, navigation 
     const adminPersona = await saveOwnPersona(f.db, f.data.admin, cmd({ profiles: profiles('Keeper', '守望者', 'sky'), action: 'draft' }));
     const apiPort = await unusedPort(), webPort = await unusedPort(), apiUrl = `http://127.0.0.1:${apiPort}`, webUrl = `http://127.0.0.1:${webPort}`;
     const env = { ...process.env, PGOPTIONS: f.options, NODE_ENV: 'production', SITE_INDEXABLE: 'false', COOKIE_SECURE: 'false', API_PORT: String(apiPort), API_HOST: '127.0.0.1', HOST: '127.0.0.1', PORT: String(webPort), WEB_ORIGIN: webUrl, API_INTERNAL_URL: apiUrl };
-    const launch = (entry: string) => { const child = spawn(process.execPath, [entry], { env, stdio: ['ignore', 'pipe', 'pipe'] }); let logs = ''; child.stdout!.on('data', d => logs += d); child.stderr!.on('data', d => logs += d); t.after(() => stop(child)); return { child, logs: () => logs }; };
+    const launch = (entry: string) => { const child = spawn(process.execPath, [testEntry(entry)], { env, stdio: ['ignore', 'pipe', 'pipe'] }); let logs = ''; child.stdout!.on('data', d => logs += d); child.stderr!.on('data', d => logs += d); t.after(() => stop(child)); return { child, logs: () => logs }; };
     const api = launch('apps/api/dist/server.mjs');
     await waitFor(apiUrl + '/api/health', api.child, api.logs);
     const web = launch('apps/web/server.mjs');
