@@ -7,6 +7,7 @@ import { assert } from './errors.ts';
 import { appendRevision } from './content.ts';
 import { getPublished } from './read.ts';
 import {recordReviewSubmission} from './review-submissions.ts';
+import {effectiveReplySubmission,replyAccessEpoch} from './reply-access.ts';
 
 const profilesSchema = sharedPersonaSchema.refine((b) => Object.keys(b).length > 0, 'Add a profile language');
 const reviewBody = z
@@ -547,10 +548,10 @@ export async function validateReviewPublication(
 export async function moderationQueue(db: Connection, actor: Actor, page = 1) {
   const rows = (
     await db.query(
-      `SELECT c.id,c.world_id,c.persona_id,c.author_id,c.published_publication_id,r.id AS revision_id,r.status,r.source_text->>'title' AS title,p.slug AS target_slug,p.kind AS target_kind,w.slug AS world_slug,s.persona_revision_id,d.decision AS persona_decision,(SELECT e.action FROM review_replies q JOIN reply_events e ON e.revision_id=q.submitted_revision_id WHERE q.review_id=c.id AND e.action IN ('draft','submit','publish','reject') ORDER BY e.created_at DESC,e.id DESC LIMIT 1) AS reply_status
+      `SELECT c.id,c.world_id,c.persona_id,c.author_id,c.published_publication_id,r.id AS revision_id,r.status,r.source_text->>'title' AS title,p.slug AS target_slug,p.kind AS target_kind,w.slug AS world_slug,s.persona_revision_id,d.decision AS persona_decision,(SELECT e.action FROM review_replies q JOIN reply_events e ON e.revision_id=q.submitted_revision_id WHERE q.review_id=c.id AND ${effectiveReplySubmission('q','c')} AND e.action IN ('draft','submit','publish','reject') ORDER BY e.created_at DESC,(e.action='draft') ASC,e.id DESC LIMIT 1) AS reply_status
  FROM contents c JOIN contents p ON p.id=c.parent_content_id JOIN worlds w ON w.id=c.world_id JOIN content_revisions r ON r.id=coalesce(c.submitted_revision_id,c.head_revision_id) LEFT JOIN review_signatures s ON s.revision_id=r.id LEFT JOIN persona_revision_decisions d ON d.revision_id=s.persona_revision_id
  WHERE c.kind='review' AND ($1 OR w.owner_id=$2 OR EXISTS(SELECT 1 FROM world_members m WHERE m.world_id=c.world_id AND m.user_id=$2 AND m.role IN ('owner','admin')))
- ORDER BY ((r.status='submitted') OR EXISTS(SELECT 1 FROM review_replies q WHERE q.review_id=c.id AND (SELECT e.action FROM reply_events e WHERE e.revision_id=q.submitted_revision_id AND e.action IN ('draft','submit','publish','reject') ORDER BY e.created_at DESC,e.id DESC LIMIT 1)='submit')) DESC,r.created_at DESC,c.id LIMIT 21 OFFSET $3`,
+ ORDER BY ((r.status='submitted') OR EXISTS(SELECT 1 FROM review_replies q WHERE q.review_id=c.id AND ${effectiveReplySubmission('q','c')} AND (SELECT e.action FROM reply_events e WHERE e.revision_id=q.submitted_revision_id AND e.action IN ('draft','submit','publish','reject') ORDER BY e.created_at DESC,(e.action='draft') ASC,e.id DESC LIMIT 1)='submit')) DESC,r.created_at DESC,c.id LIMIT 21 OFFSET $3`,
       [actor.siteRole === 'admin', actor.id, (page - 1) * 20],
     )
   ).rows;
@@ -635,16 +636,21 @@ async function providerAccess(c: Connection, actor: Actor, reviewId: string) {
     'Only the assigned provider persona owner may reply.',
   );
   assert(!r.provider_disabled, 403, 'PERSONA_DISABLED', 'This provider persona is disabled.');
-  const {qualification}=await import('./work-access.ts');
-  const eligibility=await qualification(c,r.world_id,actor.id,true);
-  assert(eligibility.status!=='revoked',403,'ELIGIBILITY_REVOKED','Operating eligibility was revoked.');
+  const accessEpoch=await replyAccessEpoch(c,r.world_id,actor.id);
   assert(
     await getPublished(c, 'en', { id: reviewId }),
     409,
     'TARGET_UNAVAILABLE',
     'Only a visible published review can receive replies.',
   );
-  return r;
+  return {...r,accessEpoch};
+}
+export async function lockReplyProvider(c:PoolClient,actor:Actor,reviewId:string){
+  const target=await providerFor(c,reviewId);
+  // Match works: parent content -> account/eligibility -> persona/reply state.
+  // The first read must not take the eligibility lock before the parent row.
+  await c.query('SELECT id FROM contents WHERE id=$1 FOR UPDATE',[target.parent_content_id]);
+  return providerAccess(c,actor,reviewId);
 }
 export async function replyDetail(db: Connection, actor: Actor, reviewId: string, moderate = false, history?:{page:number;revision?:string}) {
   const target = await providerFor(db,reviewId);
@@ -661,7 +667,7 @@ export async function replyDetail(db: Connection, actor: Actor, reviewId: string
   // Pin the current persona's own editable version independently of history pagination.
   const editRevisionId=reply?(await db.query('SELECT id FROM reply_revisions WHERE reply_id=$1 AND created_by=$2 AND persona_id=$3 ORDER BY created_at DESC,id DESC LIMIT 1',[reply.id,actor.id,target.provider_id])).rows[0]?.id??null:null;
   const revisions=reply?(await db.query(`SELECT r.*,
-    coalesce((SELECT action FROM reply_events e WHERE e.revision_id=r.id AND e.action IN ('draft','submit','publish','reject') ORDER BY created_at DESC,id DESC LIMIT 1),'draft') AS status,
+    coalesce((SELECT action FROM reply_events e WHERE e.revision_id=r.id AND e.action IN ('draft','submit','publish','reject') ORDER BY created_at DESC,(action='draft') ASC,id DESC LIMIT 1),'draft') AS status,
     CASE WHEN $2 OR r.created_by=$3 THEN d.decision END AS persona_decision,
     CASE WHEN $2 OR r.created_by=$3 THEN d.note END AS persona_note
     FROM reply_revisions r LEFT JOIN persona_revision_decisions d ON d.revision_id=r.persona_revision_id
@@ -674,11 +680,13 @@ export async function replyDetail(db: Connection, actor: Actor, reviewId: string
   const eligibility=await (await import('./work-access.ts')).qualification(db,target.world_id,actor.id);
   const canEdit=contextAvailable&&target.provider_owner===actor.id&&!target.provider_disabled&&eligibility.status!=='revoked';
   // A head ID is only a concurrency token, never a reason to return its private body.
-  const safeReply=reply?{...reply,submitted_revision_id:moderate||ownIds.includes(reply.submitted_revision_id)?reply.submitted_revision_id:null}:null;
+  const effective=reply&&Boolean((await db.query(`SELECT ${effectiveReplySubmission('q','review')} AS valid FROM review_replies q JOIN contents review ON review.id=q.review_id WHERE q.id=$1`,[reply.id])).rows[0]?.valid);
+  const safeReply=reply?{...reply,submitted_revision_id:effective&&(moderate||ownIds.includes(reply.submitted_revision_id))?reply.submitted_revision_id:null}:null;
   const historyTotal=history&&reply?(await db.query('SELECT count(*)::int n FROM reply_revisions WHERE reply_id=$1 AND created_by=$2',[reply.id,actor.id])).rows[0].n:revisions.length;
   return {historyTotal,target:{id:target.id,world_id:target.world_id,provider_id:target.provider_id,
     profiles:contextAvailable?signatureProfiles(target.provider_profiles??{}):{},target_slug:contextAvailable?target.target_slug:null,target_kind:contextAvailable?target.target_kind:null,world_slug:contextAvailable?target.world_slug:null},
-    reply:safeReply,revisions,publications,events,canEdit,contextAvailable,
+    reply:safeReply,revisions,publications,events,canEdit,contextAvailable,eligibilityRevoked:eligibility.status==='revoked',
+    submissionExpired:Boolean(reply?.submitted_revision_id&&!effective&&(moderate||ownIds.includes(reply.submitted_revision_id))),
     editRevisionId,
     submissionGuard:canEdit?reply?.submitted_revision_id??null:null,
     baseRevisionId:reply?.head_revision_id??null};
@@ -702,10 +710,7 @@ export async function saveReplyInTransaction(c: PoolClient, actor: Actor, review
       .strict()
       .parse(raw);
     validateLanguages(body.texts, body.sourceLocale);
-    const target = await providerAccess(c, actor, reviewId);
-    await c.query('SELECT id FROM contents WHERE id=$1 FOR UPDATE', [target.parent_content_id]);
-    // Recheck binding under the parent lock so assignment cannot race the reply author.
-    const current = await providerAccess(c, actor, reviewId);
+    const current = await lockReplyProvider(c,actor,reviewId);
     if(expectedPersonaId)assert(current.provider_id===expectedPersonaId,409,'PROVIDER_CHANGED','Provider changed since this form was opened.');
     else if(baseRevisionId){const base=(await c.query('SELECT persona_id,created_by FROM reply_revisions WHERE id=$1',[baseRevisionId])).rows[0];assert(!base||base.created_by!==actor.id||base.persona_id===current.provider_id,409,'PROVIDER_CHANGED','Confirm the new provider identity before saving.');}
     const s = await personaSnapshot(c, actor, current.provider_id);
@@ -747,9 +752,9 @@ export function replyAction(
 }
 export async function replyActionInTransaction(c: PoolClient, actor: Actor, reviewId: string, action: 'submit' | 'publish' | 'reject' | 'hide' | 'restore', revisionId: string, note = '', publicationId?: string) {
     const target = await providerFor(c, reviewId);
-    if (action === 'submit') await providerAccess(c, actor, reviewId);
-    else await requireWorld(c, actor, target.world_id, true);
+    if (action !== 'submit') await requireWorld(c, actor, target.world_id, true);
     await c.query('SELECT id FROM contents WHERE id=$1 FOR UPDATE', [target.parent_content_id]);
+    if(action==='submit')await providerAccess(c,actor,reviewId);
     const reply = (await c.query('SELECT * FROM review_replies WHERE review_id=$1 FOR UPDATE', [reviewId]))
       .rows[0];
     assert(reply, 404, 'NOT_FOUND', 'Reply not found.');
@@ -764,7 +769,8 @@ export async function replyActionInTransaction(c: PoolClient, actor: Actor, revi
     const status = (
       await c.query(
         // Visibility events do not replace this version's writing/moderation state.
-        "SELECT action FROM reply_events WHERE revision_id=$1 AND action IN ('draft','submit','publish','reject') ORDER BY created_at DESC,id DESC LIMIT 1",
+        // Atomic save + submit share now(); the transition must sort after its initial draft.
+        "SELECT action FROM reply_events WHERE revision_id=$1 AND action IN ('draft','submit','publish','reject') ORDER BY created_at DESC,(action='draft') ASC,id DESC LIMIT 1",
         [r.id],
       )
     ).rows[0]?.action;
@@ -784,8 +790,8 @@ export async function replyActionInTransaction(c: PoolClient, actor: Actor, revi
       );
       await ownPersona(c, actor, r.persona_id, true);
       await submitPersona(c, r.persona_revision_id, actor);
-      if(reply.submitted_revision_id===revisionId)return {action,revisionId};
-      await c.query('UPDATE review_replies SET submitted_revision_id=$2 WHERE id=$1',[reply.id,revisionId]);
+      if(reply.submitted_revision_id===revisionId&&reply.submitted_access_epoch===current.accessEpoch)return {action,revisionId};
+      await c.query('UPDATE review_replies SET submitted_revision_id=$2,submitted_access_epoch=$3 WHERE id=$1',[reply.id,revisionId,current.accessEpoch]);
     } else if (action === 'hide')
       await c.query('UPDATE review_replies SET hidden=true WHERE id=$1', [reply.id]);
     else if (action === 'reject')
@@ -806,8 +812,13 @@ export async function replyActionInTransaction(c: PoolClient, actor: Actor, revi
         ).rows[0];
         assert(old, 404, 'NOT_FOUND', 'Reply publication not found.');
         r = (await c.query('SELECT * FROM reply_revisions WHERE id=$1', [old.revision_id])).rows[0];
+        await replyAccessEpoch(c,target.world_id,r.created_by);
+        const p=(await c.query('SELECT disabled FROM personas WHERE id=$1 FOR UPDATE',[r.persona_id])).rows[0];
+        assert(p&&!p.disabled,403,'PERSONA_DISABLED','Provider is disabled.');
       } else {
         assert(status === 'submit', 409, 'NOT_SUBMITTED', 'Submit the reply first.');
+        const epoch=await replyAccessEpoch(c,target.world_id,r.created_by);
+        assert(reply.submitted_access_epoch===epoch,409,'SUBMISSION_EXPIRED','Operating eligibility changed. The provider must explicitly submit again.');
         const current = await providerFor(c, reviewId);
         assert(
           current.provider_id === r.persona_id,
@@ -846,7 +857,7 @@ export async function replyActionInTransaction(c: PoolClient, actor: Actor, revi
       ).rows[0];
       await c.query('UPDATE review_replies SET published_id=$2,hidden=false WHERE id=$1', [reply.id, p.id]);
     }
-    if(action==='publish'||action==='reject')await c.query('UPDATE review_replies SET submitted_revision_id=NULL WHERE id=$1',[reply.id]);
+    if(action==='publish'||action==='reject')await c.query('UPDATE review_replies SET submitted_revision_id=NULL,submitted_access_epoch=NULL WHERE id=$1',[reply.id]);
     await c.query(
       'INSERT INTO reply_events(reply_id,revision_id,action,actor_id,note)VALUES($1,$2,$3,$4,$5)',
       [reply.id, r.id, action, actor.id, note],

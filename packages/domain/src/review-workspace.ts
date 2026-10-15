@@ -3,6 +3,7 @@ import type { Connection } from "@plotstay/database";
 import { idSchema } from "@plotstay/contracts";
 import type { Actor } from "./auth.ts";
 import { assert } from "./errors.ts";
+import {effectiveReplySubmission} from './reply-access.ts';
 import { getPublished, publicFrom, publicVisibility } from "./read.ts";
 import {
   reviewDetail,
@@ -41,7 +42,9 @@ const base = `WITH permitted AS (
  pb.persona_id AS provider_id,provider.owner_id AS provider_owner,provider.disabled AS provider_disabled,
  CASE WHEN provider.owner_id=$1 OR provider.approved THEN provider.profiles END AS provider_profiles,
  person.disabled AS reviewer_disabled,cp.revision_id AS public_revision,cp.published_at AS review_public_at,
- q.id AS reply_id,q.head_revision_id AS reply_head,q.submitted_revision_id AS reply_submission,q.hidden,
+ q.id AS reply_id,q.head_revision_id AS reply_head,
+ CASE WHEN ${effectiveReplySubmission('q','c')} THEN q.submitted_revision_id END AS reply_submission,
+ q.submitted_revision_id IS NOT NULL AND NOT coalesce(${effectiveReplySubmission('q','c')},false) AS reply_submission_expired,q.hidden,
  CASE WHEN NOT q.hidden THEN rp.revision_id END AS reply_public_revision,
  CASE WHEN NOT q.hidden THEN rp.published_at END AS reply_public_at,
  own.id AS own_reply_id,own.persona_id AS own_reply_persona,own.created_at AS own_reply_at,
@@ -75,7 +78,7 @@ const base = `WITH permitted AS (
  CASE WHEN p.context_available THEN p.public_revision END AS public_revision,CASE WHEN p.context_available THEN p.reply_public_revision END AS reply_public_revision,p.own_reply_id,p.my_reply_persona_ids,
  CASE WHEN $2='reviews' THEN p.submitted_revision_id WHEN p.reply_pending_author=$1 THEN p.reply_submission END AS submitted_revision_id,
  CASE WHEN $2='reviews' AND r.status IN ('draft','rejected') THEN r.id
-  WHEN $2='replies' AND own_status.action IN ('draft','reject') THEN p.own_reply_id END AS draft_revision_id,
+  WHEN $2='replies' AND (own_status.action IN ('draft','reject') OR own_status.action='submit' AND p.reply_submission_expired) THEN p.own_reply_id END AS draft_revision_id,
  CASE WHEN $2='reviews' THEN r.status='rejected' ELSE own_status.action='reject' END AS rejected,
  p.context_available AND CASE WHEN $2='reviews' THEN NOT p.reviewer_disabled ELSE p.provider_owner=$1 AND NOT p.provider_disabled AND NOT EXISTS(SELECT 1 FROM work_eligibilities e WHERE e.world_id=p.world_id AND e.user_id=$1 AND e.status='revoked') END AS can_edit,
  CASE WHEN $2='reviews' THEN p.persona_id ELSE coalesce(CASE WHEN p.provider_owner=$1 THEN p.provider_id END,p.own_reply_persona) END AS focus_persona_id,
@@ -91,7 +94,7 @@ const base = `WITH permitted AS (
   SELECT translation_id FROM revision_locales WHERE revision_id=r.id AND $2='reviews'
   UNION ALL SELECT translation_id FROM publication_locales WHERE publication_id=p.published_publication_id AND $2='replies' AND p.context_available)
   ORDER BY (tx.locale=$3) DESC,(tx.locale=r.source_locale) DESC LIMIT 1) rt ON true
- LEFT JOIN LATERAL(SELECT action FROM reply_events WHERE revision_id=p.own_reply_id AND action IN ('draft','submit','publish','reject') ORDER BY created_at DESC,id DESC LIMIT 1) own_status ON true
+ LEFT JOIN LATERAL(SELECT action FROM reply_events WHERE revision_id=p.own_reply_id AND action IN ('draft','submit','publish','reject') ORDER BY created_at DESC,(action='draft') ASC,id DESC LIMIT 1) own_status ON true
  LEFT JOIN LATERAL(SELECT * FROM (
   SELECT e.created_at,e.action,e.revision_id FROM moderation_events e WHERE e.content_id=p.id AND $2='reviews'
    AND e.action IN ('draft_saved','submitted','published','rejected','restored','unpublished')

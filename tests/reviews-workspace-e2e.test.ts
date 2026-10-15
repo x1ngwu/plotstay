@@ -23,10 +23,8 @@ import {
   replyDetail,
   savePersonaNotes,
 } from "@plotstay/domain";
-const artifactDir = new URL(
-  "../docs/workspace-handoff/works-implementation/regression-reviews/screenshots/",
-  import.meta.url,
-);
+const evidenceDir = new URL(process.env.PLOTSTAY_TEST_EVIDENCE ?? "../docs/workspace-handoff/works-implementation/regression-reviews/", import.meta.url);
+const artifactDir = new URL("screenshots/", evidenceDir);
 const profile = (en: string, zh: string) => ({
   en: {
     name: en,
@@ -1073,10 +1071,7 @@ test(
     );
     assert.deepEqual(errors, []);
     await writeFile(
-      new URL(
-        "../docs/workspace-handoff/works-implementation/regression-reviews/browser-evidence.json",
-        import.meta.url,
-      ),
+      new URL("browser-evidence.json", evidenceDir),
       JSON.stringify(
         {
           environment:

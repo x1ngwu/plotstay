@@ -125,6 +125,14 @@ export async function initWorkspaceReviews(root: HTMLElement) {
           "另一窗口已保存新版本。输入保留，请比较后继续。",
           "Another window saved a newer version. Your input is preserved; compare before continuing.",
         ),
+        ELIGIBILITY_REVOKED: l(
+          "经营资格已撤销，当前只能阅读授权历史。输入仍保留。",
+          "Operating eligibility was revoked. You can read your permitted history; input is preserved.",
+        ),
+        SUBMISSION_EXPIRED: l(
+          "经营资格发生过变化，请重新送审。旧待审不会自动生效。",
+          "Operating eligibility changed. Submit again; the previous submission is no longer effective.",
+        ),
         SUBMISSION_CONFLICT: l(
           "有效待审版本已变化，请核对后再提交。",
           "The effective submission changed. Compare before submitting.",
@@ -568,7 +576,7 @@ export async function initWorkspaceReviews(root: HTMLElement) {
           review?.text?.description ??
           "",
       ).length > 700;
-    view.innerHTML = `<div class="rv-detail-context"><div><span>${l("世界", "World")}</span><strong>${esc(detail.world?.name ?? l("上下文受限", "Context unavailable"))}</strong></div><div><span>${detail.entry ? kind(detail.entry.kind) : l("条目不可用", "Entry unavailable")}</span><strong>${esc(detail.entry?.text.title ?? l("仅显示本人授权历史", "Only your permitted history is shown"))}</strong></div><div><span>${reply ? l("当前提供者身份", "Current provider identity") : l("本次署名角色", "Persona for this revision")}</span><strong>${esc(name(detail.identity?.profiles ?? detail.provider?.profiles))}</strong></div><div><span>${l("版本状态", "Version status")}</span><div class="rv-tags">${(reply ? detail.publicReply : detail.publicReview) ? badge(l("已公开", "Published"), "public") : ""}${detail.submittedRevisionId ? badge(l("有待审版本", "Awaiting review"), "pending") : ""}${(reply ? ["draft", "reject"].includes(editableRevision()?.status) : ["draft", "rejected"].includes(own.find((r: any) => r.id === detail.baseRevisionId)?.status)) ? badge(l("有未提交草稿", "Unsubmitted draft")) : ""}</div></div></div>${!detail.canEdit || history ? `<section class="rv-note"><strong>${l("只读历史", "Read-only history")}</strong><p>${!detail.contextAvailable ? l("关联条目或评价已下架。仅显示本人授权历史，不显示受限上下文。", "The entry or review is unpublished. Only your permitted history is shown; restricted context is omitted.") : history ? l("这是指定历史版本，只供阅读。", "This is the linked historical version, available for reading only.") : detail.identity?.disabled ? l("角色已停用，不能继续发言。本人授权历史仍可读。", "This persona is disabled. Your permitted history remains readable.") : l("条目已不再绑定你的提供者角色。可以读取本人历史，不能以旧身份回复。", "The entry is no longer assigned to your provider persona. You may read your history but cannot reply under the former identity.")}</p>${history ? button("current", l("打开当前版本", "Open current version")) : ""}</section>` : ""}${history && !review && !response ? `<p>${l("指定版本不在你的授权读取范围内。", "The linked version is outside your permitted history.")}</p>` : ""}${editing && long ? `<details class="rv-reading-block"><summary>${l("展开完整原评价与回复", "Read the complete review and reply")}</summary>${exchange}</details>` : exchange}${editing ? editor() : ""}<details class="rv-versions" ${detail.historyPage > 1 ? "open" : ""}><summary>${l("版本与审核记录", "Versions and moderation history")}</summary>${[...own, ...replies].map((r: any) => `<div class="rv-version-row"><div>${date(r.created_at)}<small>${r.id === detail.submittedRevisionId ? l("当前有效待审版", "Effective submission") : r.id === detail.baseRevisionId ? l("最新保存版", "Latest saved revision") : l("历史版本", "Historical revision")}</small></div>${button("version", l("阅读此版本", "Read version"), `data-revision="${r.id}"`)}</div>`).join("")}${(
+    view.innerHTML = `<div class="rv-detail-context"><div><span>${l("世界", "World")}</span><strong>${esc(detail.world?.name ?? l("上下文受限", "Context unavailable"))}</strong></div><div><span>${detail.entry ? kind(detail.entry.kind) : l("条目不可用", "Entry unavailable")}</span><strong>${esc(detail.entry?.text.title ?? l("仅显示本人授权历史", "Only your permitted history is shown"))}</strong></div><div><span>${reply ? l("当前提供者身份", "Current provider identity") : l("本次署名角色", "Persona for this revision")}</span><strong>${esc(name(detail.identity?.profiles ?? detail.provider?.profiles))}</strong></div><div><span>${l("版本状态", "Version status")}</span><div class="rv-tags">${(reply ? detail.publicReply : detail.publicReview) ? badge(l("已公开", "Published"), "public") : ""}${detail.submittedRevisionId ? badge(l("有待审版本", "Awaiting review"), "pending") : ""}${(reply ? ["draft", "reject"].includes(editableRevision()?.status) : ["draft", "rejected"].includes(own.find((r: any) => r.id === detail.baseRevisionId)?.status)) ? badge(l("有未提交草稿", "Unsubmitted draft")) : ""}</div></div></div>${detail.reply?.submissionExpired ? `<p class="rv-note" data-submission-expired>${l("经营资格发生过变化，原待审已失效。资格恢复后请明确重新送审。", "Operating eligibility changed and the previous submission expired. Submit again after access is restored.")}</p>` : ""}${!detail.canEdit || history ? `<section class="rv-note"><strong>${l("只读历史", "Read-only history")}</strong><p>${!detail.contextAvailable ? l("关联条目或评价已下架。仅显示本人授权历史，不显示受限上下文。", "The entry or review is unpublished. Only your permitted history is shown; restricted context is omitted.") : history ? l("这是指定历史版本，只供阅读。", "This is the linked historical version, available for reading only.") : detail.reply?.eligibilityRevoked ? l("经营资格已撤销，暂时不能回复。本人授权历史仍可读。", "Operating eligibility was revoked. Replies are read-only; your permitted history remains readable.") : detail.identity?.disabled ? l("角色已停用，不能继续发言。本人授权历史仍可读。", "This persona is disabled. Your permitted history remains readable.") : l("条目已不再绑定你的提供者角色。可以读取本人历史，不能以旧身份回复。", "The entry is no longer assigned to your provider persona. You may read your history but cannot reply under the former identity.")}</p>${history ? button("current", l("打开当前版本", "Open current version")) : ""}</section>` : ""}${history && !review && !response ? `<p>${l("指定版本不在你的授权读取范围内。", "The linked version is outside your permitted history.")}</p>` : ""}${editing && long ? `<details class="rv-reading-block"><summary>${l("展开完整原评价与回复", "Read the complete review and reply")}</summary>${exchange}</details>` : exchange}${editing ? editor() : ""}<details class="rv-versions" ${detail.historyPage > 1 ? "open" : ""}><summary>${l("版本与审核记录", "Versions and moderation history")}</summary>${[...own, ...replies].map((r: any) => `<div class="rv-version-row"><div>${date(r.created_at)}<small>${r.id === detail.submittedRevisionId ? l("当前有效待审版", "Effective submission") : r.id === detail.baseRevisionId ? l("最新保存版", "Latest saved revision") : l("历史版本", "Historical revision")}</small></div>${button("version", l("阅读此版本", "Read version"), `data-revision="${r.id}"`)}</div>`).join("")}${(
       detail.review?.events ??
       detail.reply?.events ??
       []
@@ -782,7 +790,7 @@ export async function initWorkspaceReviews(root: HTMLElement) {
     if (
       !recover &&
       action === "submit" &&
-      detail.submissionGuard &&
+      detail.submittedRevisionId &&
       !confirm(
         l(
           "已有有效待审版本。明确提交本次新版本后，将替代它。继续？",
@@ -828,7 +836,11 @@ export async function initWorkspaceReviews(root: HTMLElement) {
       lastSavedRevisionId = result.revisionId;
       detail.baseRevisionId = result.revisionId;
       detail.submittedRevisionId = result.submittedRevisionId;
-      detail.submissionGuard = result.submittedRevisionId;
+      detail.submissionGuard = result.submissionGuard ?? result.submittedRevisionId;
+      if(side()==='replies'&&result.outcome==='submitted'){
+        detail.reply.submissionExpired=false;
+        view.querySelector('[data-submission-expired]')?.remove();
+      }
       const savedInput = normalizeBody(command.body),
         savedRevision = {
           id: result.revisionId,

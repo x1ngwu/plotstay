@@ -1,5 +1,6 @@
 import {transaction,type Connection,type Database} from '@plotstay/database';
 import type {Actor} from './auth.ts';
+import {effectiveReplySubmission} from './reply-access.ts';
 
 export type WorkspaceSection = 'attention'|'continue'|'progress';
 export interface WorkspaceQuery {locale:string;section?:WorkspaceSection;scope?:'mine'|'assisted';group?:string;page?:number}
@@ -106,7 +107,7 @@ reply_facts AS (
  coalesce(w.translations->$3->>'name',w.slug) AS world_name,coalesce(parent_text.body->>'title',parent_revision.source_text->>'title',parent.slug) AS parent_title,
  coalesce(person.profiles->$3->>'name',person.profiles->'en'->>'name') AS persona_name,
  person.owner_id,person.disabled,person.id AS provider_id,w.manage,
- q.id,q.head_revision_id,q.submitted_revision_id,submitted_reply.created_at AS submitted_at,q.published_id,q.hidden,rr.created_by,rr.persona_id,rr.created_at,ev.action,ev.note,
+ q.id,q.head_revision_id,CASE WHEN ${effectiveReplySubmission('q','c')} THEN q.submitted_revision_id END AS submitted_revision_id,submitted_reply.created_at AS submitted_at,q.published_id,q.hidden,rr.created_by,rr.persona_id,rr.created_at,ev.action,ev.note,
  cp.published_at,coalesce(rt.body->>'description',r.source_text->>'description') AS excerpt
  FROM contents c JOIN contents parent ON parent.id=c.parent_content_id JOIN world_access w ON w.id=c.world_id
  JOIN publications parent_publication ON parent_publication.id=parent.published_publication_id JOIN content_revisions parent_revision ON parent_revision.id=parent_publication.revision_id
@@ -115,7 +116,7 @@ reply_facts AS (
  LEFT JOIN publication_locales rl ON rl.publication_id=cp.id AND rl.locale=$3 LEFT JOIN translations rt ON rt.id=rl.translation_id
  JOIN provider_bindings b ON b.content_id=parent.id JOIN personas person ON person.id=b.persona_id
  LEFT JOIN review_replies q ON q.review_id=c.id LEFT JOIN reply_revisions submitted_reply ON submitted_reply.id=q.submitted_revision_id LEFT JOIN reply_revisions rr ON rr.id=q.head_revision_id
- LEFT JOIN LATERAL(SELECT action,note FROM reply_events e WHERE e.revision_id=rr.id AND e.action IN ('draft','submit','publish','reject') ORDER BY e.created_at DESC,e.id DESC LIMIT 1) ev ON true
+ LEFT JOIN LATERAL(SELECT action,note FROM reply_events e WHERE e.revision_id=rr.id AND e.action IN ('draft','submit','publish','reject') ORDER BY e.created_at DESC,(e.action='draft') ASC,e.id DESC LIMIT 1) ev ON true
  WHERE c.kind='review' AND w.visible AND NOT w.site_blocked AND NOT c.site_blocked
  AND parent.published_publication_id IS NOT NULL AND NOT parent.site_blocked
  AND (person.owner_id=$1 OR w.manage OR c.author_id=$1)

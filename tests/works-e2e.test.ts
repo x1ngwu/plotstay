@@ -13,7 +13,7 @@ import {saveWork,workDetail} from '../packages/domain/src/works.ts';
 import {setWorkAccess} from '../packages/domain/src/work-access.ts';
 assert.equal(process.env.DOTENV_CONFIG_PATH,'/dev/null');assert.match(process.env.DATABASE_URL??'',/127\.0\.0\.1:55439\/works_test$/);
 const buildRoot=process.env.PLOTSTAY_TEST_BUILD??'/tmp/plotstay-works-b-build';
-const dir=new URL('../docs/workspace-handoff/works-implementation/',import.meta.url);
+const dir=new URL(process.env.PLOTSTAY_TEST_EVIDENCE??'../docs/workspace-handoff/works-implementation/',import.meta.url);
 test('real isolated author API, approved layout, responsive matrix, creation/save/preview and management separation',async t=>{
  const f=await fixture();t.after(f.cleanup);await mkdir(new URL('screenshots/',dir),{recursive:true});
  const password='isolated-author-browser-password';const row=(await f.db.query('INSERT INTO users(email,password_hash)VALUES($1,$2)RETURNING id,email',[randomUUID()+'@works.invalid',await hashPassword(password)])).rows[0];const author={...row,siteRole:'user' as const};

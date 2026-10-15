@@ -1,0 +1,254 @@
+TAP version 13
+# Subtest: phase 5.5 section forms and protected preview
+    # Subtest: save and preview shows the saved draft, language, width and unsaved state
+    ok 1 - save and preview shows the saved draft, language, width and unsaved state
+      ---
+      duration_ms: 11539.291744
+      type: 'test'
+      ...
+    # Subtest: stay checkpoint: bilingual form save, clear, reorder, preview, publish and restore
+    ok 2 - stay checkpoint: bilingual form save, clear, reorder, preview, publish and restore
+      ---
+      duration_ms: 15303.079873
+      type: 'test'
+      ...
+    # Subtest: experience and service bilingual forms, UTC sessions, lists and preview use saved values
+    ok 3 - experience and service bilingual forms, UTC sessions, lists and preview use saved values
+      ---
+      duration_ms: 11090.272274
+      type: 'test'
+      ...
+    # Subtest: shared copy form publishes without rebuilding and keeps type boundaries
+    ok 4 - shared copy form publishes without rebuilding and keeps type boundaries
+      ---
+      duration_ms: 5577.158349
+      type: 'test'
+      ...
+    # Subtest: save errors and expired sessions preserve form input, with reauthentication
+    ok 5 - save errors and expired sessions preserve form input, with reauthentication
+      ---
+      duration_ms: 1653.558259
+      type: 'test'
+      ...
+    # Subtest: editorial notes stay under their parent and affect public ratings only after publication
+    ok 6 - editorial notes stay under their parent and affect public ratings only after publication
+      ---
+      duration_ms: 1604.76298
+      type: 'test'
+      ...
+    1..6
+ok 1 - phase 5.5 section forms and protected preview
+  ---
+  duration_ms: 62229.809526
+  type: 'test'
+  ...
+# Subtest: phase 4 detail browser acceptance
+    # Subtest: expanded content has its collapse control at the bottom, including without JavaScript
+    ok 1 - expanded content has its collapse control at the bottom, including without JavaScript
+      ---
+      duration_ms: 35548.746012
+      type: 'test'
+      ...
+    # Subtest: each type renders published special modules, people and fictional notes
+    ok 2 - each type renders published special modules, people and fictional notes
+      ---
+      duration_ms: 754.105308
+      type: 'test'
+      ...
+    # Subtest: experience sample renders eight complete modules, illustrated steps and useful demo interactions
+    ok 3 - experience sample renders eight complete modules, illustrated steps and useful demo interactions
+      ---
+      duration_ms: 8577.541621
+      type: 'test'
+      ...
+    # Subtest: service has eight complete modules, sample dates, rated reviews and reference layout
+    ok 4 - service has eight complete modules, sample dates, rated reviews and reference layout
+      ---
+      duration_ms: 8663.84889
+      type: 'test'
+      ...
+    # Subtest: gallery opens any thumbnail, wraps with keys, traps focus and restores trigger
+    ok 5 - gallery opens any thumbnail, wraps with keys, traps focus and restores trigger
+      ---
+      duration_ms: 1163.571646
+      type: 'test'
+      ...
+    # Subtest: notes pagination, related navigation and language keep browse and trip context
+    ok 6 - notes pagination, related navigation and language keep browse and trip context
+      ---
+      duration_ms: 1514.769945
+      type: 'test'
+      ...
+    # Subtest: existing demo, long content and every language/font fit desktop and mobile
+    ok 7 - existing demo, long content and every language/font fit desktop and mobile
+      ---
+      duration_ms: 18471.600126
+      type: 'test'
+      ...
+    # Subtest: no-script gallery links, notes and related content remain reachable
+    ok 8 - no-script gallery links, notes and related content remain reachable
+      ---
+      duration_ms: 825.984142
+      type: 'test'
+      ...
+    # Subtest: all ten stay groups remain visible, including legacy empty data
+    ok 9 - all ten stay groups remain visible, including legacy empty data
+      ---
+      duration_ms: 668.937138
+      type: 'test'
+      ...
+    # Subtest: complete stay content, expansions and nearby routes work in both languages and without scripts
+    ok 10 - complete stay content, expansions and nearby routes work in both languages and without scripts
+      ---
+      duration_ms: 11996.772868
+      type: 'test'
+      ...
+    # Subtest: admin editing preserves nested stay data and visitor profiles in new drafts
+    ok 11 - admin editing preserves nested stay data and visitor profiles in new drafts
+      ---
+      duration_ms: 7041.881339
+      type: 'test'
+      ...
+    1..11
+ok 2 - phase 4 detail browser acceptance
+  ---
+  duration_ms: 99717.663977
+  type: 'test'
+  ...
+# Subtest: overview renders live summaries, isolates preferences and preserves precise object returns
+ok 3 - overview renders live summaries, isolates preferences and preserves precise object returns
+  ---
+  duration_ms: 6725.56278
+  type: 'test'
+  ...
+# Subtest: phase 5.6 ordinary account accommodation journey
+    # Subtest: normal login, bilingual persona, stay draft and private preview
+    ok 1 - normal login, bilingual persona, stay draft and private preview
+      ---
+      duration_ms: 2369.975039
+      type: 'test'
+      ...
+    # Subtest: joint moderation publishes signature and score without world access for author
+    ok 2 - joint moderation publishes signature and score without world access for author
+      ---
+      duration_ms: 1179.621651
+      type: 'test'
+      ...
+    # Subtest: experience and service reviews, blocked provider reassignment and historical bilingual reply moderation
+    ok 3 - experience and service reviews, blocked provider reassignment and historical bilingual reply moderation
+      ---
+      duration_ms: 11712.474702
+      type: 'test'
+      ...
+    # Subtest: expired session preserves input, bilingual mobile and no horizontal overflow
+    ok 4 - expired session preserves input, bilingual mobile and no horizontal overflow
+      ---
+      duration_ms: 2498.189774
+      type: 'test'
+      ...
+    1..4
+ok 4 - phase 5.6 ordinary account accommodation journey
+  ---
+  duration_ms: 20339.827597
+  type: 'test'
+  ...
+# Subtest: real reviews workspace: approved layout, live APIs, isolated data, input races and browser evidence
+    # Subtest: 16 real browser screenshots: bilingual desktop/mobile, lists and edit contexts
+    ok 1 - 16 real browser screenshots: bilingual desktop/mobile, lists and edit contexts
+      ---
+      duration_ms: 11583.983703
+      type: 'test'
+      ...
+    # Subtest: read-only history, new entry, role focus, full reading and return filters
+    ok 2 - read-only history, new entry, role focus, full reading and return filters
+      ---
+      duration_ms: 7181.642532
+      type: 'test'
+      ...
+    # Subtest: bilingual fields, source language and optional values survive; conflict comparison preserves dirty input
+    ok 3 - bilingual fields, source language and optional values survive; conflict comparison preserves dirty input
+      ---
+      duration_ms: 1174.801757
+      type: 'test'
+      ...
+    # Subtest: typing during slow save is preserved; response loss reuses the committed request
+    ok 4 - typing during slow save is preserved; response loss reuses the committed request
+      ---
+      duration_ms: 370.06082
+      type: 'test'
+      ...
+    # Subtest: navigation waits recheck new input and failure leaves the editor intact
+    ok 5 - navigation waits recheck new input and failure leaves the editor intact
+      ---
+      duration_ms: 479.800999
+      type: 'test'
+      ...
+    # Subtest: same-account reauthentication preserves input; switching accounts clears it
+    ok 6 - same-account reauthentication preserves input; switching accounts clears it
+      ---
+      duration_ms: 553.582496
+      type: 'test'
+      ...
+    # Subtest: 1100/360, 200 percent text, long content, empty/error/loading and keyboard controls
+    ok 7 - 1100/360, 200 percent text, long content, empty/error/loading and keyboard controls
+      ---
+      duration_ms: 3017.694149
+      type: 'test'
+      ...
+    # Subtest: save and submit freeze input before a slow identity check for reviews and replies
+    ok 8 - save and submit freeze input before a slow identity check for reviews and replies
+      ---
+      duration_ms: 7833.931805
+      type: 'test'
+      ...
+    # Subtest: matching conflict adoption previews the adopted review and reply revision
+    ok 9 - matching conflict adoption previews the adopted review and reply revision
+      ---
+      duration_ms: 1407.282785
+      type: 'test'
+      ...
+    # Subtest: reply previews use own readable revision after provider changes and baseline adoption
+    ok 10 - reply previews use own readable revision after provider changes and baseline adoption
+      ---
+      duration_ms: 1305.472398
+      type: 'test'
+      ...
+    # Subtest: current provider editable reply survives multiple history pages and persona changes
+    ok 11 - current provider editable reply survives multiple history pages and persona changes
+      ---
+      duration_ms: 961.595692
+      type: 'test'
+      ...
+    # Subtest: first reply save and submit immediately enable preview of the persisted version
+    ok 12 - first reply save and submit immediately enable preview of the persisted version
+      ---
+      duration_ms: 962.351979
+      type: 'test'
+      ...
+    # Subtest: late previous-account detail response preserves the new account editor and save
+    ok 13 - late previous-account detail response preserves the new account editor and save
+      ---
+      duration_ms: 1208.998697
+      type: 'test'
+      ...
+    1..13
+ok 5 - real reviews workspace: approved layout, live APIs, isolated data, input races and browser evidence
+  ---
+  duration_ms: 40771.031007
+  type: 'test'
+  ...
+# Subtest: workspace checkpoint shares the saved stay draft with the previous admin
+ok 6 - workspace checkpoint shares the saved stay draft with the previous admin
+  ---
+  duration_ms: 30379.054788
+  type: 'test'
+  ...
+1..6
+# tests 40
+# suites 0
+# pass 40
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 269683.646233

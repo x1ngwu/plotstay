@@ -9,7 +9,9 @@ import {
   submitReviewInTransaction,
   saveReplyInTransaction,
   replyActionInTransaction,
+  lockReplyProvider,
 } from "./persona-reviews.ts";
+import {effectiveReplySubmission} from './reply-access.ts';
 
 export const reviewCommandSchema = z
   .object({
@@ -68,6 +70,7 @@ export function saveReviewCommand(db: Database, actor: Actor, raw: unknown) {
     assert(review, 404, "NOT_FOUND", "Review not found.");
     let personaId = review.persona_id,
       pending = review.submitted_revision_id;
+    let effectivePending = pending;
     if (input.kind === "review")
       assert(
         review.author_id === actor.id,
@@ -76,22 +79,13 @@ export function saveReviewCommand(db: Database, actor: Actor, raw: unknown) {
         "Only the review author can save.",
       );
     else {
-      await c.query("SELECT id FROM contents WHERE id=$1 FOR UPDATE", [
-        review.parent_content_id,
-      ]);
-      personaId = (
-        await c.query(
-          "SELECT persona_id FROM provider_bindings WHERE content_id=$1",
-          [review.parent_content_id],
-        )
-      ).rows[0]?.persona_id;
-      pending =
-        (
-          await c.query(
-            "SELECT submitted_revision_id FROM review_replies WHERE review_id=$1 FOR UPDATE",
-            [review.id],
-          )
-        ).rows[0]?.submitted_revision_id ?? null;
+      // Acquire eligibility before any reply/persona locks, including the combined save path.
+      personaId=(await lockReplyProvider(c,actor,review.id)).provider_id;
+      const reply=(await c.query(`SELECT q.submitted_revision_id,${effectiveReplySubmission('q','review')} AS effective
+        FROM review_replies q JOIN contents review ON review.id=q.review_id
+        WHERE q.review_id=$1 FOR UPDATE OF q`,[review.id])).rows[0];
+      pending=reply?.submitted_revision_id??null;
+      effectivePending=reply?.effective?pending:null;
     }
     assert(
       personaId === input.expectedPersonaId,
@@ -185,7 +179,8 @@ export function saveReviewCommand(db: Database, actor: Actor, raw: unknown) {
       outcome: input.action === "submit" ? "submitted" : "draft",
       submissionToken,
       submittedRevisionId:
-        input.action === "submit" ? saved.revisionId : (pending ?? null),
+        input.action === "submit" ? saved.revisionId : (effectivePending ?? null),
+      submissionGuard: input.action === "submit" ? saved.revisionId : (pending ?? null),
       replacedRevisionId: input.action === "submit" ? (pending ?? null) : null,
     };
     await c.query(

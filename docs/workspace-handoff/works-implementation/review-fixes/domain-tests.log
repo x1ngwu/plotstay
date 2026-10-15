@@ -1,0 +1,347 @@
+TAP version 13
+# Subtest: persona draft and fixed submission remain separate until a newer submission replaces it
+ok 1 - persona draft and fixed submission remain separate until a newer submission replaces it
+  ---
+  duration_ms: 671.063675
+  type: 'test'
+  ...
+# Subtest: phase 5.6 personas and accommodation review checkpoint
+    # Subtest: ordinary accounts have no world privileges; persona ownership and concurrent identity enforced
+    ok 1 - ordinary accounts have no world privileges; persona ownership and concurrent identity enforced
+      ---
+      duration_ms: 147.479651
+      type: 'test'
+      ...
+    # Subtest: fixed profile + review submission, site/world approval split and publication
+    ok 2 - fixed profile + review submission, site/world approval split and publication
+      ---
+      duration_ms: 76.017305
+      type: 'test'
+      ...
+    # Subtest: editing, returning, republishing and restoring count one score with immutable signature
+    ok 3 - editing, returning, republishing and restoring count one score with immutable signature
+      ---
+      duration_ms: 133.253847
+      type: 'test'
+      ...
+    # Subtest: cross-world persona reuse, disabled speaking, and guest/session/origin isolation
+    ok 4 - cross-world persona reuse, disabled speaking, and guest/session/origin isolation
+      ---
+      duration_ms: 222.885872
+      type: 'test'
+      ...
+    1..4
+ok 2 - phase 5.6 personas and accommodation review checkpoint
+  ---
+  duration_ms: 1203.562178
+  type: 'test'
+  ...
+# Subtest: phase 5.6 provider replies and all entry types
+    # Subtest: stay reply ownership, approval, edits, recovery and parent visibility
+    ok 1 - stay reply ownership, approval, edits, recovery and parent visibility
+      ---
+      duration_ms: 482.827227
+      type: 'test'
+      ...
+    # Subtest: experience reply ownership, approval, edits, recovery and parent visibility
+    ok 2 - experience reply ownership, approval, edits, recovery and parent visibility
+      ---
+      duration_ms: 480.059043
+      type: 'test'
+      ...
+    # Subtest: service reply ownership, approval, edits, recovery and parent visibility
+    ok 3 - service reply ownership, approval, edits, recovery and parent visibility
+      ---
+      duration_ms: 447.588759
+      type: 'test'
+      ...
+    # Subtest: provider name/avatar changes preserve published replies and ownership remains independent
+    ok 4 - provider name/avatar changes preserve published replies and ownership remains independent
+      ---
+      duration_ms: 98.714225
+      type: 'test'
+      ...
+    1..4
+ok 3 - phase 5.6 provider replies and all entry types
+  ---
+  duration_ms: 2163.010098
+  type: 'test'
+  ...
+# Subtest: phase 5.6 missing languages, rejected profiles, immutable submissions and shared editor authority
+ok 4 - phase 5.6 missing languages, rejected profiles, immutable submissions and shared editor authority
+  ---
+  duration_ms: 685.33768
+  type: 'test'
+  ...
+# Subtest: phase 5.6 duplicate legacy identities abort upgrade without rewriting history
+ok 5 - phase 5.6 duplicate legacy identities abort upgrade without rewriting history
+  ---
+  duration_ms: 329.378084
+  type: 'test'
+  ...
+# (node:3137808) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+# (Use `node --trace-deprecation ...` to show where the warning was created)
+# Subtest: phase 5.6 multiple personas, self-authored reviews, shared previews and receipt preservation
+ok 6 - phase 5.6 multiple personas, self-authored reviews, shared previews and receipt preservation
+  ---
+  duration_ms: 942.368651
+  type: 'test'
+  ...
+# Subtest: phase 5.6 private review pagination keeps every identity without exposing another account
+ok 7 - phase 5.6 private review pagination keeps every identity without exposing another account
+  ---
+  duration_ms: 791.607451
+  type: 'test'
+  ...
+# Subtest: superseded cross-entry profile submission cannot publish until signature is refreshed
+ok 8 - superseded cross-entry profile submission cannot publish until signature is refreshed
+  ---
+  duration_ms: 628.709905
+  type: 'test'
+  ...
+# Subtest: review P/A/B: saving B preserves A; approve A keeps B; replacing submission rejects stale review
+ok 9 - review P/A/B: saving B preserves A; approve A keeps B; replacing submission rejects stale review
+  ---
+  duration_ms: 746.331935
+  type: 'test'
+  ...
+# Subtest: reply P/A/B: draft does not revoke submitted version, approval leaves latest head
+ok 10 - reply P/A/B: draft does not revoke submitted version, approval leaves latest head
+  ---
+  duration_ms: 735.122116
+  type: 'test'
+  ...
+# Subtest: atomic command retries return the same fixed result; conflicts and failed submission roll back
+ok 11 - atomic command retries return the same fixed result; conflicts and failed submission roll back
+  ---
+  duration_ms: 642.586226
+  type: 'test'
+  ...
+# Subtest: old provider reads own history, new provider cannot inherit private drafts; same-account identity changes cannot submit old identity
+ok 12 - old provider reads own history, new provider cannot inherit private drafts; same-account identity changes cannot submit old identity
+  ---
+  duration_ms: 710.873544
+  type: 'test'
+  ...
+# Subtest: list and details use readable real context, personal source scope and public entry search
+ok 13 - list and details use readable real context, personal source scope and public entry search
+  ---
+  duration_ms: 528.966392
+  type: 'test'
+  ...
+# Subtest: 45 reviews: full-scope count/search/order, visible reply activity, no private updates and one list query
+ok 14 - 45 reviews: full-scope count/search/order, visible reply activity, no private updates and one list query
+  ---
+  duration_ms: 1836.046756
+  type: 'test'
+  ...
+# Subtest: fixed translation snapshot, pending homepage/admin queue and rejection bind to A without altering B
+ok 15 - fixed translation snapshot, pending homepage/admin queue and rejection bind to A without altering B
+  ---
+  duration_ms: 577.047932
+  type: 'test'
+  ...
+# Subtest: 012 migration backfills effective A while preserving B and every historical body
+ok 16 - 012 migration backfills effective A while preserving B and every historical body
+  ---
+  duration_ms: 471.456128
+  type: 'test'
+  ...
+# Subtest: real route commands enforce sessions/origin, fixed author and fixed A through old moderation API
+ok 17 - real route commands enforce sessions/origin, fixed author and fixed A through old moderation API
+  ---
+  duration_ms: 762.94672
+  type: 'test'
+  ...
+# Subtest: concurrent approval versus save-and-submit serializes; bounded history retains explicit old version and current P/A/B
+ok 18 - concurrent approval versus save-and-submit serializes; bounded history retains explicit old version and current P/A/B
+  ---
+  duration_ms: 1015.880975
+  type: 'test'
+  ...
+# Subtest: reply command fixed results and replacement of a former provider submission expose no private body
+ok 19 - reply command fixed results and replacement of a former provider submission expose no private body
+  ---
+  duration_ms: 695.744492
+  type: 'test'
+  ...
+# Subtest: reply visibility events preserve submission and draft states across moderation, lists and home
+    # Subtest: publish fixed A after hide/restore, newer draft: false
+    ok 1 - publish fixed A after hide/restore, newer draft: false
+      ---
+      duration_ms: 641.221015
+      type: 'test'
+      ...
+    # Subtest: publish fixed A after hide/restore, newer draft: true
+    ok 2 - publish fixed A after hide/restore, newer draft: true
+      ---
+      duration_ms: 680.053834
+      type: 'test'
+      ...
+    # Subtest: reject fixed A after hide/restore, newer draft: false
+    ok 3 - reject fixed A after hide/restore, newer draft: false
+      ---
+      duration_ms: 632.378817
+      type: 'test'
+      ...
+    # Subtest: reject fixed A after hide/restore, newer draft: true
+    ok 4 - reject fixed A after hide/restore, newer draft: true
+      ---
+      duration_ms: 694.162598
+      type: 'test'
+      ...
+    1..4
+ok 20 - reply visibility events preserve submission and draft states across moderation, lists and home
+  ---
+  duration_ms: 2649.268797
+  type: 'test'
+  ...
+# Subtest: R1 revoked/left operators cannot publish or restore replies; reapproval requires explicit resubmission
+    # Subtest: revoke
+    ok 1 - revoke
+      ---
+      duration_ms: 964.530445
+      type: 'test'
+      ...
+    # Subtest: leave
+    ok 2 - leave
+      ---
+      duration_ms: 839.029266
+      type: 'test'
+      ...
+    1..2
+ok 21 - R1 revoked/left operators cannot publish or restore replies; reapproval requires explicit resubmission
+  ---
+  duration_ms: 1805.325247
+  type: 'test'
+  ...
+# Subtest: R3 old reply save/submit and combined save serialize with work saves without deadlocking
+    # Subtest: save
+    ok 1 - save
+      ---
+      duration_ms: 656.018504
+      type: 'test'
+      ...
+    # Subtest: submit
+    ok 2 - submit
+      ---
+      duration_ms: 634.187673
+      type: 'test'
+      ...
+    # Subtest: combined
+    ok 3 - combined
+      ---
+      duration_ms: 657.565278
+      type: 'test'
+      ...
+    1..3
+ok 22 - R3 old reply save/submit and combined save serialize with work saves without deadlocking
+  ---
+  duration_ms: 1949.831873
+  type: 'test'
+  ...
+# Subtest: R1 reply publication rechecks eligibility under its transaction lock
+ok 23 - R1 reply publication rechecks eligibility under its transaction lock
+  ---
+  duration_ms: 618.031931
+  type: 'test'
+  ...
+# Subtest: B01-B06 ownership and cross-world filtering: ordinary author never acquires world management
+ok 24 - B01-B06 ownership and cross-world filtering: ordinary author never acquires world management
+  ---
+  duration_ms: 1149.054261
+  type: 'test'
+  ...
+# Subtest: B08-B12 create options and first save are atomic, unapproved own role works; entry has no writes; retry is idempotent
+ok 25 - B08-B12 create options and first save are atomic, unapproved own role works; entry has no writes; retry is idempotent
+  ---
+  duration_ms: 541.455861
+  type: 'test'
+  ...
+# Subtest: G01 participation precedes eligibility, only world admin or site admin may approve; revoke invalidates old pending submission
+ok 26 - G01 participation precedes eligibility, only world admin or site admin may approve; revoke invalidates old pending submission
+  ---
+  duration_ms: 537.834469
+  type: 'test'
+  ...
+# Subtest: B15-B19 all old and new rebind paths lock forever after successful submit; failed submit does not lock
+ok 27 - B15-B19 all old and new rebind paths lock forever after successful submit; failed submit does not lock
+  ---
+  duration_ms: 568.132975
+  type: 'test'
+  ...
+# Subtest: G03 locked disabled persona permits body draft; revoked eligibility blocks saves and restores
+ok 28 - G03 locked disabled persona permits body draft; revoked eligibility blocks saves and restores
+  ---
+  duration_ms: 582.363379
+  type: 'test'
+  ...
+# Subtest: B29-B31 narrow preview uses saved version, token and object authorization and does not mutate timestamps
+ok 29 - B29-B31 narrow preview uses saved version, token and object authorization and does not mutate timestamps
+  ---
+  duration_ms: 501.157788
+  type: 'test'
+  ...
+# Subtest: B24 genuinely overlapping submit and rebind serialize on content; stale save cannot change checked provider
+ok 30 - B24 genuinely overlapping submit and rebind serialize on content; stale save cannot change checked provider
+  ---
+  duration_ms: 512.610208
+  type: 'test'
+  ...
+# Subtest: B34 old create cannot omit provider, admin cannot use another owner role; unauthenticated API denied
+ok 31 - B34 old create cannot omit provider, admin cannot use another owner role; unauthenticated API denied
+  ---
+  duration_ms: 603.518285
+  type: 'test'
+  ...
+# Subtest: B03 B07 B20 B22 B30 B32 API forgery, save timestamps and approved profile projection
+ok 32 - B03 B07 B20 B22 B30 B32 API forgery, save timestamps and approved profile projection
+  ---
+  duration_ms: 694.233559
+  type: 'test'
+  ...
+# Subtest: B10 B11 rollback after insertion, canonical retry and concurrent stale saves
+ok 33 - B10 B11 rollback after insertion, canonical retry and concurrent stale saves
+  ---
+  duration_ms: 561.367515
+  type: 'test'
+  ...
+# Subtest: B13 B16 B18 B21 B35 revoked submission needs explicit resubmit; hidden world, disabled provider, restore and legacy history are guarded
+ok 34 - B13 B16 B18 B21 B35 revoked submission needs explicit resubmit; hidden world, disabled provider, restore and legacy history are guarded
+  ---
+  duration_ms: 553.707208
+  type: 'test'
+  ...
+# Subtest: B36 migration locks historical successes without inferring owners or inventing bindings
+ok 35 - B36 migration locks historical successes without inferring owners or inventing bindings
+  ---
+  duration_ms: 425.94765
+  type: 'test'
+  ...
+# Subtest: B07 B14 delayed automatic translation cannot write after operating eligibility revocation
+ok 36 - B07 B14 delayed automatic translation cannot write after operating eligibility revocation
+  ---
+  duration_ms: 478.028186
+  type: 'test'
+  ...
+# Subtest: B07 equal saved timestamps have stable ID ordering across pages
+ok 37 - B07 equal saved timestamps have stable ID ordering across pages
+  ---
+  duration_ms: 754.396565
+  type: 'test'
+  ...
+# Subtest: ordinary author translation retry is bounded to its content and cannot use world admin API
+ok 38 - ordinary author translation retry is bounded to its content and cannot use world admin API
+  ---
+  duration_ms: 463.479898
+  type: 'test'
+  ...
+1..38
+# tests 55
+# suites 0
+# pass 55
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 34748.184246

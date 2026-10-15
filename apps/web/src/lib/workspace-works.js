@@ -1,6 +1,9 @@
 // The approved Phase A markup is retained; data, counts and actions come from the author API.
 export async function initWorks(shell,account){
 const root=document.getElementById('workspace-works');if(!root)return;
+const pageContent=document.createElement('div');
+const moreDialog=document.createElement('dialog');moreDialog.id='more-dialog';moreDialog.setAttribute('aria-labelledby','more-title');
+root.replaceChildren(pageContent,moreDialog);
 shell.dataset.works='true';shell.dataset.worksController='true';
 document.querySelector('.ws-page-head').hidden=true;
 let q=new URLSearchParams(location.search),lang=shell.dataset.prefix,scenario='loading';
@@ -50,7 +53,7 @@ function list(){let html=`<header class="page-head"><div><h1 tabindex="-1">${t('
  if(!data.items.length)return html+empty(t('没有符合条件的内容','No matching content'),t('可以清除筛选，或开始创建内容。','Clear filters or start creating content.'),'create',t('创建内容','Create content'));
  return html+`<div class="cards">${data.items.map(card).join('')}</div><nav class="pagination">${btn('page',t('上一页','Previous'),'',`data-page="${data.page-1}" ${data.page===1?'disabled':''}`)}<span>${data.page} / ${data.pages}</span>${btn('page',t('下一页','Next'),'',`data-page="${data.page+1}" ${data.page===data.pages?'disabled':''}`)}</nav>`;
 }
-function render(){const active=document.activeElement;const focus=root.contains(active)?active.id?'#'+active.id:active.dataset.action?`[data-action="${active.dataset.action}"]${active.dataset.kind!==undefined?`[data-kind="${active.dataset.kind}"]`:''}`:null:null;syncLinks();closeCombo();root.innerHTML=(view()==='create'?create():list())+'<dialog id="more-dialog" aria-labelledby="more-title"></dialog>';bind();if(focus)root.querySelector(focus)?.focus({preventScroll:true});}
+function render(){const active=document.activeElement;const focus=pageContent.contains(active)?active.id?'#'+active.id:active.dataset.action?`[data-action="${active.dataset.action}"]${active.dataset.kind!==undefined?`[data-kind="${active.dataset.kind}"]`:''}`:null:null;syncLinks();closeCombo();pageContent.innerHTML=view()==='create'?create():list();bind();if(focus&&!moreDialog.open)pageContent.querySelector(focus)?.focus({preventScroll:true});}
 function remember(){sessionStorage.setItem('plotstay:works-return:'+account.id,JSON.stringify({href:location.pathname+location.search,y:scrollY}));}
 function back(){let target=base+'?view=works';try{const u=new URL(q.get('returnTo')||target,location.origin);if(u.origin===location.origin&&u.pathname===base&&u.searchParams.get('view')==='works')target=u.pathname+u.search;}catch{}location.assign(target);}
 async function action(a,b){
@@ -64,7 +67,7 @@ async function action(a,b){
 async function validateCreate(){errors={};if(!['stay','service','experience'].includes(intent.kind))errors.kind=t('请选择内容类型。','Choose a content type.');if(!allowedWorlds().some(w=>w.id===intent.world))errors['world-create']=t('请选择所属世界。','Choose a world.');if(!allowedPersonas().some(p=>p.id===intent.persona))errors['persona-create']=t('请选择本人已保存且未停用的角色。','Choose your own saved, enabled persona.');if(Object.keys(errors).length){render();(errors.kind?root.querySelector('[name=kind]'):document.getElementById(errors['world-create']?'world-create':'persona-create'))?.focus();return;}
  const fresh=await api('/me/works/create-options');if(!fresh.worlds.some(w=>w.id===intent.world)||!fresh.personas.some(p=>p.id===intent.persona)){adaptOptions(fresh);errors['persona-create']=t('选项已变化，请检查后继续。','Options changed. Review your choices.');render();return;}
  location.assign(base+'?'+new URLSearchParams({view:'editor',author:'1',new:'1',kind:intent.kind,world:intent.world,provider:intent.persona,returnTo:q.get('returnTo')||base+'?view=works'}));}
-function bind(){root.querySelectorAll('[data-action]').forEach(b=>b.onclick=e=>{e.preventDefault();void action(b.dataset.action,b);});root.querySelectorAll('[data-editor]').forEach(a=>a.onclick=()=>remember());document.getElementById('scope')?.addEventListener('change',e=>filter({scope:e.target.value,world:null,persona:null}));root.querySelectorAll('.combo-toggle').forEach(b=>b.onclick=()=>openCombo(b.id));
+function bind(){pageContent.querySelectorAll('[data-action]').forEach(b=>b.onclick=e=>{e.preventDefault();void action(b.dataset.action,b);});root.querySelectorAll('[data-editor]').forEach(a=>a.onclick=()=>remember());document.getElementById('scope')?.addEventListener('change',e=>filter({scope:e.target.value,world:null,persona:null}));root.querySelectorAll('.combo-toggle').forEach(b=>b.onclick=()=>openCombo(b.id));
  const search=document.getElementById('search');if(search){search.oninput=()=>searchDraft=search.value;search.addEventListener('compositionstart',()=>composition=true);search.addEventListener('compositionend',()=>composition=false);search.onkeydown=e=>{if(e.key==='Enter'&&(e.isComposing||composition))e.preventDefault();};document.getElementById('search-form').onsubmit=e=>{e.preventDefault();if(!composition)filter({q:search.value.trim()});};}
  root.querySelectorAll('[name=kind]').forEach(r=>r.onchange=()=>{intent.kind=r.value;delete errors.kind;persistIntent();});document.getElementById('create-form')?.addEventListener('submit',e=>{e.preventDefault();void validateCreate().catch(err=>{scenario='error';render();root.querySelector('.empty p').textContent=errorText(err);});});}
 document.addEventListener('click',e=>{if(combo&&!e.target.closest('.combo'))closeCombo();});document.addEventListener('focusin',e=>{if(combo&&!e.target.closest('.combo'))closeCombo();});window.addEventListener('popstate',()=>{q=new URLSearchParams(location.search);searchDraft=q.get('q')||'';void load();});
@@ -74,9 +77,12 @@ function create(){
  if(scenario==='loading')return '<p aria-busy="true">'+t('正在加载可选世界与角色…','Loading worlds and personas…')+'</p>';
  intent={kind:q.get('ck')||intent.kind,world:q.get('cw')||intent.world,persona:q.get('cp')||intent.persona};
  if(!['stay','service','experience'].includes(intent.kind))intent.kind='';
- if(!allowedWorlds().some(w=>w.id===intent.world))intent.world='';
- if(!allowedPersonas().some(p=>p.id===intent.persona))intent.persona='';
- persistIntent();
+ // A failed response supplies no evidence that an existing selection is invalid.
+ if(scenario==='normal'){
+  if(!allowedWorlds().some(w=>w.id===intent.world))intent.world='';
+  if(!allowedPersonas().some(p=>p.id===intent.persona))intent.persona='';
+  persistIntent();
+ }
  const header=`<div class="create-page"><header class="page-head"><div><h1 tabindex="-1">${t('创建内容','Create content')}</h1><p class="muted">${t('选择内容类型、所属世界和经营角色，接下来填写页面内容。','Choose a content type, world and provider persona, then fill in your page content.')}</p></div></header>`;
  if(['loading','error','denied'].includes(scenario))return header+empty(scenario==='loading'?t('正在加载可选世界与角色…','Loading worlds and personas…'):scenario==='denied'?t('创建资格已变化','Creation access has changed'):t('选项加载失败','Could not load options'),t('尚未创建任何内容；已选参数仍保留。','No content has been created. Your selections are preserved.'),'retry',scenario==='loading'?t('重试','Retry'):t('重新核验','Check again'))+'</div>';
  const typeDescriptions={stay:t('创建可供旅客模拟入住的住宿。','Create a place for travellers to imagine a stay.'),service:t('创建由角色提供的服务项目。','Create a service offered by your persona.'),experience:t('创建供旅客参与的体验活动。','Create an experience for travellers to join.')};

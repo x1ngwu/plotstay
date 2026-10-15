@@ -1,0 +1,29 @@
+{
+  "cases": [
+    "R4 prefill survives initial failure and retry en/1440",
+    "R4 successful permission change still clears invalid persona",
+    "R5 delayed response preserves dialog and cancel en/1440",
+    "R5 delayed response preserves dialog and apply en/1440",
+    "R5 delayed response preserves dialog and escape en/1440",
+    "R2 late input survives readback and saves on next explicit click en/1440",
+    "R4 prefill survives initial failure and retry en/390",
+    "R5 delayed response preserves dialog and cancel en/390",
+    "R5 delayed response preserves dialog and apply en/390",
+    "R5 delayed response preserves dialog and escape en/390",
+    "R2 late input survives readback and saves on next explicit click en/390",
+    "R4 prefill survives initial failure and retry zh/1440",
+    "R5 delayed response preserves dialog and cancel zh/1440",
+    "R5 delayed response preserves dialog and apply zh/1440",
+    "R5 delayed response preserves dialog and escape zh/1440",
+    "R2 late input survives readback and saves on next explicit click zh/1440",
+    "R4 prefill survives initial failure and retry zh/390",
+    "R5 delayed response preserves dialog and cancel zh/390",
+    "R5 delayed response preserves dialog and apply zh/390",
+    "R5 delayed response preserves dialog and escape zh/390",
+    "R2 late input survives readback and saves on next explicit click zh/390",
+    "R2 first save retains late input, records the ID and does not create twice",
+    "R2 concurrent server update cannot silently become a new save base"
+  ],
+  "errors": [],
+  "scope": "isolated PostgreSQL and real API; Chromium; no live database or deployment"
+}

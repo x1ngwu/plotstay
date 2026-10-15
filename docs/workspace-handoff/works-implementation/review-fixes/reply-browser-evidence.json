@@ -1,0 +1,10 @@
+{
+  "oldApiRevokePublish": 403,
+  "oldApiRevokeRestore": 403,
+  "oldApiReapprovePublish": 409,
+  "freshExplicitSubmissionPublish": 200,
+  "bilingualViewportChecks": 4,
+  "staleSubmissionAfterDraft": false,
+  "spuriousConfirmations": [],
+  "errors": []
+}

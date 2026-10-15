@@ -1,0 +1,10 @@
+{
+  "head": "0cb348b10c872ef36baf8d1e65d79236763131dd",
+  "preexistingFiles": {
+    "deploy/nginx/plotstay.xingwu.dev.conf": "23b5c37f188323400b0308158d75170e5209268ef0df720841d80a32bcaaaf3a",
+    "docs/operations.md": "fd9367fb8567e0609e54881198174e9d313eeac4089800745ceb87fae551522c",
+    "docs/development-status.md": "9f3a4c7436058464f68efad1dca9414840fcad5aca8946dd244d68f7158832bd",
+    "example_pages.zip": "2338ebbf7ead485b3842e0d8eb3204da83dfd52c4eb8994c85c2daa232b72d26",
+    "plotstay-works-create-developer-handoff.zip": "28b0cfcbcda414cff8b2a8a4dc61d07ce8be8e8c9a456948d672219a0c02c778"
+  }
+}

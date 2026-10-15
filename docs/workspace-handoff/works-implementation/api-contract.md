@@ -2,6 +2,8 @@
 
 阶段 B，2026-10-15。以下是隔离环境已实现的接口，不代表现用环境已提供。产品确认来源见 [contract.md](contract.md)。
 
+2026-10-15 code review 修复补充：回复保存 / 送审 / 发布 / 恢复已统一资格检查和事务锁顺序。回复详情增加 `submissionExpired` / `eligibilityRevoked`，有效待审与实际并发令牌分开；组合保存另返回 `submissionGuard`，资格恢复后的暂存不会激活旧待审。`ELIGIBILITY_REVOKED` / `SUBMISSION_EXPIRED` 对应阻断撤权和过期送审。需要新增 014 迁移；详细语义、兼容边界与实际测试见[修复交接](review-fixes/README.md)。原路径和写参数不变。
+
 ## 账号、经营与所有权
 
 - `work_ownership` 是本轮新作品的账号所有权证据，由首次保存事务写入当前会话账号；客户端不能指定 owner。管理员编辑不转移所有权。
