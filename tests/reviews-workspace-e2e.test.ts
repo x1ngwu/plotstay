@@ -1,3 +1,4 @@
+import {reviewRevision,replyAction} from './moderation-fixtures.ts';
 import {historicalProvider} from './work-fixtures.ts';
 import {testEntry} from './runtime.ts';
 import { test } from "node:test";
@@ -15,11 +16,9 @@ import {
   startReview,
   saveReview,
   submitReview,
-  reviewRevision,
   reviewDetail,
   bindProvider,
   saveReply,
-  replyAction,
   replyDetail,
   savePersonaNotes,
 } from "@plotstay/domain";

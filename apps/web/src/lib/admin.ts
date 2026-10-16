@@ -452,6 +452,11 @@ function refreshActions() {
   el<HTMLButtonElement>('preview-draft').disabled = !detail || dirty;
   updatePreviewState();
   if (!detail) return;
+  const submitted=detail.revisions.find((r:any)=>r.id===detail.content.submitted_revision_id);
+  const joint=actor.siteRole==='admin'&&submitted?.persona_revision_id&&!submitted.persona_decision;
+  el('publish').textContent=joint?l('批准角色资料并发布此评价','Approve profile and publish this review'):l('审核通过并发布','Approve and publish');
+  document.getElementById('joint-review-impact')?.remove();
+  if(joint){const impact=document.createElement('p');impact.id='joint-review-impact';impact.textContent=l('此操作包含全站角色资料批准，只发布当前固定送审评价。其他评价、回复和后续草稿不会自动发布。','This includes site-wide profile approval and publishes only this fixed review. Other reviews, replies and later drafts are not published.');el('publish').parentElement!.prepend(impact);}
   const head = detail.revisions[0];
   const unsaved = dirty || selectedRevision !== detail.content.head_revision_id;
   el<HTMLButtonElement>('submit-revision').disabled = unsaved || !((detail.content.kind==='review'?['draft']:['draft','rejected']).includes(head.status)||authorEditor&&detail.submissionExpired);
@@ -680,7 +685,12 @@ for (const [id, route, payload] of [
 ] as const) on(id, async () => {
   if (dirty) throw new Error(l('请先保存或放弃未保存的输入。', 'Save or discard input first.'));
   const contentId = detail.content.id;
-  await api(`${authorEditor&&route==='submit'?'/me/works':'/admin/contents'}/${contentId}/${route}`, payload());
+  const body:any=payload();const submitted=detail.revisions.find((r:any)=>r.id===detail.content.submitted_revision_id);
+  if(id==='publish'&&actor.siteRole==='admin'&&submitted?.persona_revision_id&&!submitted.persona_decision){
+    if(!confirm(l('确认全站批准此角色资料，并只发布此固定评价？其他发言和后续草稿不发布。','Approve this profile site-wide and publish only this fixed review? Other posts and later drafts are excluded.')+'\n'+detail.content.world_id+' / '+detail.content.parent_content_id+'\n'+submitted.id+' / '+submitted.persona_revision_id))return;
+    body.approvePersonaRevisionId=submitted.persona_revision_id;
+  }
+  await api(`${authorEditor&&route==='submit'?'/me/works':'/admin/contents'}/${contentId}/${route}`, body);
   await openContent(contentId); await refreshList(); message(l('操作已完成。', 'Action completed.'));
 });
 const importInput = el<HTMLTextAreaElement>('import-json');

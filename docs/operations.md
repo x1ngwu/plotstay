@@ -131,3 +131,9 @@ npm run db:init:details -- --apply
 本次发布先停止开发服务、备份 public schema 与旧构建、记录历史聚合摘要，然后 `npm run db:migrate`，安装临时目录验证通过的构建并重启。012 已应用；原历史字段/计数不变，无 seed/reset 或现用验收样例。备份放在 `/tmp/plotstay-reviews-pre012-backup/`（目录700、文件600），目录校验通过，未做现用恢复演练；后续勿无授权恢复并覆盖新数据。迁移及 API 细节见[契约](workspace-handoff/reviews-implementation/contract.md)，本轮测试和部署证据见[验收记录](workspace-handoff/reviews-implementation/acceptance.md)。
 
 新私有接口和静态资源继承 Basic Auth、noindex/nofollow/noarchive、no-store、robots 禁爬，浏览器无应用会话继续返回403。复验脚本：`node docs/workspace-handoff/reviews-implementation/check-deployment.mjs`，只读，不生成账号或业务样例。公网门禁已验，公网认证后交互和物理手机仍未验证。没有改 Nginx/systemd 配置。
+
+## 审核工作台隔离接入（2026-10-16，未部署）
+
+用户已通过静态效果稿。真实接入在 `/tmp/plotstay-moderation-dev` 的 `codex/moderation-20261016` 分支完成，用户于2026-10-16授权提交推送；主工作区仅同步交接文档和证据，不含本轮应用源码修改。现有 `/_design/moderation/` 继续是静态效果稿，不是已部署的新工作台。
+
+本轮没有新迁移，不需要 seed 或数据修复。验证仅使用独立 PostgreSQL 18 tmpfs 容器、随机schema、本机随机端口及临时构建目录。不得把测试 helper 对准现用库，也不要把本轮测试里的迁移／seed 当成发布步骤。应用部署、现用库访问和服务重启仍未获本轮授权，默认部署约定不覆盖该限制。文件、接口影响、测试结果和截图见[真实接入记录](workspace-handoff/moderation-implementation/README.md)。

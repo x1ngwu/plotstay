@@ -146,8 +146,10 @@ export function submitRevision(db: Database, actor: Actor, id: string, revisionI
     return { submitted: true };
   });
 }
-export function reviewRevision(db: Database, actor: Actor, id: string, revisionId: string, decision: 'publish' | 'reject', note: string, draftToken?: string) {
-  return transaction(db, async client => {
+export function reviewRevision(db: Database, actor: Actor, id: string, revisionId: string, decision: 'publish' | 'reject', note: string, draftToken?: string, approvePersonaRevisionId?: string) {
+  return transaction(db, client => reviewRevisionInTransaction(client,actor,id,revisionId,decision,note,draftToken,approvePersonaRevisionId));
+}
+export async function reviewRevisionInTransaction(client:PoolClient,actor:Actor,id:string,revisionId:string,decision:'publish'|'reject',note:string,draftToken?:string,approvePersonaRevisionId?:string){
     const { content, world } = await lockContent(client, actor, id, true);
     if(content.kind==='review' && Object.hasOwn(content,'submitted_revision_id'))await checkReviewSubmission(client,content,revisionId,draftToken);
     else {
@@ -164,7 +166,7 @@ export function reviewRevision(db: Database, actor: Actor, id: string, revisionI
     }
     assert(!world.site_blocked && !content.site_blocked, 403, 'SITE_BLOCKED', 'Site moderation prevents publication.');
     await formalWork(client,actor,content,revisionId,true);
-    await (await import('./persona-reviews.ts')).validateReviewPublication(client,actor,content,revisionId);
+    await (await import('./persona-reviews.ts')).validateReviewPublication(client,actor,content,revisionId,approvePersonaRevisionId,note);
     const localeTable=content.kind==='review' && Object.hasOwn(content,'submitted_revision_id')?'review_submission_locales':'revision_locales';
     const localeCondition=content.kind==='review' && Object.hasOwn(content,'submitted_revision_id')?'rl.submission_id=$1':'rl.revision_id=$1';
     const localeKey=content.kind==='review' && Object.hasOwn(content,'submitted_revision_id')?content.submission_token:revisionId;
@@ -180,10 +182,11 @@ export function reviewRevision(db: Database, actor: Actor, id: string, revisionI
     if(content.kind==='review' && Object.hasOwn(content,'submitted_revision_id'))await client.query('UPDATE contents SET submitted_revision_id=NULL,submission_token=NULL WHERE id=$1',[id]);
     await event(client, actor, content, 'published', revisionId, note);
     return { published: true, publicationId };
-  });
 }
 export function restorePublication(db: Database, actor: Actor, id: string, publicationId: string) {
-  return transaction(db, async client => {
+  return transaction(db,client=>restorePublicationInTransaction(client,actor,id,publicationId));
+}
+export async function restorePublicationInTransaction(client:PoolClient,actor:Actor,id:string,publicationId:string){
     const { content, world } = await lockContent(client, actor, id, true);
     assert(!world.site_blocked && !content.site_blocked, 403, 'SITE_BLOCKED', 'Site moderation prevents publication.');
     const { rows: [previous] } = await client.query('SELECT * FROM publications WHERE id=$1 AND content_id=$2', [publicationId, id]);
@@ -197,16 +200,16 @@ export function restorePublication(db: Database, actor: Actor, id: string, publi
     await client.query('UPDATE contents SET published_publication_id=$2 WHERE id=$1', [id, next]);
     await event(client, actor, content, 'restored', previous.revision_id, publicationId);
     return { publicationId: next };
-  });
 }
 export function unpublishContent(db: Database, actor: Actor, id: string, siteBlock: boolean, note: string) {
-  return transaction(db, async client => {
+  return transaction(db,client=>unpublishContentInTransaction(client,actor,id,siteBlock,note));
+}
+export async function unpublishContentInTransaction(client:PoolClient,actor:Actor,id:string,siteBlock:boolean,note:string){
     const { content } = await lockContent(client, actor, id, true);
     if (siteBlock) assert(actor.siteRole === 'admin', 403, 'SITE_ADMIN_REQUIRED', 'Only site administrators can impose a site restriction.');
     await client.query('UPDATE contents SET published_publication_id=NULL,site_blocked=(site_blocked OR $2) WHERE id=$1', [id, siteBlock]);
     await event(client, actor, content, siteBlock ? 'site_blocked' : 'unpublished', undefined, note);
     return { unpublished: true };
-  });
 }
 export function releaseSiteBlock(db: Database, actor: Actor, id: string, note: string) {
   assert(actor.siteRole === 'admin', 403, 'SITE_ADMIN_REQUIRED', 'Only site administrators can lift a site restriction.');

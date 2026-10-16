@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import {execFileSync} from 'node:child_process';
+import {mkdir,readFile,writeFile,symlink} from 'node:fs/promises';
+import {fileURLToPath} from 'node:url';
+import {build} from 'esbuild';
+assert.equal(process.env.DOTENV_CONFIG_PATH,'/dev/null');
+const repo=fileURLToPath(new URL('../../../',import.meta.url));
+assert.equal(repo,'/tmp/plotstay-moderation-dev/');
+const dir='/tmp/plotstay-moderation-isolation/build';await mkdir(dir,{recursive:true});
+await symlink(repo+'node_modules',dir+'/node_modules').catch(e=>{if(e.code!=='EEXIST')throw e;});
+execFileSync('npm',['run','check'],{cwd:repo,stdio:'inherit',env:process.env});
+execFileSync('npm',['run','build','--workspace','@plotstay/web'],{cwd:repo,stdio:'inherit',env:{...process.env,PLOTSTAY_TEST_OUT_DIR:dir+'/web'}});
+await build({entryPoints:[repo+'apps/api/src/server.ts'],outfile:dir+'/api/server.mjs',bundle:true,platform:'node',target:'node22',format:'esm',external:['pg','dotenv','fastify','@fastify/*','zod']});
+const wrapper=await readFile(repo+'apps/web/server.mjs','utf8');await writeFile(dir+'/web-server.mjs',wrapper.replace("'./dist/server/entry.mjs'","'./web/server/entry.mjs'"));
+console.log('Isolated application build ready. No live artifacts changed.');

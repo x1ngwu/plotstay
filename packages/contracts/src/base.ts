@@ -78,7 +78,7 @@ export const importSchema = z.object({
 }).strict();
 
 export const revisionActionSchema = z.object({ revisionId: idSchema, draftToken: idSchema.optional() }).strict();
-export const reviewActionSchema = revisionActionSchema.extend({ decision: z.enum(['publish', 'reject']), note: z.string().trim().max(2000).default('') });
+export const reviewActionSchema = revisionActionSchema.extend({ decision: z.enum(['publish', 'reject']), approvePersonaRevisionId: idSchema.optional(), note: z.string().trim().max(2000).default('') });
 export const restoreActionSchema = z.object({ publicationId: idSchema }).strict();
 export const unpublishActionSchema = z.object({ siteBlock: z.boolean().default(false), note: z.string().trim().max(2000).default('') }).strict();
 export const noteActionSchema = z.object({ note: z.string().trim().max(2000).default('') }).strict();

@@ -1,3 +1,4 @@
+import {reviewRevision,replyAction} from './moderation-fixtures.ts';
 import {historicalProvider} from './work-fixtures.ts';
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -27,11 +28,9 @@ import {
   startReview,
   saveReview,
   submitReview,
-  reviewRevision,
   reviewDetail,
   bindProvider,
   saveReply,
-  replyAction,
   replyDetail,
   getPublished,
 } from "@plotstay/domain";
@@ -656,6 +655,7 @@ test("real route commands enforce sessions/origin, fixed author and fixed A thro
       draftToken: a.submissionToken,
       decision: "publish",
       note: "Fixed version",
+      approvePersonaRevisionId:f.p.revisionId,
     },
   });
   assert.equal(approval.statusCode, 200, approval.body);

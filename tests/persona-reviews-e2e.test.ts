@@ -95,7 +95,7 @@ test('phase 5.6 ordinary account accommodation journey', { timeout: 180000 }, as
     await expect(page.locator('#persona-message')).toContainText('Submitted');
   });
   await t.test('joint moderation publishes signature and score without world access for author', async () => {
-    const mod = await browser.newPage();
+    const mod = await browser.newPage();mod.on('dialog',async dialog=>{assert.match(dialog.message(),/profile|publish|world|World/i);await dialog.accept();});
     await mod.goto(webUrl + '/en/account?view=moderation');
     await login(mod, f.credentials.email, f.credentials.password);
     await mod
@@ -104,7 +104,7 @@ test('phase 5.6 ordinary account accommodation journey', { timeout: 180000 }, as
       .getByRole('button', { name: 'Inspect review and persona' })
       .click();
     await expect(mod.locator('.persona-preview')).toContainText('The archive stayed quiet.');
-    await mod.getByRole('button', { name: 'Approve and publish', exact: true }).click();
+    await mod.getByRole('button', { name: /^(Approve and publish|Approve profile and publish this review)$/ }).click();
     await expect(mod.locator('#persona-message')).toContainText('Published');
     await mod.close();
     const d = await publishedDetail(f.db, 'en', {
@@ -120,7 +120,7 @@ test('phase 5.6 ordinary account accommodation journey', { timeout: 180000 }, as
   await t.test(
     'experience and service reviews, blocked provider reassignment and historical bilingual reply moderation',
     async () => {
-      const mod = await browser.newPage();
+      const mod = await browser.newPage();mod.on('dialog',async dialog=>{assert.match(dialog.message(),/profile|publish|world|World/i);await dialog.accept();});
       await mod.goto(webUrl + '/en/account?view=moderation');
       await login(mod, f.credentials.email, f.credentials.password);
       const persona = (
@@ -160,7 +160,7 @@ test('phase 5.6 ordinary account accommodation journey', { timeout: 180000 }, as
             .filter({ has: mod.locator('h3', { hasText: 'My ' + kind + ' review' }) })
             .getByRole('button', { name: 'Inspect review and persona' })
             .click();
-          await mod.getByRole('button', { name: 'Approve and publish', exact: true }).click();
+          await mod.getByRole('button', { name: /^(Approve and publish|Approve profile and publish this review)$/ }).click();
           await expect(mod.locator('#persona-message')).toContainText('Published');
         }
         const target = (await f.db.query('SELECT id FROM contents WHERE slug=$1', [slug])).rows[0].id;

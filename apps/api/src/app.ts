@@ -1,3 +1,4 @@
+import {moderationWorkspaceRoutes} from './moderation-workspace-routes.ts';
 import {reviewWorkspaceRoutes} from './review-workspace-routes.ts';
 import {worksRoutes} from './works-routes.ts';
 import {workspaceRoutes} from './workspace-routes.ts';
@@ -46,7 +47,7 @@ export async function createApp(db: Database, options: { logger?: boolean; webOr
     const status = (error as { statusCode?: number }).statusCode;
     if (status && status >= 400 && status < 500) return reply.code(status).send({ error: { code: 'BAD_REQUEST', message: status === 429 ? 'Too many requests.' : 'Invalid request.' } });
     // Database diagnostics can contain row values: never log them for private notes.
-    if (/^\/api\/me\/personas\/[^/]+\/notes(?:\?|$)/.test(request.url)) request.log.error({ requestId: request.id }, 'Private notes request failed');
+    if (/^\/api\/me\/personas\/[^/]+\/notes(?:\?|$)/.test(request.url) || request.url.split('?')[0]==='/api/admin/accounts' || request.url.startsWith('/api/moderation-workspace/accounts')) request.log.error({ requestId: request.id }, 'Sensitive request failed');
     else request.log.error({ err: error }, 'API request failed');
     return reply.code(500).send({ error: { code: 'INTERNAL_ERROR', message: 'The request could not be completed.' } });
   });
@@ -61,6 +62,7 @@ export async function createApp(db: Database, options: { logger?: boolean; webOr
   workspaceRoutes(app,db);
   reviewWorkspaceRoutes(app,db);
   worksRoutes(app,db);
+  moderationWorkspaceRoutes(app,db);
   app.get('/api/health', async (_request, reply) => {
     try {
       // Readiness requires the schema as well as the connection.
@@ -228,7 +230,7 @@ export async function createApp(db: Database, options: { logger?: boolean; webOr
   app.post('/api/admin/contents/:id/review', async request => {
     const user = await actor(request.cookies[SESSION]);
     const body = reviewActionSchema.parse(request.body);
-    return reviewRevision(db, user, idParams.parse(request.params).id, body.revisionId, body.decision, body.note,body.draftToken);
+    return reviewRevision(db, user, idParams.parse(request.params).id, body.revisionId, body.decision, body.note,body.draftToken,body.approvePersonaRevisionId);
   });
   app.post('/api/admin/contents/:id/restore', async request => {
     const user = await actor(request.cookies[SESSION]);

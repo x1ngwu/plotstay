@@ -1,3 +1,4 @@
+import {reviewRevision,replyAction} from './moderation-fixtures.ts';
 import {historicalProvider} from './work-fixtures.ts';
 import {createFixtureContent as createContent} from './work-fixtures.ts';
 import { test } from 'node:test';
@@ -14,7 +15,6 @@ import {
   reviewDetail,
   myPersonas,
   moderatePersona,
-  reviewRevision,
   publishedDetail,
   getPublished,
   restorePublication,
@@ -191,8 +191,7 @@ test('phase 5.6 provider replies and all entry types', async (t) => {
   const {
     bindProvider,
     saveReply,
-    replyAction,
-    replyDetail,
+      replyDetail,
     providerInbox,
     unpublishContent,
     createContentSchema,

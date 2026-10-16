@@ -116,10 +116,11 @@ export function personaRoutes(app: FastifyInstance, db: Database) {
         revisionId: idSchema,
         note: z.string().max(2000).default(''),
         publicationId: idSchema.optional(),
+        approvePersonaRevisionId:idSchema.optional(),
       })
       .strict()
       .parse(r.body);
-    return replyAction(db, await actor(r), id(r), b.action, b.revisionId, b.note, b.publicationId);
+    return replyAction(db, await actor(r), id(r), b.action, b.revisionId, b.note, b.publicationId,b.approvePersonaRevisionId);
   });
   app.get('/api/moderation/providers/:id', async (r) => providerOptions(db, await actor(r), id(r)));
   app.put('/api/moderation/providers/:id', async (r) =>

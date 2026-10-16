@@ -1,3 +1,4 @@
+import {personalReview,readablePublication} from './review-privacy.ts';
 import {transaction,type Database,type Connection} from '@plotstay/database';
 import {settingsSchema,initialDetailCopy,completeDetailCopy} from '@plotstay/contracts';
 import {requireWorld,type Actor} from './auth.ts';
@@ -44,7 +45,7 @@ export async function settingDetail(db:Connection,actor:Actor,id:string){
  const revisions=(await db.query('SELECT * FROM detail_setting_revisions WHERE setting_id=$1 ORDER BY created_at DESC,id DESC',[id])).rows;
  const publications=(await db.query('SELECT * FROM detail_setting_publications WHERE setting_id=$1 ORDER BY published_at DESC,id DESC',[id])).rows;
  const events=(await db.query('SELECT * FROM detail_setting_events WHERE setting_id=$1 ORDER BY created_at DESC,id DESC',[id])).rows;
- const impacts=s.kind==='copy'?[]:(await db.query(`SELECT c.id,c.kind,c.slug,w.slug AS world FROM contents c JOIN worlds w ON w.id=c.world_id WHERE (( $1='world' AND c.world_id=$2) OR ($1='place' AND c.place_id=$2) OR ($1='persona' AND (c.persona_id=$2 OR EXISTS(SELECT 1 FROM provider_bindings b WHERE b.content_id=c.id AND b.persona_id=$2)))) AND ($3 OR w.owner_id=$4 OR EXISTS(SELECT 1 FROM world_members m WHERE m.world_id=w.id AND m.user_id=$4)) ORDER BY c.kind,c.slug`,[s.kind,s.entity_id,actor.siteRole==='admin',actor.id])).rows;
+ const impacts=s.kind==='copy'?[]:(await db.query(`SELECT c.id,c.kind,c.slug,w.slug AS world FROM contents c JOIN worlds w ON w.id=c.world_id WHERE (( $1='world' AND c.world_id=$2) OR ($1='place' AND c.place_id=$2) OR ($1='persona' AND (c.persona_id=$2 OR EXISTS(SELECT 1 FROM provider_bindings b WHERE b.content_id=c.id AND b.persona_id=$2)))) AND ($3 OR w.owner_id=$4 OR EXISTS(SELECT 1 FROM world_members m WHERE m.world_id=w.id AND m.user_id=$4)) AND (NOT ${personalReview()} OR $3 OR c.author_id=$4 OR w.owner_id=$4 OR EXISTS(SELECT 1 FROM world_members pm WHERE pm.world_id=w.id AND pm.user_id=$4 AND pm.role IN ('owner','admin')) OR ${readablePublication()}) ORDER BY c.kind,c.slug`,[s.kind,s.entity_id,actor.siteRole==='admin',actor.id])).rows;
  let canReview=true;try{await access(db,actor,s,true);}catch{canReview=false;}
  return {setting:s,revisions,publications,events,impacts,canReview};
 }

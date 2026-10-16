@@ -52,6 +52,7 @@ export async function previewDetail(db: Database, actor: import('./auth.ts').Act
     await client.query('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY');
     const { adminDetail, listWorlds, listLocales } = await import('./read.ts');
     const data = own?await (await import('./works.ts')).workDetail(client,actor,id):await adminDetail(client, actor, id);
+    assert(!('readOnly' in data && data.readOnly),403,'REVIEW_FORBIDDEN','Personal review drafts are private.');
     const c = data.content;
     assert(c.head_revision_id === revisionId && c.draft_token === token, 409, 'REVISION_CONFLICT', 'This preview is out of date. Save or reload the editor.');
     const worlds = await listWorlds(client, locale);

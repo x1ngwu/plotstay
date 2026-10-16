@@ -1,3 +1,4 @@
+import {personalReview,readablePublication} from './review-privacy.ts';
 import {signatureProfiles} from './persona-reviews.ts';
 import type { Connection } from '@plotstay/database';
 import type { Discovery, Locale, PublicContent, World } from '@plotstay/contracts';
@@ -112,32 +113,41 @@ export async function getPublished(db: Connection, locale: string, where: { id?:
   return row ? mapContent(row, locale) : null;
 }
 export async function adminWorlds(db: Connection, actor: Actor) {
-  const { rows } = await db.query(`SELECT w.id,w.slug,w.translations,w.theme_id,w.site_blocked,w.visible,m.role
+  const { rows } = await db.query(`SELECT w.id,w.slug,w.translations,w.theme_id,w.site_blocked,w.visible,CASE WHEN w.owner_id=$1 THEN 'owner' ELSE m.role END AS role
     FROM worlds w LEFT JOIN world_members m ON m.world_id=w.id AND m.user_id=$1
     WHERE $2 OR m.role IS NOT NULL OR w.owner_id=$1 ORDER BY w.created_at,w.id`, [actor.id, actor.siteRole === 'admin']);
   return rows;
 }
 export async function adminList(db: Connection, actor: Actor, worldId: string, filters: {page?:number;kind?:string;q?:string;status?:string;parentId?:string}={}) {
-  await requireWorld(db, actor, worldId);
+  const world=await requireWorld(db, actor, worldId);
+  const canReadPrivate=actor.siteRole==='admin'||['owner','admin'].includes(world.role);
   const page=filters.page??1,pageSize=25;
   const { rows: [result] } = await db.query(`WITH matching AS MATERIALIZED (
     SELECT c.id,c.kind,c.slug,c.parent_content_id,c.site_blocked,c.published_publication_id,
     r.id AS revision_id,r.number,r.status,r.source_locale,r.source_text->>'title' AS title,r.created_at
-    FROM contents c JOIN content_revisions r ON r.id=CASE WHEN c.kind='review' AND $4='submitted' THEN c.submitted_revision_id ELSE c.head_revision_id END WHERE c.world_id=$1
-    AND ($2::text IS NULL OR c.kind=$2) AND ($3::text IS NULL OR r.source_text->>'title' ILIKE $3 OR c.slug ILIKE $3 OR EXISTS(SELECT 1 FROM revision_locales rl JOIN translations tx ON tx.id=rl.translation_id WHERE rl.revision_id=r.id AND tx.body->>'title' ILIKE $3))
+    FROM contents c JOIN worlds w ON w.id=c.world_id LEFT JOIN publications pub ON pub.id=c.published_publication_id
+    CROSS JOIN LATERAL(SELECT ($8 OR c.author_id=$9 OR NOT ${personalReview()}) AS private_read) access
+    JOIN content_revisions r ON r.id=CASE WHEN NOT access.private_read THEN pub.revision_id WHEN c.kind='review' AND $4='submitted' THEN c.submitted_revision_id ELSE c.head_revision_id END WHERE c.world_id=$1 AND (access.private_read OR ${readablePublication()})
+    AND ($2::text IS NULL OR c.kind=$2) AND ($3::text IS NULL OR r.source_text->>'title' ILIKE $3 OR c.slug ILIKE $3 OR EXISTS(SELECT 1 FROM translations tx WHERE tx.id IN (SELECT translation_id FROM revision_locales WHERE revision_id=r.id AND access.private_read UNION ALL SELECT translation_id FROM publication_locales WHERE publication_id=pub.id AND NOT access.private_read) AND tx.body->>'title' ILIKE $3))
     AND ($4::text IS NULL OR ($4='published' AND c.published_publication_id IS NOT NULL) OR ($4='unpublished' AND c.published_publication_id IS NULL) OR r.status=$4)
     AND ($5::uuid IS NULL OR c.parent_content_id=$5)
   ) SELECT (SELECT count(*)::int FROM matching) AS total,
     coalesce((SELECT jsonb_agg(p ORDER BY created_at DESC,id) FROM (SELECT * FROM matching ORDER BY created_at DESC,id LIMIT $6 OFFSET $7)p),'[]') AS contents`,
-    [worldId,filters.kind??null,filters.q?`%${filters.q}%`:null,filters.status??null,filters.parentId??null,pageSize,(page-1)*pageSize]);
+    [worldId,filters.kind??null,filters.q?`%${filters.q}%`:null,filters.status??null,filters.parentId??null,pageSize,(page-1)*pageSize,canReadPrivate,actor.id]);
   return {...result,page,pageSize,pages:Math.max(1,Math.ceil(result.total/pageSize))};
 }
 export async function adminDetail(db: Connection, actor: Actor, id: string) {
   const { rows: [content] } = await db.query('SELECT * FROM contents WHERE id=$1', [id]);
   assert(content, 404, 'NOT_FOUND', 'Content not found.');
   const world = await requireWorld(db, actor, content.world_id);
+  if(actor.siteRole!=='admin'&&!['owner','admin'].includes(world.role)&&content.author_id!==actor.id && (await db.query(`SELECT 1 FROM contents c WHERE c.id=$1 AND ${personalReview()}`,[id])).rowCount){
+    assert((await db.query(`SELECT 1 FROM contents c JOIN worlds w ON w.id=c.world_id WHERE c.id=$1 AND ${readablePublication()}`,[id])).rowCount,403,'REVIEW_FORBIDDEN','Personal review drafts are private.');
+    const publication=(await db.query('SELECT * FROM publications WHERE id=$1',[content.published_publication_id])).rows[0];
+    const revision=(await db.query(`SELECT r.*,coalesce((SELECT jsonb_object_agg(l.locale,t.body) FROM publication_locales l JOIN translations t ON t.id=l.translation_id WHERE l.publication_id=$1),'{}') AS translations FROM content_revisions r WHERE r.id=$2`,[publication.id,publication.revision_id])).rows[0];
+    return {content:{id:content.id,world_id:content.world_id,kind:content.kind,slug:content.slug,parent_content_id:content.parent_content_id,persona_id:content.persona_id,author_id:content.author_id,place_id:content.place_id,site_blocked:false,published_publication_id:publication.id,head_revision_id:revision.id,submitted_revision_id:null,submission_token:null,draft_token:null},canReview:false,readOnly:true,revisions:[revision],publications:[publication],events:[],jobs:[]};
+  }
   const results = await Promise.all([
-    db.query(`SELECT r.*,CASE WHEN r.id=$2 THEN coalesce((SELECT jsonb_object_agg(rl.locale,t.body) FROM review_submission_locales rl JOIN translations t ON t.id=rl.translation_id WHERE rl.submission_id=$3),'{}') ELSE coalesce((SELECT jsonb_object_agg(rl.locale,t.body) FROM revision_locales rl JOIN translations t ON t.id=rl.translation_id WHERE rl.revision_id=r.id),'{}') END AS translations
+    db.query(`SELECT r.*,(SELECT s.persona_revision_id FROM review_signatures s WHERE s.revision_id=r.id) AS persona_revision_id,(SELECT d.decision FROM review_signatures s JOIN persona_revision_decisions d ON d.revision_id=s.persona_revision_id WHERE s.revision_id=r.id) AS persona_decision,CASE WHEN r.id=$2 THEN coalesce((SELECT jsonb_object_agg(rl.locale,t.body) FROM review_submission_locales rl JOIN translations t ON t.id=rl.translation_id WHERE rl.submission_id=$3),'{}') ELSE coalesce((SELECT jsonb_object_agg(rl.locale,t.body) FROM revision_locales rl JOIN translations t ON t.id=rl.translation_id WHERE rl.revision_id=r.id),'{}') END AS translations
       FROM content_revisions r WHERE content_id=$1 ORDER BY number DESC`, [id,content.submitted_revision_id??null,content.submission_token??null]),
     db.query('SELECT * FROM publications WHERE content_id=$1 ORDER BY published_at DESC,id', [id]),
     db.query('SELECT action,note,actor_id,revision_id,created_at FROM moderation_events WHERE content_id=$1 ORDER BY created_at DESC', [id]),

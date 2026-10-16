@@ -42,7 +42,7 @@
   const view = query.get('view') || 'overview';
   const authorEditor=view==='editor'&&query.get('author')==='1';
   const admin = ['editor', 'world-content', 'world-review', 'world-settings', 'world-tools'].includes(view)&&!authorEditor;
-  const account = ['personas', 'reviews', 'replies', 'moderation', 'site'].includes(view);
+  const account = ['personas', 'reviews', 'replies'].includes(view);
   start('/auth/me');
   if (admin) start('/locales');
   const worlds = admin || account || ['worlds', 'world-members'].includes(view)

@@ -182,13 +182,13 @@ export async function reviewDetail(db: Connection, actor: Actor, id: string, mod
   ).rows;
   const events = (
     await db.query(
-      'SELECT id,revision_id,action,note,created_at FROM moderation_events WHERE content_id=$1 AND ($2::uuid[] IS NULL OR revision_id=ANY($2)) ORDER BY created_at DESC LIMIT $3',
+      'SELECT id,revision_id,action,note,actor_id,created_at FROM moderation_events WHERE content_id=$1 AND ($2::uuid[] IS NULL OR revision_id=ANY($2)) ORDER BY created_at DESC LIMIT $3',
       [id,history?revisions.map((r:any)=>r.id):null,history?100:null],
     )
   ).rows;
   const publications = (
     await db.query(
-      'SELECT id,revision_id,published_at FROM publications WHERE content_id=$1 AND ($2::uuid[] IS NULL OR revision_id=ANY($2)) ORDER BY published_at DESC LIMIT $3',
+      'SELECT id,revision_id,published_at,published_by,restored_from FROM publications WHERE content_id=$1 AND ($2::uuid[] IS NULL OR revision_id=ANY($2)) ORDER BY published_at DESC LIMIT $3',
       [id,history?revisions.map((r:any)=>r.id):null,history?100:null],
     )
   ).rows;
@@ -517,6 +517,8 @@ export async function validateReviewPublication(
   actor: Actor,
   content: any,
   revisionId: string,
+  approvePersonaRevisionId?: string,
+  note='',
 ) {
   if (!(await c.query("SELECT to_regclass('review_signatures') AS t")).rows[0].t) return; // Populated pre-008 upgrade fixtures remain constructible.
   const s = (await c.query('SELECT * FROM review_signatures WHERE revision_id=$1', [revisionId])).rows[0];
@@ -535,8 +537,11 @@ export async function validateReviewPublication(
       s.persona_revision_id,
     ])
   ).rows[0];
-  if (!d && actor.siteRole === 'admin')
-    await approvePersonaVersion(c, actor, s.persona_revision_id, 'approved');
+  if (approvePersonaRevisionId){
+    assert(!d,409,'REVISION_LOCKED','The profile was already decided. Review the current state.');
+    assert(approvePersonaRevisionId===s.persona_revision_id,409,'SUBMISSION_SUPERSEDED','Confirm the signature profile referenced by this submission.');
+    await approvePersonaVersion(c, actor, s.persona_revision_id, 'approved',note);
+  }
   else
     assert(
       d?.decision === 'approved',
@@ -578,7 +583,7 @@ export function createAccount(db: Database, actor: Actor, raw: unknown) {
       ).rows[0],
   );
 }
-export async function disablePersona(db: Database, actor: Actor, id: string, disabled: boolean) {
+export async function disablePersona(db: Database, actor: Actor, id: string, disabled: boolean, expectedDisabled?:boolean) {
   assert(
     actor.siteRole === 'admin',
     403,
@@ -586,6 +591,10 @@ export async function disablePersona(db: Database, actor: Actor, id: string, dis
     'Only a site administrator can disable a persona.',
   );
   return transaction(db, async (c) => {
+    const current=(await c.query('SELECT disabled FROM personas WHERE id=$1 FOR UPDATE',[id])).rows[0];
+    assert(current,404,'NOT_FOUND','Persona not found.');
+    if(current.disabled===disabled)return {disabled,unchanged:true};
+    assert(expectedDisabled===undefined||current.disabled===expectedDisabled,409,'REVISION_CONFLICT','Persona availability changed. Reload before deciding.');
     const p = (await c.query('UPDATE personas SET disabled=$2 WHERE id=$1 RETURNING id', [id, disabled]))
       .rows[0];
     assert(p, 404, 'NOT_FOUND', 'Persona not found.');
@@ -747,10 +756,11 @@ export function replyAction(
   revisionId: string,
   note = '',
   publicationId?: string,
+  approvePersonaRevisionId?: string,
 ) {
-  return transaction(db, c => replyActionInTransaction(c, actor, reviewId, action, revisionId, note, publicationId));
+  return transaction(db, c => replyActionInTransaction(c, actor, reviewId, action, revisionId, note, publicationId,approvePersonaRevisionId));
 }
-export async function replyActionInTransaction(c: PoolClient, actor: Actor, reviewId: string, action: 'submit' | 'publish' | 'reject' | 'hide' | 'restore', revisionId: string, note = '', publicationId?: string) {
+export async function replyActionInTransaction(c: PoolClient, actor: Actor, reviewId: string, action: 'submit' | 'publish' | 'reject' | 'hide' | 'restore', revisionId: string, note = '', publicationId?: string, approvePersonaRevisionId?:string) {
     const target = await providerFor(c, reviewId);
     if (action !== 'submit') await requireWorld(c, actor, target.world_id, true);
     await c.query('SELECT id FROM contents WHERE id=$1 FOR UPDATE', [target.parent_content_id]);
@@ -833,8 +843,11 @@ export async function replyActionInTransaction(c: PoolClient, actor: Actor, revi
             r.persona_revision_id,
           ])
         ).rows[0];
-        if (!d && actor.siteRole === 'admin')
-          await approvePersonaVersion(c, actor, r.persona_revision_id, 'approved');
+        if(approvePersonaRevisionId){
+          assert(!d,409,'REVISION_LOCKED','The profile was already decided. Review the current state.');
+          assert(approvePersonaRevisionId===r.persona_revision_id,409,'SUBMISSION_SUPERSEDED','Confirm the submitted signature profile.');
+          await approvePersonaVersion(c, actor, r.persona_revision_id, 'approved',note);
+        }
         else
           assert(
             d?.decision === 'approved',

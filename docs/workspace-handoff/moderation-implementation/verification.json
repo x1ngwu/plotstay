@@ -1,0 +1,139 @@
+{
+  "date": "2026-10-16",
+  "branch": "codex/moderation-20261016",
+  "base": "4d7d72c95b11e7833e0757431a8012e9bc4643bb",
+  "applicationDeployed": false,
+  "liveDatabaseAccessed": false,
+  "newMigrations": [],
+  "committedOrPushed": false,
+  "validation": {
+    "check": {
+      "errors": 0,
+      "warnings": 0,
+      "hints": 0
+    },
+    "build": "passed",
+    "backend": {
+      "pass": 72,
+      "fail": 0
+    },
+    "browserOldAndNew": {
+      "pass": 16,
+      "fail": 0
+    },
+    "browserPersonalReviewsAndNew": {
+      "pass": 24,
+      "fail": 0
+    },
+    "finalTargeted": {
+      "pass": 26,
+      "fail": 0,
+      "overlapsPriorRuns": true
+    },
+    "reviewFixes": {
+      "date": "2026-10-16",
+      "backend": {
+        "pass": 16,
+        "fail": 0
+      },
+      "browser": {
+        "scenarios": 14,
+        "tapPassIncludingParent": 15,
+        "fail": 0
+      },
+      "check": {
+        "errors": 0,
+        "warnings": 0,
+        "hints": 0
+      },
+      "build": "passed",
+      "fullRepositorySuiteRerun": false,
+      "evidence": [
+        "review-fixes-build.log",
+        "review-fixes-backend.log",
+        "review-fixes-browser.log"
+      ]
+    }
+  },
+  "screenshots": [
+    "account-en-1100.png",
+    "account-en-1440.png",
+    "account-en-360.png",
+    "account-en-390.png",
+    "account-zh-1440.png",
+    "account-zh-390.png",
+    "binding-en-1440.png",
+    "binding-en-390.png",
+    "binding-load-failure.png",
+    "binding-locked.png",
+    "binding-no-candidates.png",
+    "binding-readonly.png",
+    "binding-zh-1440.png",
+    "binding-zh-390.png",
+    "combined-confirm.png",
+    "detail-en-1440.png",
+    "detail-en-390.png",
+    "detail-zh-1440.png",
+    "detail-zh-390.png",
+    "profile-en-1100.png",
+    "profile-en-1440.png",
+    "profile-en-360.png",
+    "profile-en-390.png",
+    "profile-zh-1440.png",
+    "profile-zh-390.png",
+    "profiles-en-1440.png",
+    "profiles-en-390.png",
+    "profiles-zh-1440.png",
+    "profiles-zh-390.png",
+    "replies-en-1440.png",
+    "replies-en-390.png",
+    "replies-zh-1440.png",
+    "replies-zh-390.png",
+    "reply-en-1100.png",
+    "reply-en-1440.png",
+    "reply-en-360.png",
+    "reply-en-390.png",
+    "reply-zh-1440.png",
+    "reply-zh-390.png",
+    "returned-history-en-1440.png",
+    "returned-history-zh-390.png",
+    "review-en-1100.png",
+    "review-en-360.png",
+    "reviews-en-1440.png",
+    "reviews-en-390.png",
+    "reviews-zh-1440.png",
+    "reviews-zh-390.png",
+    "stale-submission.png"
+  ],
+  "sourceSha256": {
+    "apps/api/src/moderation-workspace-routes.ts": "23597279bf1ba83da3f9ad3d1925457a129537ecf0ab8c42a182863c452d2962",
+    "apps/web/src/lib/moderation-view.ts": "522631bbbf370cc1dd872a82ec0a39d5624127b5ab6efe28d3c92da2185b83fb",
+    "apps/web/src/lib/workspace-moderation.ts": "e93ddb2e4b855c1712e624dfa9c859a3a7924df09a63440614f4beee7e623a70",
+    "apps/web/src/styles/workspace-moderation.css": "2ab622b5ece008b8c24c5644a3ab2865d72c4b8be65728c9e8e02f565204d081",
+    "packages/domain/src/moderation-workspace.ts": "0b3f2f00ec1c1d4b9249faaff3cb2746d4e13b8efca06891cf6cd1ca99d821f1",
+    "packages/domain/src/review-privacy.ts": "69ae5df936a3fbcb5fb9f6401ec8ccd5f0489b1873096c78c217291d9c705be4",
+    "tests/moderation-fixtures.ts": "0d2344f01e0461aae59ef88ed6e35f08ec4dbdebae3ee5872cd866484bcfa22b",
+    "tests/moderation-workspace-e2e.test.ts": "868d86901f8abca1eeb6a717a03743ab119595f1893949a5baca2eff0d89c5be",
+    "tests/moderation-workspace.test.ts": "e4fcff5d30520c0811b635eed90b4fb1359d46b2efbb3ea7355805a8a353483a",
+    "apps/api/src/app.ts": "e9fec5eee536f42c5070b59efe7d39d2ff0064e85478a59e1ee2b7774ce50661",
+    "apps/api/src/persona-routes.ts": "367c12582660207419b666d7f1d4037f7cbe0c5545d02c081aaa1d8c4f7e2070",
+    "apps/web/src/lib/admin.ts": "6971b60a59a2050df81cf442b7b7a197f40d70b2184d0f1970aadf6ad000efb6",
+    "apps/web/src/lib/persona-client.ts": "30d32b1e7af12a6de394709194993a888e9ee130e295b1d6a265e5b69c045de0",
+    "apps/web/src/lib/workspace-bootstrap.js": "f99a9f263763bbf27a7943fbd14772c06ce57f2c65d19c438ae2249880ddb30b",
+    "apps/web/src/lib/workspace.ts": "5b1661ae7fa20268a04d5ccbd6e93eebdcf6edb7816dfa22f16dc1f6e5575d7a",
+    "apps/web/src/pages/[locale]/workspace.astro": "da5ce51f7837c05f9acfe7fc2ca02588fa3e96b279ed178a7f95e1fc324bce20",
+    "packages/contracts/src/base.ts": "328e8beead517ec2b127c89b726eaf2d85de19bcf388e522462e7e204673e30f",
+    "packages/domain/src/content.ts": "571541357f030112b15d67a1a586929907869ccf1bcb5680a150a55443a9feda",
+    "packages/domain/src/detail.ts": "cccc69a876c02530cc3d6bec3a91aa641ae392889797169bec7f0898a691a356",
+    "packages/domain/src/persona-reviews.ts": "e7cd506454765faf886ab5aff511c746b1f08661a2e59cf4b28323c1d7e0e9b3",
+    "packages/domain/src/read.ts": "1fc04bc49c249339798e9d8898e52bf22c1ef56416924b97ca932b3906f256d7",
+    "packages/domain/src/settings.ts": "99f6e5d11eefa37277356f918c3d8d2218b8cd5c430edbb3f7b54ecaf1f853f2",
+    "tests/overview.test.ts": "969bc5eefcb7267052e2ae3a618edc3d7b3524a5d4bb9aaea851515455bc7bc8",
+    "tests/persona-reviews-e2e.test.ts": "df8828656a93914dd133246d82c91118398ac71e7c80accdf52c96afb084d8ba",
+    "tests/persona-reviews.test.ts": "7adff7653fbfeae52193c2cb5fef376ba05663aaa75098c3f88ef6fb8239c7c4",
+    "tests/reviews-workspace-e2e.test.ts": "cbfe77df6a5e636f05844c1b0fe14c0577238c7b4830acb11b62db8836c4feb0",
+    "tests/reviews-workspace.test.ts": "7a3c31499142923b2ede31eaae43bb1b09f57c7ea7d426b7e4e9f222c64cdd9c"
+  },
+  "verificationRecordedBeforeCommit": true,
+  "commitPushAuthorized": true
+}

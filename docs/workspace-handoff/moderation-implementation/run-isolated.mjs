@@ -1,0 +1,10 @@
+import {readFile} from 'node:fs/promises';
+import {spawn} from 'node:child_process';
+import assert from 'node:assert/strict';
+const config=Object.fromEntries((await readFile('/tmp/plotstay-moderation-isolation/postgres.env','utf8')).trim().split('\n').map(l=>l.split('=')));
+const port=(await readFile('/tmp/plotstay-moderation-isolation/port','utf8')).trim();
+assert.match(port,/^\d+$/);assert.notEqual(port,'55432');assert.equal(config.POSTGRES_DB,'moderation_test');
+const files=process.argv.slice(2);assert(files.length&&files.every(f=>/^tests\/[a-z0-9-]+\.test\.ts$/.test(f)));
+const env={...process.env,DOTENV_CONFIG_PATH:'/dev/null',DATABASE_URL:`postgres://${config.POSTGRES_USER}:${config.POSTGRES_PASSWORD}@127.0.0.1:${port}/${config.POSTGRES_DB}`,SITE_INDEXABLE:'false',TRANSLATION_PROVIDER:'disabled',PLOTSTAY_TEST_BUILD:'/tmp/plotstay-moderation-isolation/build'};
+const child=spawn(process.execPath,['--import','tsx','--test','--test-concurrency=1',...files],{stdio:'inherit',env});
+child.on('exit',code=>process.exitCode=code??1);

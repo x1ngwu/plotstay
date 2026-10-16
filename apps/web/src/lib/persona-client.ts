@@ -584,6 +584,7 @@ export async function initAccount() {
       ),
     );
     preview(view, r);
+    if(actor.siteRole==='admin'&&r.persona_revision_id&&!r.persona_decision)view.append(node('p',l('联合批准将在全站批准此固定角色资料，只发布当前评价；其他发言和后续草稿不会自动发布。','Combined approval approves this fixed profile site-wide and publishes only this review. Other posts and later drafts are excluded.')));
     const note = field(view, l('审核说明', 'Moderation note'), 'moderationNote', '', 'textarea');
     if (actor.siteRole === 'admin' && r.persona_revision_id)
       view.append(
@@ -610,8 +611,11 @@ export async function initAccount() {
         }),
       );
     view.append(
-      button(l('审核通过并发布', 'Approve and publish'), async () => {
+      button(actor.siteRole==='admin'&&r.persona_revision_id&&!r.persona_decision?l('批准角色资料并发布此评价','Approve profile and publish this review'):l('审核通过并发布', 'Approve and publish'), async () => {
+        const joint=actor.siteRole==='admin'&&r.persona_revision_id&&!r.persona_decision;
+        if(joint&&!confirm(l('全站批准固定角色资料，并只发布此评价？其他发言及后续草稿不发布。','Approve this fixed profile site-wide and publish only this review? Other posts and later drafts are excluded.')+'\n'+data.content.world_slug+' / '+data.content.target_slug+'\n'+r.id+' / '+r.persona_revision_id))return;
         await api('/admin/contents/' + id + '/review', {
+          ...(joint?{approvePersonaRevisionId:r.persona_revision_id}:{}),
           revisionId: r.id,
           draftToken: data.content.submission_token ?? data.content.draft_token,
           decision: 'publish',
@@ -856,14 +860,17 @@ export async function initAccount() {
           await moderateReply(id);
         }),
       );
+    const joint=actor.siteRole==='admin'&&!r.persona_decision;
+    if(joint)view.append(node('p',l('全站批准此固定角色资料，只发布当前回复；其他发言和后续草稿不会自动发布。','Approve this fixed profile site-wide and publish only this reply. Other posts and later drafts are excluded.')));
     for (const [action, zhLabel, en] of [
       ['publish', '发布回复', 'Publish reply'],
       ['reject', '退回回复', 'Return reply'],
       ['hide', '隐藏回复', 'Hide reply'],
     ])
       view.append(
-        button(l(zhLabel!, en!), async () => {
-          await api('/moderation/replies/' + id, { action, revisionId: action==='hide'?data.reply.head_revision_id:r.id, note: note.value });
+        button(action==='publish'&&joint?l('批准角色资料并发布此回复','Approve profile and publish this reply'):l(zhLabel!, en!), async () => {
+          if(action==='publish'&&joint&&!confirm(l('确认全站批准此资料，并只发布此固定回复？','Approve this profile site-wide and publish only this fixed reply?')+'\n'+data.target.world_slug+' / '+data.target.target_slug+'\n'+r.id+' / '+r.persona_revision_id))return;
+          await api('/moderation/replies/' + id, { action,...(action==='publish'&&joint?{approvePersonaRevisionId:r.persona_revision_id}:{}), revisionId: action==='hide'?data.reply.head_revision_id:r.id, note: note.value });
           await moderateReply(id);
           message.textContent = l('回复操作完成。', 'Reply action completed.');
         }),
