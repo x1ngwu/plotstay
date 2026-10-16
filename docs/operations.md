@@ -23,6 +23,16 @@ Nginx 未通过 Basic Auth 时仍返回 `401` 和原认证 realm；内部 API �
 
 ## 日常发布
 
+### 独立交互原型的交付入口
+
+原型验收优先交付测试域名 `/_design/` 下的可点击入口，不以 localhost 或 SSH 转发作为用户的主要验收方式。既有概览、角色、评价入口分别为 `/_design/overview/`、`/_design/personas/`、`/_design/reviews/`；2026-10-15新增内容列表/创建原型 `/_design/works/`。
+
+这些入口由 Nginx 静态 alias 提供，继承 Basic Auth、noindex/nofollow/noarchive 和 private/no-store；原型仅使用合成数据。已有映射下的静态文件更新无需应用构建/重启；新增映射按下方配置流程检查后平滑 reload Nginx。页面及资源链接须适配子路径，页面自身保持 CSP 禁止业务连接。
+
+静态原型上线不代表真实应用接入或后续阶段获批。若当前任务明确禁止静态托管或配置变更，应说明与线上验收入口的冲突；不能默默把交付降为 localhost。公网未认证401检查与认证后浏览器交互须分别记录，不能相互代替。
+
+### 正式应用更新
+
 工作目录为 `/data/apps/plotstay`。按修改范围完成相关检查，然后执行：
 
 ```bash
