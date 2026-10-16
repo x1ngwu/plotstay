@@ -1,0 +1,101 @@
+TAP version 13
+# Subtest: real moderation workspace: queues, snapshots, navigation, commands, responsive layouts and races
+    # Subtest: real paginated queues and no old controller
+    ok 1 - real paginated queues and no old controller
+      ---
+      duration_ms: 1137.967149
+      type: 'test'
+      ...
+    # Subtest: overlapping identity requests settle once at the latest navigation
+    ok 2 - overlapping identity requests settle once at the latest navigation
+      ---
+      duration_ms: 571.008652
+      type: 'test'
+      ...
+    # Subtest: all fixed review fields and reply context use the selected version and language
+    ok 3 - all fixed review fields and reply context use the selected version and language
+      ---
+      duration_ms: 795.547814
+      type: 'test'
+      ...
+    # Subtest: fixed A/public P/later B; note and language survive profile detour
+    ok 4 - fixed A/public P/later B; note and language survive profile detour
+      ---
+      duration_ms: 983.053327
+      type: 'test'
+      ...
+    # Subtest: browser back cancellation preserves history and unsaved note
+    ok 5 - browser back cancellation preserves history and unsaved note
+      ---
+      duration_ms: 1068.253766
+      type: 'test'
+      ...
+    # Subtest: responsive real API screenshot matrix
+    ok 6 - responsive real API screenshot matrix
+      ---
+      duration_ms: 12391.111573
+      type: 'test'
+      ...
+    # Subtest: combined approval confirmation is specific and publishes A only
+    ok 7 - combined approval confirmation is specific and publishes A only
+      ---
+      duration_ms: 719.585856
+      type: 'test'
+      ...
+    # Subtest: provider readonly/lock states and dynamic save
+    ok 8 - provider readonly/lock states and dynamic save
+      ---
+      duration_ms: 1035.976397
+      type: 'test'
+      ...
+    # Subtest: ordinary account field errors, real success and lost-response readback
+    ok 9 - ordinary account field errors, real success and lost-response readback
+      ---
+      duration_ms: 715.029256
+      type: 'test'
+      ...
+    # Subtest: deep links, conflict notes, result readback and loading failures
+    ok 10 - deep links, conflict notes, result readback and loading failures
+      ---
+      duration_ms: 2234.295521
+      type: 'test'
+      ...
+    # Subtest: 360px and middle desktop layouts, readonly and locked evidence
+    ok 11 - 360px and middle desktop layouts, readonly and locked evidence
+      ---
+      duration_ms: 3156.16358
+      type: 'test'
+      ...
+    # Subtest: profile-only approval leaves posts pending; no-candidate binding is explicit
+    ok 12 - profile-only approval leaves posts pending; no-candidate binding is explicit
+      ---
+      duration_ms: 1315.873012
+      type: 'test'
+      ...
+    # Subtest: returned review and reply links retain A, history and signature while B remains separate
+    ok 13 - returned review and reply links retain A, history and signature while B remains separate
+      ---
+      duration_ms: 3111.699142
+      type: 'test'
+      ...
+    # Subtest: late queue response cannot overwrite a newer tab; account switch clears data
+    ok 14 - late queue response cannot overwrite a newer tab; account switch clears data
+      ---
+      duration_ms: 669.575929
+      type: 'test'
+      ...
+    1..14
+ok 1 - real moderation workspace: queues, snapshots, navigation, commands, responsive layouts and races
+  ---
+  duration_ms: 33237.278251
+  type: 'test'
+  ...
+1..1
+# tests 15
+# suites 0
+# pass 15
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 34507.213176

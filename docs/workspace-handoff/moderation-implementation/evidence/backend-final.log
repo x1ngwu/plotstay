@@ -1,0 +1,452 @@
+TAP version 13
+# Subtest: phase 5.5 persistent content management
+    # Subtest: bootstrap is explicit, idempotent and preserves all original business rows
+    ok 1 - bootstrap is explicit, idempotent and preserves all original business rows
+      ---
+      duration_ms: 111.740224
+      type: 'test'
+      ...
+# (node:4160834) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+# (Use `node --trace-deprecation ...` to show where the warning was created)
+    # Subtest: all three full documents round trip, keep independent language order, zero, clear and restore
+    ok 2 - all three full documents round trip, keep independent language order, zero, clear and restore
+      ---
+      duration_ms: 346.582413
+      type: 'test'
+      ...
+    # Subtest: every contract leaf has a persisted bilingual round trip, including full review and map metadata
+    ok 3 - every contract leaf has a persisted bilingual round trip, including full review and map metadata
+      ---
+      duration_ms: 174.109774
+      type: 'test'
+      ...
+    # Subtest: configuration publication is reviewed, atomic, scoped, concurrent and historical
+    ok 4 - configuration publication is reviewed, atomic, scoped, concurrent and historical
+      ---
+      duration_ms: 84.731747
+      type: 'test'
+      ...
+    # Subtest: shared changes preserve signed receipts and category history uses the home authority
+    ok 5 - shared changes preserve signed receipts and category history uses the home authority
+      ---
+      duration_ms: 211.541624
+      type: 'test'
+      ...
+    # Subtest: preview API refuses anonymous/foreign/stale and translation changes invalidate links
+    ok 6 - preview API refuses anonymous/foreign/stale and translation changes invalidate links
+      ---
+      duration_ms: 283.79134
+      type: 'test'
+      ...
+    # Subtest: new map and clear metadata survive import and translation jobs without publishing drafts
+    ok 7 - new map and clear metadata survive import and translation jobs without publishing drafts
+      ---
+      duration_ms: 95.785163
+      type: 'test'
+      ...
+    # Subtest: management pagination finds entries beyond 200 and filters notes by parent
+    ok 8 - management pagination finds entries beyond 200 and filters notes by parent
+      ---
+      duration_ms: 2527.778266
+      type: 'test'
+      ...
+    1..8
+ok 1 - phase 5.5 persistent content management
+  ---
+  duration_ms: 6720.394997
+  type: 'test'
+  ...
+# Subtest: content management HTTP workflows
+    # Subtest: authenticated create, save, conflict, review, reject and publish
+    ok 1 - authenticated create, save, conflict, review, reject and publish
+      ---
+      duration_ms: 198.351908
+      type: 'test'
+      ...
+    # Subtest: manual translation updates invalidate a stale source editor token
+    ok 2 - manual translation updates invalidate a stale source editor token
+      ---
+      duration_ms: 72.245836
+      type: 'test'
+      ...
+    # Subtest: unpublish, restore and site intervention cannot be bypassed
+    ok 3 - unpublish, restore and site intervention cannot be bypassed
+      ---
+      duration_ms: 58.941959
+      type: 'test'
+      ...
+    # Subtest: import preview rolls back; row errors, concurrent retries and changed inputs are explicit
+    ok 4 - import preview rolls back; row errors, concurrent retries and changed inputs are explicit
+      ---
+      duration_ms: 78.129648
+      type: 'test'
+      ...
+    1..4
+ok 2 - content management HTTP workflows
+  ---
+  duration_ms: 1131.950251
+  type: 'test'
+  ...
+# Subtest: authorized independent queues, owner-only scopes, fixed profile reference and counts
+ok 3 - authorized independent queues, owner-only scopes, fixed profile reference and counts
+  ---
+  duration_ms: 686.85013
+  type: 'test'
+  ...
+# Subtest: ordinary publication cannot silently approve a profile; explicit combined transaction preserves B
+ok 4 - ordinary publication cannot silently approve a profile; explicit combined transaction preserves B
+  ---
+  duration_ms: 685.384837
+  type: 'test'
+  ...
+# Subtest: failed combined publication rolls back its new profile decision
+ok 5 - failed combined publication rolls back its new profile decision
+  ---
+  duration_ms: 671.030951
+  type: 'test'
+  ...
+# Subtest: editor cannot read/search personal drafts; current public snapshot remains readable
+ok 6 - editor cannot read/search personal drafts; current public snapshot remains readable
+  ---
+  duration_ms: 702.465587
+  type: 'test'
+  ...
+# Subtest: reply queue and detail are independent, contain public original context; explicit joint reply approval
+ok 7 - reply queue and detail are independent, contain public original context; explicit joint reply approval
+  ---
+  duration_ms: 685.553439
+  type: 'test'
+  ...
+# Subtest: profile detail has fixed/approved comparison and events, never private notes; binding states
+ok 8 - profile detail has fixed/approved comparison and events, never private notes; binding states
+  ---
+  duration_ms: 565.941665
+  type: 'test'
+  ...
+# Subtest: API checks actor identity; ordinary account command supports truthful read-back without password
+ok 9 - API checks actor identity; ordinary account command supports truthful read-back without password
+  ---
+  duration_ms: 798.365153
+  type: 'test'
+  ...
+# Subtest: authorization before search/count; all pages and independent profile paging; literal wildcard search
+ok 10 - authorization before search/count; all pages and independent profile paging; literal wildcard search
+  ---
+  duration_ms: 1664.666623
+  type: 'test'
+  ...
+# Subtest: stale submissions and explicitly confirmed profile changes cannot publish a replacement
+ok 11 - stale submissions and explicitly confirmed profile changes cannot publish a replacement
+  ---
+  duration_ms: 605.557974
+  type: 'test'
+  ...
+# Subtest: return, hide, historical restore and availability remain independent of drafts and publication
+ok 12 - return, hide, historical restore and availability remain independent of drafts and publication
+  ---
+  duration_ms: 643.226986
+  type: 'test'
+  ...
+# Subtest: binding keeps legal world owner access; no owner override, candidates, permanent lock and race
+ok 13 - binding keeps legal world owner access; no owner override, candidates, permanent lock and race
+  ---
+  duration_ms: 613.783366
+  type: 'test'
+  ...
+# Subtest: legacy editorial notes remain collaborative; private history/API and shared impacts are filtered
+ok 14 - legacy editorial notes remain collaborative; private history/API and shared impacts are filtered
+  ---
+  duration_ms: 652.336466
+  type: 'test'
+  ...
+# Subtest: reply combined rollback, qualification revocation and site restriction preserve historical rules
+ok 15 - reply combined rollback, qualification revocation and site restriction preserve historical rules
+  ---
+  duration_ms: 688.993629
+  type: 'test'
+  ...
+# Subtest: account validation, no elevated fields, duplicate idempotence and site-only commands
+ok 16 - account validation, no elevated fields, duplicate idempotence and site-only commands
+  ---
+  duration_ms: 728.659539
+  type: 'test'
+  ...
+# Subtest: overview source: creator, current editor, translator and reviewer are distinct evidence
+ok 17 - overview source: creator, current editor, translator and reviewer are distinct evidence
+  ---
+  duration_ms: 665.637983
+  type: 'test'
+  ...
+# Subtest: overview source: persona owner, shared-profile saver, current draft and fixed submission differ
+ok 18 - overview source: persona owner, shared-profile saver, current draft and fixed submission differ
+  ---
+  duration_ms: 600.349089
+  type: 'test'
+  ...
+# Subtest: overview summary is bounded, scoped and uses current edits instead of management access
+ok 19 - overview summary is bounded, scoped and uses current edits instead of management access
+  ---
+  duration_ms: 767.138557
+  type: 'test'
+  ...
+# Subtest: overview follows reply state transitions, current provider binding and visible targets
+ok 20 - overview follows reply state transitions, current provider binding and visible targets
+  ---
+  duration_ms: 1394.860366
+  type: 'test'
+  ...
+# Subtest: overview groups are counted before limiting; pagination, locale and authorization match
+ok 21 - overview groups are counted before limiting; pagination, locale and authorization match
+  ---
+  duration_ms: 1054.439528
+  type: 'test'
+  ...
+# Subtest: overview shared drafts, persona decisions and stale submitted pointers use actual versions
+ok 22 - overview shared drafts, persona decisions and stale submitted pointers use actual versions
+  ---
+  duration_ms: 634.683991
+  type: 'test'
+  ...
+# Subtest: persona draft and fixed submission remain separate until a newer submission replaces it
+ok 23 - persona draft and fixed submission remain separate until a newer submission replaces it
+  ---
+  duration_ms: 664.397493
+  type: 'test'
+  ...
+# Subtest: phase 5.6 personas and accommodation review checkpoint
+    # Subtest: ordinary accounts have no world privileges; persona ownership and concurrent identity enforced
+    ok 1 - ordinary accounts have no world privileges; persona ownership and concurrent identity enforced
+      ---
+      duration_ms: 165.110054
+      type: 'test'
+      ...
+    # Subtest: fixed profile + review submission, site/world approval split and publication
+    ok 2 - fixed profile + review submission, site/world approval split and publication
+      ---
+      duration_ms: 76.393313
+      type: 'test'
+      ...
+    # Subtest: editing, returning, republishing and restoring count one score with immutable signature
+    ok 3 - editing, returning, republishing and restoring count one score with immutable signature
+      ---
+      duration_ms: 137.988455
+      type: 'test'
+      ...
+    # Subtest: cross-world persona reuse, disabled speaking, and guest/session/origin isolation
+    ok 4 - cross-world persona reuse, disabled speaking, and guest/session/origin isolation
+      ---
+      duration_ms: 229.758143
+      type: 'test'
+      ...
+    1..4
+ok 24 - phase 5.6 personas and accommodation review checkpoint
+  ---
+  duration_ms: 1258.619327
+  type: 'test'
+  ...
+# Subtest: phase 5.6 provider replies and all entry types
+    # Subtest: stay reply ownership, approval, edits, recovery and parent visibility
+    ok 1 - stay reply ownership, approval, edits, recovery and parent visibility
+      ---
+      duration_ms: 517.797041
+      type: 'test'
+      ...
+    # Subtest: experience reply ownership, approval, edits, recovery and parent visibility
+    ok 2 - experience reply ownership, approval, edits, recovery and parent visibility
+      ---
+      duration_ms: 472.25708
+      type: 'test'
+      ...
+    # Subtest: service reply ownership, approval, edits, recovery and parent visibility
+    ok 3 - service reply ownership, approval, edits, recovery and parent visibility
+      ---
+      duration_ms: 471.014069
+      type: 'test'
+      ...
+    # Subtest: provider name/avatar changes preserve published replies and ownership remains independent
+    ok 4 - provider name/avatar changes preserve published replies and ownership remains independent
+      ---
+      duration_ms: 90.557958
+      type: 'test'
+      ...
+    1..4
+ok 25 - phase 5.6 provider replies and all entry types
+  ---
+  duration_ms: 2250.883227
+  type: 'test'
+  ...
+# Subtest: phase 5.6 missing languages, rejected profiles, immutable submissions and shared editor authority
+ok 26 - phase 5.6 missing languages, rejected profiles, immutable submissions and shared editor authority
+  ---
+  duration_ms: 687.542297
+  type: 'test'
+  ...
+# Subtest: phase 5.6 duplicate legacy identities abort upgrade without rewriting history
+ok 27 - phase 5.6 duplicate legacy identities abort upgrade without rewriting history
+  ---
+  duration_ms: 323.635331
+  type: 'test'
+  ...
+# (node:4161255) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+# (Use `node --trace-deprecation ...` to show where the warning was created)
+# Subtest: phase 5.6 multiple personas, self-authored reviews, shared previews and receipt preservation
+ok 28 - phase 5.6 multiple personas, self-authored reviews, shared previews and receipt preservation
+  ---
+  duration_ms: 892.31538
+  type: 'test'
+  ...
+# Subtest: phase 5.6 private review pagination keeps every identity without exposing another account
+ok 29 - phase 5.6 private review pagination keeps every identity without exposing another account
+  ---
+  duration_ms: 795.592968
+  type: 'test'
+  ...
+# Subtest: superseded cross-entry profile submission cannot publish until signature is refreshed
+ok 30 - superseded cross-entry profile submission cannot publish until signature is refreshed
+  ---
+  duration_ms: 643.304826
+  type: 'test'
+  ...
+# Subtest: persona workspace atomic commands, private notes and compatibility
+    # Subtest: ordinary and world admins submit, site admin completes own profile; retries are stable
+    ok 1 - ordinary and world admins submit, site admin completes own profile; retries are stable
+      ---
+      duration_ms: 81.554278
+      type: 'test'
+      ...
+    # Subtest: draft B retains pending A and live P; replacing requires current pending pointer; histories stay fixed
+    ok 2 - draft B retains pending A and live P; replacing requires current pending pointer; histories stay fixed
+      ---
+      duration_ms: 79.45518
+      type: 'test'
+      ...
+    # Subtest: failed validation or publication rolls back the entire operation
+    ok 3 - failed validation or publication rolls back the entire operation
+      ---
+      duration_ms: 22.321357
+      type: 'test'
+      ...
+    # Subtest: owner-only notes are isolated even from site admin, review/history/list and signatures
+    ok 4 - owner-only notes are isolated even from site admin, review/history/list and signatures
+      ---
+      duration_ms: 70.190538
+      type: 'test'
+      ...
+    # Subtest: disabled owner still saves notes; exact Unicode limit, retry, concurrent version and legacy saves preserve notes
+    ok 5 - disabled owner still saves notes; exact Unicode limit, retry, concurrent version and legacy saves preserve notes
+      ---
+      duration_ms: 33.369854
+      type: 'test'
+      ...
+    1..5
+ok 31 - persona workspace atomic commands, private notes and compatibility
+  ---
+  duration_ms: 1173.292095
+  type: 'test'
+  ...
+# Subtest: review P/A/B: saving B preserves A; approve A keeps B; replacing submission rejects stale review
+ok 32 - review P/A/B: saving B preserves A; approve A keeps B; replacing submission rejects stale review
+  ---
+  duration_ms: 769.863542
+  type: 'test'
+  ...
+# Subtest: reply P/A/B: draft does not revoke submitted version, approval leaves latest head
+ok 33 - reply P/A/B: draft does not revoke submitted version, approval leaves latest head
+  ---
+  duration_ms: 693.151066
+  type: 'test'
+  ...
+# Subtest: atomic command retries return the same fixed result; conflicts and failed submission roll back
+ok 34 - atomic command retries return the same fixed result; conflicts and failed submission roll back
+  ---
+  duration_ms: 648.844795
+  type: 'test'
+  ...
+# Subtest: old provider reads own history, new provider cannot inherit private drafts; same-account identity changes cannot submit old identity
+ok 35 - old provider reads own history, new provider cannot inherit private drafts; same-account identity changes cannot submit old identity
+  ---
+  duration_ms: 733.583462
+  type: 'test'
+  ...
+# Subtest: list and details use readable real context, personal source scope and public entry search
+ok 36 - list and details use readable real context, personal source scope and public entry search
+  ---
+  duration_ms: 566.55767
+  type: 'test'
+  ...
+# Subtest: 45 reviews: full-scope count/search/order, visible reply activity, no private updates and one list query
+ok 37 - 45 reviews: full-scope count/search/order, visible reply activity, no private updates and one list query
+  ---
+  duration_ms: 1880.521445
+  type: 'test'
+  ...
+# Subtest: fixed translation snapshot, pending homepage/admin queue and rejection bind to A without altering B
+ok 38 - fixed translation snapshot, pending homepage/admin queue and rejection bind to A without altering B
+  ---
+  duration_ms: 591.399369
+  type: 'test'
+  ...
+# Subtest: 012 migration backfills effective A while preserving B and every historical body
+ok 39 - 012 migration backfills effective A while preserving B and every historical body
+  ---
+  duration_ms: 490.165718
+  type: 'test'
+  ...
+# Subtest: real route commands enforce sessions/origin, fixed author and fixed A through old moderation API
+ok 40 - real route commands enforce sessions/origin, fixed author and fixed A through old moderation API
+  ---
+  duration_ms: 765.949387
+  type: 'test'
+  ...
+# Subtest: concurrent approval versus save-and-submit serializes; bounded history retains explicit old version and current P/A/B
+ok 41 - concurrent approval versus save-and-submit serializes; bounded history retains explicit old version and current P/A/B
+  ---
+  duration_ms: 1021.71848
+  type: 'test'
+  ...
+# Subtest: reply command fixed results and replacement of a former provider submission expose no private body
+ok 42 - reply command fixed results and replacement of a former provider submission expose no private body
+  ---
+  duration_ms: 726.712041
+  type: 'test'
+  ...
+# Subtest: reply visibility events preserve submission and draft states across moderation, lists and home
+    # Subtest: publish fixed A after hide/restore, newer draft: false
+    ok 1 - publish fixed A after hide/restore, newer draft: false
+      ---
+      duration_ms: 741.168328
+      type: 'test'
+      ...
+    # Subtest: publish fixed A after hide/restore, newer draft: true
+    ok 2 - publish fixed A after hide/restore, newer draft: true
+      ---
+      duration_ms: 713.622926
+      type: 'test'
+      ...
+    # Subtest: reject fixed A after hide/restore, newer draft: false
+    ok 3 - reject fixed A after hide/restore, newer draft: false
+      ---
+      duration_ms: 644.563318
+      type: 'test'
+      ...
+    # Subtest: reject fixed A after hide/restore, newer draft: true
+    ok 4 - reject fixed A after hide/restore, newer draft: true
+      ---
+      duration_ms: 687.885819
+      type: 'test'
+      ...
+    1..4
+ok 43 - reply visibility events preserve submission and draft states across moderation, lists and home
+  ---
+  duration_ms: 2788.456162
+  type: 'test'
+  ...
+1..43
+# tests 72
+# suites 0
+# pass 72
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 48337.355341

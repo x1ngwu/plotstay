@@ -1,0 +1,106 @@
+TAP version 13
+# Subtest: authorized independent queues, owner-only scopes, fixed profile reference and counts
+ok 1 - authorized independent queues, owner-only scopes, fixed profile reference and counts
+  ---
+  duration_ms: 678.039941
+  type: 'test'
+  ...
+# Subtest: ordinary publication cannot silently approve a profile; explicit combined transaction preserves B
+ok 2 - ordinary publication cannot silently approve a profile; explicit combined transaction preserves B
+  ---
+  duration_ms: 673.40678
+  type: 'test'
+  ...
+# Subtest: failed combined publication rolls back its new profile decision
+ok 3 - failed combined publication rolls back its new profile decision
+  ---
+  duration_ms: 596.585848
+  type: 'test'
+  ...
+# Subtest: editor cannot read/search personal drafts; current public snapshot remains readable
+ok 4 - editor cannot read/search personal drafts; current public snapshot remains readable
+  ---
+  duration_ms: 674.403228
+  type: 'test'
+  ...
+# Subtest: reply queue and detail are independent, contain public original context; explicit joint reply approval
+ok 5 - reply queue and detail are independent, contain public original context; explicit joint reply approval
+  ---
+  duration_ms: 692.148467
+  type: 'test'
+  ...
+# Subtest: profile detail has fixed/approved comparison and events, never private notes; binding states
+ok 6 - profile detail has fixed/approved comparison and events, never private notes; binding states
+  ---
+  duration_ms: 567.95827
+  type: 'test'
+  ...
+# Subtest: returned review history keeps submission translations, signature and metadata apart from B
+ok 7 - returned review history keeps submission translations, signature and metadata apart from B
+  ---
+  duration_ms: 637.683377
+  type: 'test'
+  ...
+# Subtest: returned reply history preserves A and its signature when B uses a newer profile
+ok 8 - returned reply history preserves A and its signature when B uses a newer profile
+  ---
+  duration_ms: 623.159126
+  type: 'test'
+  ...
+# Subtest: API checks actor identity; ordinary account command supports truthful read-back without password
+ok 9 - API checks actor identity; ordinary account command supports truthful read-back without password
+  ---
+  duration_ms: 768.799477
+  type: 'test'
+  ...
+# Subtest: authorization before search/count; all pages and independent profile paging; literal wildcard search
+ok 10 - authorization before search/count; all pages and independent profile paging; literal wildcard search
+  ---
+  duration_ms: 1539.60477
+  type: 'test'
+  ...
+# Subtest: stale submissions and explicitly confirmed profile changes cannot publish a replacement
+ok 11 - stale submissions and explicitly confirmed profile changes cannot publish a replacement
+  ---
+  duration_ms: 644.101154
+  type: 'test'
+  ...
+# Subtest: return, hide, historical restore and availability remain independent of drafts and publication
+ok 12 - return, hide, historical restore and availability remain independent of drafts and publication
+  ---
+  duration_ms: 669.016538
+  type: 'test'
+  ...
+# Subtest: binding keeps legal world owner access; no owner override, candidates, permanent lock and race
+ok 13 - binding keeps legal world owner access; no owner override, candidates, permanent lock and race
+  ---
+  duration_ms: 629.133739
+  type: 'test'
+  ...
+# Subtest: legacy editorial notes remain collaborative; private history/API and shared impacts are filtered
+ok 14 - legacy editorial notes remain collaborative; private history/API and shared impacts are filtered
+  ---
+  duration_ms: 591.137717
+  type: 'test'
+  ...
+# Subtest: reply combined rollback, qualification revocation and site restriction preserve historical rules
+ok 15 - reply combined rollback, qualification revocation and site restriction preserve historical rules
+  ---
+  duration_ms: 673.991583
+  type: 'test'
+  ...
+# Subtest: account validation, no elevated fields, duplicate idempotence and site-only commands
+ok 16 - account validation, no elevated fields, duplicate idempotence and site-only commands
+  ---
+  duration_ms: 738.915567
+  type: 'test'
+  ...
+1..16
+# tests 16
+# suites 0
+# pass 16
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 12060.299342

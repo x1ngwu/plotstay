@@ -1,0 +1,108 @@
+TAP version 13
+# Subtest: real moderation workspace: queues, snapshots, navigation, commands, responsive layouts and races
+    # Subtest: real paginated queues and no old controller
+    ok 1 - real paginated queues and no old controller
+      ---
+      duration_ms: 1450.798339
+      type: 'test'
+      ...
+    # Subtest: fixed A/public P/later B; note and language survive profile detour
+    ok 2 - fixed A/public P/later B; note and language survive profile detour
+      ---
+      duration_ms: 1228.028738
+      type: 'test'
+      ...
+    # Subtest: responsive real API screenshot matrix
+    ok 3 - responsive real API screenshot matrix
+      ---
+      duration_ms: 15895.157336
+      type: 'test'
+      ...
+    # Subtest: combined approval confirmation is specific and publishes A only
+    ok 4 - combined approval confirmation is specific and publishes A only
+      ---
+      duration_ms: 735.515199
+      type: 'test'
+      ...
+    # Subtest: provider readonly/lock states and dynamic save
+    ok 5 - provider readonly/lock states and dynamic save
+      ---
+      duration_ms: 946.256896
+      type: 'test'
+      ...
+    # Subtest: ordinary account field errors, real success and lost-response readback
+    ok 6 - ordinary account field errors, real success and lost-response readback
+      ---
+      duration_ms: 729.482106
+      type: 'test'
+      ...
+    # Subtest: deep links, conflict notes, result readback and loading failures
+    ok 7 - deep links, conflict notes, result readback and loading failures
+      ---
+      duration_ms: 2421.343889
+      type: 'test'
+      ...
+    # Subtest: 360px and middle desktop layouts, readonly and locked evidence
+    ok 8 - 360px and middle desktop layouts, readonly and locked evidence
+      ---
+      duration_ms: 3182.962638
+      type: 'test'
+      ...
+    # Subtest: late queue response cannot overwrite a newer tab; account switch clears data
+    ok 9 - late queue response cannot overwrite a newer tab; account switch clears data
+      ---
+      duration_ms: 673.688894
+      type: 'test'
+      ...
+    1..9
+ok 1 - real moderation workspace: queues, snapshots, navigation, commands, responsive layouts and races
+  ---
+  duration_ms: 31972.947481
+  type: 'test'
+  ...
+# Subtest: phase 5.6 ordinary account accommodation journey
+    # Subtest: normal login, bilingual persona, stay draft and private preview
+    ok 1 - normal login, bilingual persona, stay draft and private preview
+      ---
+      duration_ms: 2362.40181
+      type: 'test'
+      ...
+    # Subtest: joint moderation publishes signature and score without world access for author
+    ok 2 - joint moderation publishes signature and score without world access for author
+      ---
+      duration_ms: 1185.862726
+      type: 'test'
+      ...
+    # Subtest: experience and service reviews, blocked provider reassignment and historical bilingual reply moderation
+    ok 3 - experience and service reviews, blocked provider reassignment and historical bilingual reply moderation
+      ---
+      duration_ms: 12129.605246
+      type: 'test'
+      ...
+    # Subtest: expired session preserves input, bilingual mobile and no horizontal overflow
+    ok 4 - expired session preserves input, bilingual mobile and no horizontal overflow
+      ---
+      duration_ms: 2320.863204
+      type: 'test'
+      ...
+    1..4
+ok 2 - phase 5.6 ordinary account accommodation journey
+  ---
+  duration_ms: 20498.425084
+  type: 'test'
+  ...
+# Subtest: workspace checkpoint shares the saved stay draft with the previous admin
+ok 3 - workspace checkpoint shares the saved stay draft with the previous admin
+  ---
+  duration_ms: 33432.412655
+  type: 'test'
+  ...
+1..3
+# tests 16
+# suites 0
+# pass 16
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 89403.909253

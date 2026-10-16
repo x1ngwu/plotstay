@@ -1,0 +1,167 @@
+TAP version 13
+# Subtest: real moderation workspace: queues, snapshots, navigation, commands, responsive layouts and races
+    # Subtest: real paginated queues and no old controller
+    ok 1 - real paginated queues and no old controller
+      ---
+      duration_ms: 1160.734744
+      type: 'test'
+      ...
+    # Subtest: fixed A/public P/later B; note and language survive profile detour
+    ok 2 - fixed A/public P/later B; note and language survive profile detour
+      ---
+      duration_ms: 1002.802593
+      type: 'test'
+      ...
+    # Subtest: browser back cancellation preserves history and unsaved note
+    ok 3 - browser back cancellation preserves history and unsaved note
+      ---
+      duration_ms: 1056.311384
+      type: 'test'
+      ...
+    # Subtest: responsive real API screenshot matrix
+    ok 4 - responsive real API screenshot matrix
+      ---
+      duration_ms: 12372.406501
+      type: 'test'
+      ...
+    # Subtest: combined approval confirmation is specific and publishes A only
+    ok 5 - combined approval confirmation is specific and publishes A only
+      ---
+      duration_ms: 751.106336
+      type: 'test'
+      ...
+    # Subtest: provider readonly/lock states and dynamic save
+    ok 6 - provider readonly/lock states and dynamic save
+      ---
+      duration_ms: 958.585323
+      type: 'test'
+      ...
+    # Subtest: ordinary account field errors, real success and lost-response readback
+    ok 7 - ordinary account field errors, real success and lost-response readback
+      ---
+      duration_ms: 712.655117
+      type: 'test'
+      ...
+    # Subtest: deep links, conflict notes, result readback and loading failures
+    ok 8 - deep links, conflict notes, result readback and loading failures
+      ---
+      duration_ms: 2651.333834
+      type: 'test'
+      ...
+    # Subtest: 360px and middle desktop layouts, readonly and locked evidence
+    ok 9 - 360px and middle desktop layouts, readonly and locked evidence
+      ---
+      duration_ms: 3273.978159
+      type: 'test'
+      ...
+    # Subtest: profile-only approval leaves posts pending; no-candidate binding is explicit
+    ok 10 - profile-only approval leaves posts pending; no-candidate binding is explicit
+      ---
+      duration_ms: 1289.436958
+      type: 'test'
+      ...
+    # Subtest: late queue response cannot overwrite a newer tab; account switch clears data
+    ok 11 - late queue response cannot overwrite a newer tab; account switch clears data
+      ---
+      duration_ms: 671.391874
+      type: 'test'
+      ...
+    1..11
+ok 1 - real moderation workspace: queues, snapshots, navigation, commands, responsive layouts and races
+  ---
+  duration_ms: 29285.547999
+  type: 'test'
+  ...
+# Subtest: authorized independent queues, owner-only scopes, fixed profile reference and counts
+ok 2 - authorized independent queues, owner-only scopes, fixed profile reference and counts
+  ---
+  duration_ms: 711.719469
+  type: 'test'
+  ...
+# Subtest: ordinary publication cannot silently approve a profile; explicit combined transaction preserves B
+ok 3 - ordinary publication cannot silently approve a profile; explicit combined transaction preserves B
+  ---
+  duration_ms: 652.968631
+  type: 'test'
+  ...
+# Subtest: failed combined publication rolls back its new profile decision
+ok 4 - failed combined publication rolls back its new profile decision
+  ---
+  duration_ms: 612.859358
+  type: 'test'
+  ...
+# Subtest: editor cannot read/search personal drafts; current public snapshot remains readable
+ok 5 - editor cannot read/search personal drafts; current public snapshot remains readable
+  ---
+  duration_ms: 669.8473
+  type: 'test'
+  ...
+# Subtest: reply queue and detail are independent, contain public original context; explicit joint reply approval
+ok 6 - reply queue and detail are independent, contain public original context; explicit joint reply approval
+  ---
+  duration_ms: 663.953169
+  type: 'test'
+  ...
+# Subtest: profile detail has fixed/approved comparison and events, never private notes; binding states
+ok 7 - profile detail has fixed/approved comparison and events, never private notes; binding states
+  ---
+  duration_ms: 567.780881
+  type: 'test'
+  ...
+# Subtest: API checks actor identity; ordinary account command supports truthful read-back without password
+ok 8 - API checks actor identity; ordinary account command supports truthful read-back without password
+  ---
+  duration_ms: 800.885974
+  type: 'test'
+  ...
+# Subtest: authorization before search/count; all pages and independent profile paging; literal wildcard search
+ok 9 - authorization before search/count; all pages and independent profile paging; literal wildcard search
+  ---
+  duration_ms: 1600.246216
+  type: 'test'
+  ...
+# Subtest: stale submissions and explicitly confirmed profile changes cannot publish a replacement
+ok 10 - stale submissions and explicitly confirmed profile changes cannot publish a replacement
+  ---
+  duration_ms: 689.07899
+  type: 'test'
+  ...
+# Subtest: return, hide, historical restore and availability remain independent of drafts and publication
+ok 11 - return, hide, historical restore and availability remain independent of drafts and publication
+  ---
+  duration_ms: 627.178565
+  type: 'test'
+  ...
+# Subtest: binding keeps legal world owner access; no owner override, candidates, permanent lock and race
+ok 12 - binding keeps legal world owner access; no owner override, candidates, permanent lock and race
+  ---
+  duration_ms: 619.385536
+  type: 'test'
+  ...
+# Subtest: legacy editorial notes remain collaborative; private history/API and shared impacts are filtered
+ok 13 - legacy editorial notes remain collaborative; private history/API and shared impacts are filtered
+  ---
+  duration_ms: 598.823515
+  type: 'test'
+  ...
+# Subtest: reply combined rollback, qualification revocation and site restriction preserve historical rules
+ok 14 - reply combined rollback, qualification revocation and site restriction preserve historical rules
+  ---
+  duration_ms: 691.644533
+  type: 'test'
+  ...
+# Subtest: account validation, no elevated fields, duplicate idempotence and site-only commands
+ok 15 - account validation, no elevated fields, duplicate idempotence and site-only commands
+  ---
+  duration_ms: 770.80567
+  type: 'test'
+  ...
+1..15
+# tests 26
+# suites 0
+# pass 26
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 41563.803871

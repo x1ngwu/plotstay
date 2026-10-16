@@ -1,0 +1,29 @@
+npm notice run plotstay@0.1.0 check
+npm notice run tsc --noEmit && npm run check --workspace @plotstay/web
+npm notice run @plotstay/web@0.1.0 check
+npm notice run astro check
+18:53:11 [types] Generated 77ms
+18:53:11 [check] Getting diagnostics for Astro files in /tmp/plotstay-moderation-dev/apps/web...
+Result (72 files): 
+- 0 errors
+- 0 warnings
+- 0 hints
+
+npm notice run @plotstay/web@0.1.0 build
+npm notice run astro build
+18:53:24 [types] Generated 58ms
+18:53:24 [build] output: "server"
+18:53:24 [build] mode: "server"
+18:53:24 [build] directory: /tmp/plotstay-moderation-isolation/build/web/
+18:53:24 [build] adapter: @astrojs/node
+18:53:24 [build] Collecting build info...
+18:53:24 [build] ✓ Completed in 123ms.
+18:53:24 [build] Building server entrypoints...
+18:53:24 [vite] ✓ built in 316ms
+18:53:25 [vite] ✓ built in 577ms
+18:53:25 [vite] ✓ built in 234ms
+18:53:25 [build] Rearranging server assets...
+18:53:25 [build] ✓ Completed in 1.19s.
+18:53:25 [build] Server built in 1.33s
+18:53:25 [build] Complete!
+Isolated application build ready. No live artifacts changed.
