@@ -1,0 +1,81 @@
+{
+  "time": "2026-10-16T08:32:05.838Z",
+  "results": [
+    {
+      "path": "/_design/moderation/",
+      "status": 401,
+      "robots": "noindex, nofollow, noarchive",
+      "cache": "private, no-store",
+      "challenge": "Basic realm=\"Plotstay development\""
+    },
+    {
+      "path": "/_design/moderation/index.html?lang=zh&view=moderation",
+      "status": 401,
+      "robots": "noindex, nofollow, noarchive",
+      "cache": "private, no-store",
+      "challenge": "Basic realm=\"Plotstay development\""
+    },
+    {
+      "path": "/_design/moderation/index.html?lang=en&view=site",
+      "status": 401,
+      "robots": "noindex, nofollow, noarchive",
+      "cache": "private, no-store",
+      "challenge": "Basic realm=\"Plotstay development\""
+    },
+    {
+      "path": "/_design/moderation/preview.js",
+      "status": 401,
+      "robots": "noindex, nofollow, noarchive",
+      "cache": "private, no-store",
+      "challenge": "Basic realm=\"Plotstay development\""
+    },
+    {
+      "path": "/_design/moderation/preview.css",
+      "status": 401,
+      "robots": "noindex, nofollow, noarchive",
+      "cache": "private, no-store",
+      "challenge": "Basic realm=\"Plotstay development\""
+    },
+    {
+      "path": "/_design/moderation/screenshots/moderation-zh-1440.png",
+      "status": 401,
+      "robots": "noindex, nofollow, noarchive",
+      "cache": "private, no-store",
+      "challenge": "Basic realm=\"Plotstay development\""
+    },
+    {
+      "path": "/_design/moderation/missing-file",
+      "status": 401,
+      "robots": "noindex, nofollow, noarchive",
+      "cache": "private, no-store",
+      "challenge": "Basic realm=\"Plotstay development\""
+    },
+    {
+      "path": "/_design/works/",
+      "status": 401,
+      "robots": "noindex, nofollow, noarchive",
+      "cache": "private, no-store",
+      "challenge": "Basic realm=\"Plotstay development\""
+    },
+    {
+      "path": "/zh/workspace?view=moderation",
+      "status": 401,
+      "robots": "noindex, nofollow, noarchive",
+      "cache": "private, no-store",
+      "challenge": "Basic realm=\"Plotstay development\""
+    },
+    {
+      "path": "/robots.txt",
+      "status": 200,
+      "robots": "noindex, nofollow, noarchive",
+      "cache": "private, no-store",
+      "challenge": null
+    },
+    {
+      "path": "/_design/moderation/index.html",
+      "check": "Wrong credentials rejected",
+      "status": 401
+    }
+  ],
+  "authenticatedBrowser": "Not verified: no Basic Auth credential read or supplied. Same static files tested under /_design/moderation/ locally."
+}

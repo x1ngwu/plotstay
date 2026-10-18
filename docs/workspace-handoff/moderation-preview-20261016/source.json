@@ -1,0 +1,8 @@
+{
+  "attachment": "plotstay-moderation-development-handoff_2026-10-16.zip",
+  "attachmentSha256": "706ff0654a7354d9542527a969e41a8d8b95bb4c5090d7b89fe8b734dba37a01",
+  "reference": "reference/plotstay-moderation-ui.html",
+  "referenceSha256": "1e973a8f3fb02501eb050e890d78ee09f52a54d256f349c4cc592a196d75ea27",
+  "baseline": "4d7d72c95b11e7833e0757431a8012e9bc4643bb",
+  "stage": "static visual preview only"
+}

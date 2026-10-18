@@ -1,0 +1,187 @@
+{
+  "scope": "Local browser, exact hosted prefix and static files; synthetic data only",
+  "checks": [
+    {
+      "name": "Review queue: separate columns, pending counts, no list approval buttons",
+      "result": "passed"
+    },
+    {
+      "name": "Independent review/reply pagination and full-list search",
+      "result": "passed"
+    },
+    {
+      "name": "Detail returns to filters and position; dirty review note confirmation",
+      "result": "passed"
+    },
+    {
+      "name": "Fixed submission, publication and later draft stay separate",
+      "result": "passed"
+    },
+    {
+      "name": "Combined approval changes only this mock post; later draft retained",
+      "result": "passed"
+    },
+    {
+      "name": "Reply has independent full detail and original review context",
+      "result": "passed"
+    },
+    {
+      "name": "Profile comparison, separate availability and profile-only approval",
+      "result": "passed"
+    },
+    {
+      "name": "Site tools are separate tabs; account form validation and simulated saving",
+      "result": "passed"
+    },
+    {
+      "name": "Account failure and unknown result are not displayed as success",
+      "result": "passed"
+    },
+    {
+      "name": "Binding locked and nonowner read-only states have no save",
+      "result": "passed"
+    },
+    {
+      "name": "Dynamic assignment confirmation in both directions, current entry and persona",
+      "result": "passed"
+    },
+    {
+      "name": "Binding failure, unknown result, and late completion after entry change",
+      "result": "passed"
+    },
+    {
+      "name": "No candidate and loading failure binding states",
+      "result": "passed"
+    },
+    {
+      "name": "Empty and failure queues, stale submission blocks decisions",
+      "result": "passed"
+    },
+    {
+      "name": "World administrator cannot enter site management",
+      "result": "passed"
+    },
+    {
+      "name": "Interface language is independent of content language",
+      "result": "passed"
+    },
+    {
+      "name": "moderation zh 1440: no horizontal page overflow",
+      "result": "passed"
+    },
+    {
+      "name": "review zh 1440: no horizontal page overflow",
+      "result": "passed"
+    },
+    {
+      "name": "reply zh 1440: no horizontal page overflow",
+      "result": "passed"
+    },
+    {
+      "name": "site zh 1440: no horizontal page overflow",
+      "result": "passed"
+    },
+    {
+      "name": "profile zh 1440: no horizontal page overflow",
+      "result": "passed"
+    },
+    {
+      "name": "account zh 1440: no horizontal page overflow",
+      "result": "passed"
+    },
+    {
+      "name": "binding zh 1440: no horizontal page overflow",
+      "result": "passed"
+    },
+    {
+      "name": "moderation zh 390: no horizontal page overflow",
+      "result": "passed"
+    },
+    {
+      "name": "review zh 390: no horizontal page overflow",
+      "result": "passed"
+    },
+    {
+      "name": "reply zh 390: no horizontal page overflow",
+      "result": "passed"
+    },
+    {
+      "name": "site zh 390: no horizontal page overflow",
+      "result": "passed"
+    },
+    {
+      "name": "profile zh 390: no horizontal page overflow",
+      "result": "passed"
+    },
+    {
+      "name": "account zh 390: no horizontal page overflow",
+      "result": "passed"
+    },
+    {
+      "name": "binding zh 390: no horizontal page overflow",
+      "result": "passed"
+    },
+    {
+      "name": "moderation en 1440: no horizontal page overflow",
+      "result": "passed"
+    },
+    {
+      "name": "review en 1440: no horizontal page overflow",
+      "result": "passed"
+    },
+    {
+      "name": "reply en 1440: no horizontal page overflow",
+      "result": "passed"
+    },
+    {
+      "name": "site en 1440: no horizontal page overflow",
+      "result": "passed"
+    },
+    {
+      "name": "profile en 1440: no horizontal page overflow",
+      "result": "passed"
+    },
+    {
+      "name": "account en 1440: no horizontal page overflow",
+      "result": "passed"
+    },
+    {
+      "name": "binding en 1440: no horizontal page overflow",
+      "result": "passed"
+    },
+    {
+      "name": "moderation en 390: no horizontal page overflow",
+      "result": "passed"
+    },
+    {
+      "name": "review en 390: no horizontal page overflow",
+      "result": "passed"
+    },
+    {
+      "name": "reply en 390: no horizontal page overflow",
+      "result": "passed"
+    },
+    {
+      "name": "site en 390: no horizontal page overflow",
+      "result": "passed"
+    },
+    {
+      "name": "profile en 390: no horizontal page overflow",
+      "result": "passed"
+    },
+    {
+      "name": "account en 390: no horizontal page overflow",
+      "result": "passed"
+    },
+    {
+      "name": "binding en 390: no horizontal page overflow",
+      "result": "passed"
+    },
+    {
+      "name": "CSP blocks business connections; all observed requests are local static GETs",
+      "result": "passed"
+    }
+  ],
+  "errors": [],
+  "finishedAt": "2026-10-16T08:33:51.846Z"
+}

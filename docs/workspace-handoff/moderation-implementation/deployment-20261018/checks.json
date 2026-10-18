@@ -1,0 +1,245 @@
+{
+  "checkedAt": "2026-10-18T10:51:56.171Z",
+  "sourceCommit": "216d64cfd3a0a26c3a9a3b34ac6f752f5543de66",
+  "results": [
+    {
+      "scope": "public gate",
+      "path": "/zh/workspace?view=moderation",
+      "status": 401
+    },
+    {
+      "scope": "public gate",
+      "path": "/en/workspace?view=moderation",
+      "status": 401
+    },
+    {
+      "scope": "public gate",
+      "path": "/zh/workspace?view=site",
+      "status": 401
+    },
+    {
+      "scope": "public gate",
+      "path": "/en/workspace?view=site",
+      "status": 401
+    },
+    {
+      "scope": "public gate",
+      "path": "/api/moderation-workspace/scopes",
+      "status": 401
+    },
+    {
+      "scope": "public gate",
+      "path": "/api/moderation-workspace/queue?kind=reviews",
+      "status": 401
+    },
+    {
+      "scope": "public gate",
+      "path": "/api/moderation-workspace/accounts",
+      "status": 401
+    },
+    {
+      "scope": "public gate",
+      "path": "/zh/account?view=moderation",
+      "status": 401
+    },
+    {
+      "scope": "public gate",
+      "path": "/en/admin",
+      "status": 401
+    },
+    {
+      "scope": "public gate",
+      "path": "/_design/moderation/index.html",
+      "status": 401
+    },
+    {
+      "scope": "public gate",
+      "path": "/robots.txt",
+      "status": 200
+    },
+    {
+      "scope": "signed-out API",
+      "path": "/api/moderation-workspace/scopes",
+      "status": 403
+    },
+    {
+      "scope": "signed-out API",
+      "path": "/api/moderation-workspace/queue?kind=reviews",
+      "status": 403
+    },
+    {
+      "scope": "authenticated API",
+      "path": "/api/moderation-workspace/scopes",
+      "status": 200
+    },
+    {
+      "scope": "authenticated API",
+      "path": "/api/moderation-workspace/queue?kind=reviews&status=all&locale=en",
+      "status": 200
+    },
+    {
+      "scope": "authenticated API",
+      "path": "/api/moderation-workspace/queue?kind=replies&status=all&locale=en",
+      "status": 200
+    },
+    {
+      "scope": "authenticated API",
+      "path": "/api/moderation-workspace/queue?kind=profiles&status=all&locale=en",
+      "status": 200
+    },
+    {
+      "scope": "authenticated API",
+      "path": "/api/moderation-workspace/providers/09c09945-75bd-408e-b3c1-55508413b769",
+      "status": 200
+    },
+    {
+      "scope": "deployed authenticated browser",
+      "lang": "zh",
+      "width": 1440,
+      "view": "moderation",
+      "tab": "reviews"
+    },
+    {
+      "scope": "deployed authenticated browser",
+      "lang": "zh",
+      "width": 1440,
+      "view": "moderation",
+      "tab": "replies"
+    },
+    {
+      "scope": "deployed authenticated browser",
+      "lang": "zh",
+      "width": 1440,
+      "view": "site",
+      "tab": "profiles"
+    },
+    {
+      "scope": "deployed authenticated browser",
+      "lang": "zh",
+      "width": 1440,
+      "view": "site",
+      "tab": "accounts"
+    },
+    {
+      "scope": "deployed authenticated browser",
+      "lang": "zh",
+      "width": 1440,
+      "view": "site",
+      "tab": "bindings"
+    },
+    {
+      "scope": "deployed authenticated browser",
+      "lang": "en",
+      "width": 390,
+      "view": "moderation",
+      "tab": "reviews"
+    },
+    {
+      "scope": "deployed authenticated browser",
+      "lang": "en",
+      "width": 390,
+      "view": "moderation",
+      "tab": "replies"
+    },
+    {
+      "scope": "deployed authenticated browser",
+      "lang": "en",
+      "width": 390,
+      "view": "site",
+      "tab": "profiles"
+    },
+    {
+      "scope": "deployed authenticated browser",
+      "lang": "en",
+      "width": 390,
+      "view": "site",
+      "tab": "accounts"
+    },
+    {
+      "scope": "deployed authenticated browser",
+      "lang": "en",
+      "width": 390,
+      "view": "site",
+      "tab": "bindings"
+    },
+    {
+      "scope": "deployed existing detail",
+      "kind": "reviews"
+    },
+    {
+      "scope": "deployed existing detail",
+      "kind": "replies"
+    },
+    {
+      "scope": "deployed existing detail",
+      "kind": "profiles"
+    },
+    {
+      "scope": "existing route smoke",
+      "path": "/zh",
+      "status": 200
+    },
+    {
+      "scope": "existing route smoke",
+      "path": "/en",
+      "status": 200
+    },
+    {
+      "scope": "existing route smoke",
+      "path": "/zh/account",
+      "status": 200
+    },
+    {
+      "scope": "existing route smoke",
+      "path": "/en/admin",
+      "status": 200
+    },
+    {
+      "scope": "existing route smoke",
+      "path": "/zh/workspace?view=personas",
+      "status": 200
+    },
+    {
+      "scope": "existing route smoke",
+      "path": "/en/workspace?view=reviews",
+      "status": 200
+    },
+    {
+      "scope": "existing route smoke",
+      "path": "/zh/workspace?view=works",
+      "status": 200
+    },
+    {
+      "scope": "existing route smoke",
+      "path": "/en/workspace?view=create",
+      "status": 200
+    },
+    {
+      "scope": "existing route smoke",
+      "path": "/api/health",
+      "status": 200
+    },
+    {
+      "scope": "asset gate",
+      "path": "/_astro/workspace.qpat9A7T.css",
+      "status": 401
+    },
+    {
+      "scope": "asset gate",
+      "path": "/_astro/account.KR7_9Vsr.css",
+      "status": 401
+    },
+    {
+      "scope": "asset gate",
+      "path": "/_astro/AdminConsole.l6KGK8V6.css",
+      "status": 401
+    },
+    {
+      "scope": "asset gate",
+      "path": "/_astro/workspace.astro_astro_type_script_index_0_lang.D3u8oBTd.js",
+      "status": 401
+    }
+  ],
+  "errors": [],
+  "scope": "Public anonymous gate checks; authenticated read-only browser on the same deployed service via loopback. Login/logout session writes only. No live business writes or migrations. Public authenticated interaction not verified."
+}

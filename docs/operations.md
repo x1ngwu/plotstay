@@ -33,6 +33,8 @@ Nginx 未通过 Basic Auth 时仍返回 `401` 和原认证 realm；内部 API �
 
 ### 正式应用更新
 
+> 2026-10-18 审核工作台运行构建来自 `216d64c`，该实现已合并main；后续可按下方流程从main构建。部署验证、产物备份与回退见[本次发布记录](workspace-handoff/moderation-implementation/deployment-20261018/README.md)。
+
 工作目录为 `/data/apps/plotstay`。按修改范围完成相关检查，然后执行：
 
 ```bash
@@ -132,8 +134,20 @@ npm run db:init:details -- --apply
 
 新私有接口和静态资源继承 Basic Auth、noindex/nofollow/noarchive、no-store、robots 禁爬，浏览器无应用会话继续返回403。复验脚本：`node docs/workspace-handoff/reviews-implementation/check-deployment.mjs`，只读，不生成账号或业务样例。公网门禁已验，公网认证后交互和物理手机仍未验证。没有改 Nginx/systemd 配置。
 
+## 审核工作台效果预览（2026-10-16）
+
+用户明确要求先核对效果，并另行授权“仅托管静态预览”。入口为 `/_design/moderation/index.html?lang=zh&view=moderation` 和 `?lang=zh&view=site`，英文使用 `lang=en`。对应目录 `docs/workspace-handoff/moderation-preview-20261016/`；只增加独立 Nginx alias，未改变应用代理目标，未构建或重启应用。
+
+该入口继承服务器级 Basic Auth、X-Robots-Tag 和 private/no-store；仍仅 `/robots.txt` 公开。HTML 的 CSP 禁止连接业务接口和提交真实表单。所有账号、内容和操作结果均为示例，刷新恢复内存数据；禁止将示例用于业务验收。没有接触现用数据库，无新增迁移、seed/reset。
+
+本机同路径浏览器核对 45 项和公网匿名保护 11 项通过；公网认证后的交互未验证，没有读取 Basic Auth 密码。静态预览等待用户确认，真实接入仍待继续。详见[预览说明和截图](workspace-handoff/moderation-preview-20261016/README.md)。
+
 ## 审核工作台隔离接入（2026-10-16，未部署）
 
 用户已通过静态效果稿。真实接入在 `/tmp/plotstay-moderation-dev` 的 `codex/moderation-20261016` 分支完成，用户于2026-10-16授权提交推送；主工作区仅同步交接文档和证据，不含本轮应用源码修改。现有 `/_design/moderation/` 继续是静态效果稿，不是已部署的新工作台。
 
 本轮没有新迁移，不需要 seed 或数据修复。验证仅使用独立 PostgreSQL 18 tmpfs 容器、随机schema、本机随机端口及临时构建目录。不得把测试 helper 对准现用库，也不要把本轮测试里的迁移／seed 当成发布步骤。应用部署、现用库访问和服务重启仍未获本轮授权，默认部署约定不覆盖该限制。文件、接口影响、测试结果和截图见[真实接入记录](workspace-handoff/moderation-implementation/README.md)。
+
+## 审核工作台已部署（2026-10-18）
+
+用户明确授权部署，现用Web/API已更新。中文入口 `/zh/workspace?view=moderation` 和 `/zh/workspace?view=site`，英文 `/en/`；原有账号、旧入口、静态预览和访问保护保留。无新迁移、数据修复或业务测试写入。上节未部署描述为2026-10-16历史状态；当前状态与回退步骤以[2026-10-18发布记录](workspace-handoff/moderation-implementation/deployment-20261018/README.md)为准。
