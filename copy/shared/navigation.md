@@ -2,7 +2,7 @@
 
 范围：跨页面复用的导航、按钮与提示。本批先核对前台共用项目；预约异常、凭证操作及后台提示另行盘点。
 
-状态：2026-10-19 Isi 口吻修订的 7 项中英文已确认，搜索无结果采用推荐 A 版；搜索／筛选／分页功能文案亦已确认，见后文。全部未应用。历史底稿中未被本轮覆盖的条目不自动视为已审定。
+状态：2026-10-19 Isi 口吻修订的 7 项中英文已确认，搜索无结果采用推荐 A 版；搜索／筛选／分页功能文案及单条内容缺译提示亦已确认，见后文。全部未应用。历史底稿中未被本轮覆盖的条目不自动视为已审定。
 
 维护规则见 [文案库入口](../README.md)。三类详情页共用区域见 [详情页共用文案](detail.md)。
 
@@ -145,3 +145,13 @@ B: No entries match your selected criteria. Please adjust your search. I am perm
 英文：Dates and quantities record your trip preferences only. Search does not currently check availability.
 
 应用对照：`apps/web/src/components/Search.astro` 及目录页分页。功能说明应用前核对搜索行为，不因文案审定改变筛选、余量或预约逻辑。无障碍辅助标签及其他尚未列出的提示不自动计入本批确认范围。
+
+## navigation.content-language-fallback
+
+中英文审定状态：已确认。落地状态：未应用。
+
+中文：此内容暂以原文展示。
+
+英文：This content is currently shown in its original language.
+
+适用于单条内容缺少所选语言译文，与界面语言回退提示分别使用。保留功能性表达，覆盖历史底稿的相关候选。用户于本轮收尾时回复“可以的。”，见[确认记录](../sources/2026-10-19-web-chat.md#内容缺译提示与本轮收尾确认)。现有对照键为 `apps/web/src/lib/i18n.ts` 的 `fallback`；使用位置在应用时核对。
