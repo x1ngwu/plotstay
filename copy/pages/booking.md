@@ -1,8 +1,8 @@
 # 预约与确认
 
-范围：拉斯世界预约开始、资料填写与确认阶段；本轮字段以活动预约为例。
+范围：拉斯世界预约开始、资料填写、确认与异常恢复；包含活动、住宿和服务的已审定字段。
 
-状态：2026-10-19 基础文案 20 条及行程／报价异常提示 6 条，合计 26 条中英文均已确认；全部未应用。签发祝福单独维护于 [旅行凭条](receipt.md)。
+状态：2026-10-19 基础文案 20 条及行程／报价异常提示 6 条，另有连接中断与恢复提示 8 条，以及表单校验与流程提示 7 条，以及住宿／服务字段与计价说明 7 条，合计 48 条中英文均已确认；全部未应用。签发祝福单独维护于 [旅行凭条](receipt.md)。
 
 依据：用户对三阶段文案及预约第一步 12 条配套英文清单回复“可以的”，同意英文录用、中文继续留待统一校订。见 [来源确认](../sources/2026-10-19-web-chat.md#预约三阶段与配套英文录用确认)；维护规则见 [文案库入口](../README.md)。编号为文案库追踪编号，不代表现有程序键。
 
@@ -320,3 +320,153 @@ Confirm & issue document
 ### 本批应用核对
 
 对照位置：`apps/web/src/lib/booking-client.ts` 的 `errorMessage()`。Isi 口吻仅适用于拉斯世界。应用前核对错误分支、目录返回路径及“未创建预订”的实际保证；不得将明确失败提示用于结果未确认的请求。本批不包含连接中断、请求恢复及身份／本地存储提示，不改变任何业务规则。
+
+## 连接中断与预订恢复（2026-10-19）
+
+以下 8 条中英文已确认，全部未应用。用户回复“可以的，我觉得这里也不需要太多角色扮演。继续”。采用清楚、直接的平台口吻，区分尚未提交与结果未确认。
+
+### booking.recovery.issuing
+
+中文：正在签发您的旅行凭证，请稍候……
+
+英文：Issuing your travel document. Please wait…
+
+### booking.recovery.network
+
+中文：连接暂时中断，请稍后重试。
+
+英文：The connection was interrupted. Please try again shortly.
+
+### booking.recovery.outcome-pending
+
+中文：本次预订的结果尚未确认。请选择“重试同一次预订”，继续处理原请求；此操作不会重复创建预订。
+
+英文：The outcome of this booking is not yet confirmed. Select “Retry this booking” to continue the original request without creating a duplicate booking.
+
+### booking.recovery.retry
+
+中文：重试同一次预订
+
+英文：Retry this booking
+
+### booking.recovery.pending-found
+
+中文：您有一次预订尚未确认结果。请选择“重试同一次预订”，继续处理并获取旅行凭证。
+
+英文：A previous booking request is still awaiting confirmation. Select “Retry this booking” to continue and retrieve your travel document.
+
+### booking.recovery.storage
+
+中文：浏览器无法保存预订恢复信息，本次预订尚未提交。请允许本站使用本地存储，然后重试。
+
+英文：Your browser could not save the information needed to recover this booking. No booking has been submitted. Please allow local storage for this site, then retry.
+
+### booking.recovery.session-required
+
+中文：无法读取办理本次预订时使用的 Cookie。请使用原浏览器，并确认已允许本站使用 Cookie。结果确认前，请勿更换浏览器重新预订。
+
+英文：The cookie used for this booking could not be read. Please use the original browser and ensure cookies are allowed for this site. Do not start another booking in a different browser until the outcome is confirmed.
+
+### booking.recovery.rate-limited
+
+中文：操作过于频繁，请稍候再试。
+
+英文：Too many requests. Please wait a moment before trying again.
+
+应用对照：`apps/web/src/lib/booking-client.ts` 的 `errorMessage()`、提交及恢复流程，以及预约页的重试按钮。结果未确认提示只在对应提交／恢复状态显示；本地存储失败的“尚未提交”须限定在提交前保存失败的分支。应用前核验同一次请求重试不重复创建的保证，不改变身份、存储和业务规则。请求冲突及其余表单提示已在下一节确认。
+
+## 表单校验与流程提示（2026-10-19）
+
+以下 7 条中英文已确认，全部未应用。用户回复“可以，继续”。确认记录见[来源文件](../sources/2026-10-19-web-chat.md#表单校验与流程提示确认)。
+
+### booking.flow.invalid-input
+
+中文：请检查日期、场次、人数及数量是否填写正确。
+
+英文：Please check that the dates, session, number of travellers and quantities are correct.
+
+### booking.flow.invalid-trip
+
+中文：所选行程与当前项目不匹配。请返回详情页，重新填写预订信息。
+
+英文：The selected trip does not match this listing. Please return to the listing and enter your booking details again.
+
+### booking.flow.request-conflict
+
+中文：此次请求已关联另一笔预订。请先恢复原请求；如需另行预订，请返回详情页重新开始。
+
+英文：This request is already linked to another booking. Please recover the original request first. To make a separate booking, return to the listing and start again.
+
+### booking.flow.edit-itinerary
+
+中文：修改行程
+
+英文：Edit itinerary
+
+### booking.flow.review-reminder
+
+中文：请核对行程与报价。只有在您确认后，才会提交预订。
+
+英文：Please review your itinerary and quote. Your booking will be submitted only after you confirm.
+
+### booking.flow.javascript-required
+
+中文：请启用 JavaScript，以核对行程、确认报价并领取旅行凭证。
+
+英文：Please enable JavaScript to review your itinerary, confirm the quote and receive your travel document.
+
+### booking.flow.reload-to-retry
+
+中文：请刷新页面后重试。
+
+英文：Please reload the page and try again.
+
+应用对照：`apps/web/src/lib/booking-client.ts` 中 INVALID_INPUT、INVALID_TRIP、IDEMPOTENCY_CONFLICT、报价完成与初始化分支；预约页的修改按钮及 noscript。刷新提示仅用于没有待确认预订请求的初始化失败；已有待确认请求使用“重试同一次预订”。请求冲突提示不能被解读为覆盖或重新提交其他预订；实际恢复路径在应用前核验。
+
+## 住宿与服务预约补充（2026-10-19）
+
+以下 7 条中英文已确认，全部未应用。用户回复“可以，继续”，见[确认记录](../sources/2026-10-19-web-chat.md#住宿与服务预约补充确认)。出行人数／Travellers 沿用既有定稿，不新增重复条目。
+
+### booking.specialized.check-in
+
+中文：入住日期
+
+英文：Check-in date
+
+### booking.specialized.check-out
+
+中文：退房日期
+
+英文：Check-out date
+
+### booking.specialized.rooms
+
+中文：房间数
+
+英文：Number of rooms
+
+### booking.specialized.service-quantity
+
+中文：服务数量
+
+英文：Service quantity
+
+### booking.specialized.stay-pricing
+
+中文：按每间每晚计费，可预订 1–30 晚。入住与退房日期均按 UTC 日期计算。
+
+英文：Charged per room, per night, for stays of 1–30 nights. Check-in and check-out dates use UTC calendar dates.
+
+### booking.specialized.service-pricing
+
+中文：按服务数量计费。增加数量不会延长场次时长，出行人数不另行计费。所有场次时间均为 UTC。
+
+英文：Charged by service quantity. Increasing the quantity does not extend the session, and no additional charge applies for the number of travellers. All session times are in UTC.
+
+### booking.specialized.session-started
+
+中文：（已开始，不可预约）
+
+英文：(Started — unavailable)
+
+应用对照：`apps/web/src/pages/[locale]/booking/[id].astro` 中住宿／服务字段、分类型计价提示和场次禁用标记。场次状态按开始时间已到判断，不称为“已结束”。服务数量不表示连续时段；计价、UTC 日期和晚数限制在应用前核验。本次不改变业务规则。

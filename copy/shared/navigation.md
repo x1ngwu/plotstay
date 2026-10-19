@@ -2,7 +2,7 @@
 
 范围：跨页面复用的导航、按钮与提示。本批先核对前台共用项目；预约异常、凭证操作及后台提示另行盘点。
 
-状态：2026-10-19 Isi 口吻修订的 7 项中英文已确认，搜索无结果采用推荐 A 版；全部未应用。历史底稿中未被本轮覆盖的条目不自动视为已审定。
+状态：2026-10-19 Isi 口吻修订的 7 项中英文已确认，搜索无结果采用推荐 A 版；搜索／筛选／分页功能文案亦已确认，见后文。全部未应用。历史底稿中未被本轮覆盖的条目不自动视为已审定。
 
 维护规则见 [文案库入口](../README.md)。三类详情页共用区域见 [详情页共用文案](detail.md)。
 
@@ -104,3 +104,44 @@ Checkout must be later than check-in. Even allowing for temporal discrepancies i
 B: No entries match your selected criteria. Please adjust your search. I am permitted to recommend accommodation, but not to invent it.
 
 本目录中，暂无符合您所选条件的条目。请调整搜索条件。我的职权允许推荐住处，尚不包括凭空增设一处。
+
+## 搜索、筛选与分页（2026-10-19 已确认）
+
+本节中英文已确认，全部未应用。用户回复“可以，这里其实还是功能性为主，不太适合修改文案”。保留清楚、常见的功能表达，不增加角色台词或为风味改写标签；搜索入口沿用已定 Your Planned Destination／您计划前往的目的地。以下条目覆盖历史底稿中的对应候选。
+
+| 中文 | 英文 |
+| --- | --- |
+| 全部 | All |
+| 住宿 | Homes |
+| 活动 | Experiences |
+| 服务 | Services |
+| 搜索名称、地点或标签 | Search names, places or tags |
+| 目的地 | Destination |
+| 全部地点 | All destinations |
+| 搜索 | Search |
+| 清除筛选 | Clear filters |
+| 出行日期 | Travel date |
+| 返回／退房日期 | Return / check-out date |
+| 出行人数 | Travellers |
+| 房间数 | Number of rooms |
+| 服务数量 | Service quantity |
+| 尚未确定 | Not yet decided |
+| 时段偏好 | Preferred time |
+| 不限时段 | Any time |
+| 上午 | Morning |
+| 下午 | Afternoon |
+| 晚间 | Evening |
+| 类别 | Category |
+| 全部类别 | All categories |
+| 上一页 | Previous |
+| 下一页 | Next |
+
+“尚未确定”用于人数、房间数和服务数量的空白占位；时段默认值为“不限时段”。与预约页共用含义的字段沿用一致译法。
+
+### 搜索范围说明
+
+中文：日期与数量仅用于记录您的行程偏好，搜索暂不核查可用余量。
+
+英文：Dates and quantities record your trip preferences only. Search does not currently check availability.
+
+应用对照：`apps/web/src/components/Search.astro` 及目录页分页。功能说明应用前核对搜索行为，不因文案审定改变筛选、余量或预约逻辑。无障碍辅助标签及其他尚未列出的提示不自动计入本批确认范围。
