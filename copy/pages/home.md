@@ -2,7 +2,7 @@
 
 范围：拉斯世界首页首屏、义体旅行促销、内容栏目及底部三张服务卡。
 
-审定状态：2026-10-19 用户确认录用下列 20 条英文及促销中文原稿。随后已确认首屏小标题、主标题和介绍中文；其他中文仍待审定，促销中文标题与正文拆分待定。落地状态：全部未应用。
+审定状态：2026-10-19 用户确认录用下列 20 条英文及促销中文原稿。随后已确认首屏小标题、主标题和介绍中文；促销中文及拆分、5 条栏目与目录入口中文也已确认；底部服务卡中文仍待审定。落地状态：全部未应用。
 
 依据：用户在本地会话对四组完整清单回复“可以。”，同意“先录用以上英文和促销中文原稿，其余中文留到下一轮逐句设计”。见 [来源与确认记录](../sources/2026-10-19-web-chat.md#首页录用确认)。维护规则见 [文案库入口](../README.md)。
 
@@ -54,28 +54,37 @@ Find suitable accommodation, approved excursions, and local services in one conv
 
 - 页面位置：促销小标题
 - 英文审定状态：已确认
-- 中文审定状态：待确认；促销中文整段原稿见下文
+- 中文审定状态：已确认
+- 决策来源：[义体旅行促销中文确认](../sources/2026-10-19-web-chat.md#义体旅行促销中文确认)
 - 落地状态：未应用
 
 PROMOTION · TRAVELLING WITH AUGMETICS
+
+中文：旅行礼遇 · 携义体同行
 
 ### home.promotion.title
 
 - 页面位置：促销标题
 - 英文审定状态：已确认
-- 中文审定状态：待确认；促销中文整段原稿见下文
+- 中文审定状态：已确认
+- 决策来源：[义体旅行促销中文确认](../sources/2026-10-19-web-chat.md#义体旅行促销中文确认)
 - 落地状态：未应用
 
 Room for every part of you.
+
+中文：您的每个部分，都有容身之所。
 
 ### home.promotion.body
 
 - 页面位置：促销正文
 - 英文审定状态：已确认
-- 中文审定状态：待确认；促销中文整段原稿见下文
+- 中文审定状态：已确认
+- 决策来源：[义体旅行促销中文确认](../sources/2026-10-19-web-chat.md#义体旅行促销中文确认)
 - 落地状态：未应用
 
 A comfortable stay should account for all of your augmetics. Attached limbs incur no extra-bed fee. Please let us know if separate charging facilities are required.
+
+中文：舒适的住宿，应当照顾到您的每一件义体。随身义体不收取额外床位费；如需独立充电设施，请提前告知。
 
 ## 内容栏目与目录入口
 
@@ -83,46 +92,61 @@ A comfortable stay should account for all of your augmetics. Attached limbs incu
 
 - 页面位置：活动分类导航
 - 英文审定状态：已确认
-- 中文审定状态：待确认，尚未录入
+- 中文审定状态：已确认
+- 决策来源：[首页栏目与目录入口中文确认](../sources/2026-10-19-web-chat.md#首页栏目与目录入口中文确认)
 - 落地状态：未应用
 
 There's more to the Lathes than work.
+
+中文：在拉斯世界，生活不止于工作。
 
 ### home.experiences.title
 
 - 页面位置：活动推荐
 - 英文审定状态：已确认
-- 中文审定状态：待确认，尚未录入
+- 中文审定状态：已确认
+- 决策来源：[首页栏目与目录入口中文确认](../sources/2026-10-19-web-chat.md#首页栏目与目录入口中文确认)
 - 落地状态：未应用
 
 Excursions worth your leave.
+
+中文：值得您休一次假的旅程。
 
 ### home.stays.title
 
 - 页面位置：住宿推荐
 - 英文审定状态：已确认
-- 中文审定状态：待确认，尚未录入
+- 中文审定状态：已确认
+- 决策来源：[首页栏目与目录入口中文确认](../sources/2026-10-19-web-chat.md#首页栏目与目录入口中文确认)
 - 落地状态：未应用
 
 The Machine never rests. You may.
+
+中文：机器永不停歇，但您可以。
 
 ### home.stays-by-place.title
 
 - 页面位置：地区住宿
 - 英文审定状态：已确认
-- 中文审定状态：待确认，尚未录入
+- 中文审定状态：已确认
+- 决策来源：[首页栏目与目录入口中文确认](../sources/2026-10-19-web-chat.md#首页栏目与目录入口中文确认)
 - 落地状态：未应用
 
 Stay in {place}
+
+中文：下榻于{place}
 
 ### home.directory.cta
 
 - 页面位置：全部目录按钮
 - 英文审定状态：已确认
-- 中文审定状态：待确认，尚未录入
+- 中文审定状态：已确认
+- 决策来源：[首页栏目与目录入口中文确认](../sources/2026-10-19-web-chat.md#首页栏目与目录入口中文确认)
 - 落地状态：未应用
 
 Browse the full travel directory
+
+中文：浏览完整旅行目录
 
 ## 底部服务卡 01
 
@@ -211,15 +235,15 @@ We have documented arrival procedures, local regulations, and common visitor err
 
 Read visitor information →
 
-## 促销中文原稿
+## 促销中文原稿（历史参考）
 
 ### home.promotion.zh-original
 
 您的每个部分，都有容身之处。随身义体不收取额外床位费；如需独立充电设施，请提前告知。
 
-- 审定状态：整段原稿已确认录用。
-- 标题／正文拆分：待确认；不自动把首句单独设为正式标题。
-- 与英文关系：中文改写，未逐句对应英文首句，不自行补译。
+- 审定状态：此前整段原稿曾确认录用；现行文案以上方三个已确认字段为准。
+- 标题／正文拆分：已于后续确认。标题使用“容身之所”，正文补齐住宿照顾每件义体的首句。
+- 与英文关系：此处仅保留旧稿供追溯，不用于应用；新稿首句补译已获确认。
 - 落地状态：未应用；实际字段待核对。
 
 ## 应用前核对事项
