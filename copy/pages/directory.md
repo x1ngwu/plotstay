@@ -2,7 +2,7 @@
 
 范围：拉斯世界全部目录页的标题、统计、样板地区名称与介绍、返回按钮。
 
-审定状态：2026-10-19 用户确认录用以下 10 条英文；中文待确认。落地状态：全部未应用。维护规则见 [文案库入口](../README.md)。
+审定状态：2026-10-19 用户确认录用以下 10 条英文；对应 10 条中文已全部确认，包含公共区域及样板地区名称与介绍。落地状态：全部未应用。维护规则见 [文案库入口](../README.md)。
 
 依据：用户对本地会话中目录页清单及“先录用英文”的提议回复“是的”，并明确确认把 Back to discovery 改为 Return to travel desk。见 [来源确认](../sources/2026-10-19-web-chat.md#全部目录页录用确认)。
 
@@ -12,104 +12,121 @@
 
 - 页面位置：顶部小标题
 - 英文审定状态：已确认
-- 中文审定状态：待确认
+- 中文审定状态：已确认
+- 决策来源：[目录页公共区域中文确认](../sources/2026-10-19-web-chat.md#目录页公共区域中文确认)
 - 落地状态：未应用
 
 LATHE WORLDS / TRAVEL DIRECTORY
+
+中文：拉斯世界／旅行目录
 
 ## directory.title
 
 - 页面位置：主标题
 - 英文审定状态：已确认
-- 中文审定状态：待确认
+- 中文审定状态：已确认
+- 决策来源：[目录页公共区域中文确认](../sources/2026-10-19-web-chat.md#目录页公共区域中文确认)
 - 落地状态：未应用
 
 Wonders, properly catalogued.
+
+中文：万千奇观，妥善归档。
 
 ## directory.count
 
 - 页面位置：条目统计
 - 英文审定状态：已确认
-- 中文审定状态：待确认
+- 中文审定状态：已确认
+- 决策来源：[目录页公共区域中文确认](../sources/2026-10-19-web-chat.md#目录页公共区域中文确认)
 - 落地状态：未应用
 
 {total} entries on record
+
+中文：共收录 {total} 条记录
 
 ## directory.foundry.name
 
 - 页面位置：样板铸造区名称
 - 英文审定状态：已确认
-- 中文审定状态：待确认
+- 中文审定状态：已确认
+- 决策来源：[样板地区中文确认](../sources/2026-10-19-web-chat.md#样板地区中文确认)
 - 落地状态：未应用
 
 Foundry Ward
+
+中文：铸造区
 
 ## directory.foundry.description
 
 - 页面位置：样板铸造区介绍
 - 英文审定状态：已确认
-- 中文审定状态：待确认
+- 中文审定状态：已确认
+- 决策来源：[样板地区中文确认](../sources/2026-10-19-web-chat.md#样板地区中文确认)
 - 落地状态：未应用
 
 Where industry is the view.
+
+中文：工业即是风景线。
 
 ## directory.archive.name
 
 - 页面位置：样板档案区名称
 - 英文审定状态：已确认
-- 中文审定状态：待确认
+- 中文审定状态：已确认
+- 决策来源：[样板地区中文确认](../sources/2026-10-19-web-chat.md#样板地区中文确认)
 - 落地状态：未应用
 
 Quiet Archive
+
+中文：静谧档案区
 
 ## directory.archive.description
 
 - 页面位置：样板档案区介绍
 - 英文审定状态：已确认
-- 中文审定状态：待确认
+- 中文审定状态：已确认
+- 决策来源：[样板地区中文确认](../sources/2026-10-19-web-chat.md#样板地区中文确认)
 - 落地状态：未应用
 
 Silence is observed. Access is regulated.
+
+中文：请保持肃静。出入此地需要经过许可。
 
 ## directory.docks.name
 
 - 页面位置：样板轨道船坞名称
 - 英文审定状态：已确认
-- 中文审定状态：待确认
+- 中文审定状态：已确认
+- 决策来源：[样板地区中文确认](../sources/2026-10-19-web-chat.md#样板地区中文确认)
 - 落地状态：未应用
 
 Orbital Docks
+
+中文：轨道船坞
 
 ## directory.docks.description
 
 - 页面位置：样板轨道船坞介绍
 - 英文审定状态：已确认
-- 中文审定状态：待确认
+- 中文审定状态：已确认
+- 决策来源：[样板地区中文确认](../sources/2026-10-19-web-chat.md#样板地区中文确认)
 - 落地状态：未应用
 
 Arrivals, departures, and a fine view of both.
+
+中文：星舰来往，皆是风景。
 
 ## directory.back
 
 - 页面位置：返回首页按钮
 - 英文审定状态：已确认
-- 中文审定状态：待确认
+- 中文审定状态：已确认
+- 决策来源：[目录页公共区域中文确认](../sources/2026-10-19-web-chat.md#目录页公共区域中文确认)
 - 落地状态：未应用
 
 Return to travel desk
 
-## 中文候选（未录用）
-
-以下为原讨论助手提出的候选，供后续校订；不得当作已确认中文上线。
-
-| 对应条目 | 中文候选 |
-| --- | --- |
-| directory.title | 万千奇观，妥善归档。 |
-| directory.foundry.description | 工业，即是风景。 |
-| directory.archive.description | 请保持肃静。出入须经许可。 |
-| directory.docks.description | 迎来送往，尽收眼底。 |
-
-其余条目的中文尚未录入。
+中文：返回旅行服务台
 
 ## 应用前核对事项
 

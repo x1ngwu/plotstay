@@ -2,7 +2,7 @@
 
 范围：拉斯世界首页首屏、义体旅行促销、内容栏目及底部三张服务卡。
 
-审定状态：2026-10-19 用户确认录用下列 20 条英文及促销中文原稿。随后已确认首屏小标题、主标题和介绍中文；促销中文及拆分、5 条栏目与目录入口中文也已确认；底部服务卡中文仍待审定。落地状态：全部未应用。
+审定状态：2026-10-19 本文件 20 条英文及对应中文全部已确认，促销标题／正文拆分已确认；旧促销整段原稿仅作历史参考。落地状态：全部未应用。
 
 依据：用户在本地会话对四组完整清单回复“可以。”，同意“先录用以上英文和促销中文原稿，其余中文留到下一轮逐句设计”。见 [来源与确认记录](../sources/2026-10-19-web-chat.md#首页录用确认)。维护规则见 [文案库入口](../README.md)。
 
@@ -154,28 +154,37 @@ Browse the full travel directory
 
 - 页面位置：卡片 01 标题
 - 英文审定状态：已确认
-- 中文审定状态：待确认，尚未录入
+- 中文审定状态：已确认（用户直接修订）
+- 决策来源：[底部服务卡中文修订](../sources/2026-10-19-web-chat.md#底部服务卡中文修订)
 - 落地状态：未应用
 
 One itinerary. Fewer discrepancies.
+
+中文：行程统一，减少差错。
 
 ### home.service-card.01.body
 
 - 页面位置：卡片 01 正文
 - 英文审定状态：已确认
-- 中文审定状态：待确认，尚未录入
+- 中文审定状态：已确认（用户直接修订）
+- 决策来源：[服务卡第一张正文中文确认](../sources/2026-10-19-web-chat.md#服务卡第一张正文中文确认)
 - 落地状态：未应用
 
 Compare accommodation and approved activities without repeating your preferences. Entry permits and leave clearances must still be obtained separately.
+
+中文：比对不同住宿和获准开展的活动，无需反复说明您的偏好。入境许可与休假批准仍须另行办理。
 
 ### home.service-card.01.cta
 
 - 页面位置：卡片 01 按钮
 - 英文审定状态：已确认
-- 中文审定状态：待确认，尚未录入
+- 中文审定状态：已确认
+- 决策来源：[底部服务卡中文收口确认](../sources/2026-10-19-web-chat.md#底部服务卡中文收口确认)
 - 落地状态：未应用
 
 Plan your visit →
+
+中文：规划您的旅程 →
 
 ## 底部服务卡 02
 
@@ -183,28 +192,37 @@ Plan your visit →
 
 - 页面位置：卡片 02 标题
 - 英文审定状态：已确认
-- 中文审定状态：待确认，尚未录入
+- 中文审定状态：已确认（用户直接修订）
+- 决策来源：[底部服务卡中文修订](../sources/2026-10-19-web-chat.md#底部服务卡中文修订)
 - 落地状态：未应用
 
 Maintenance before inconvenience.
+
+中文：先行检修，烦忧少扰。
 
 ### home.service-card.02.body
 
 - 页面位置：卡片 02 正文
 - 英文审定状态：已确认
-- 中文审定状态：待确认，尚未录入
+- 中文审定状态：已确认
+- 决策来源：[底部服务卡中文收口确认](../sources/2026-10-19-web-chat.md#底部服务卡中文收口确认)
 - 落地状态：未应用
 
 Arrange augmetic servicing, luggage assistance, and other local requirements before minor faults interrupt your itinerary.
+
+中文：提前安排义体检修、行李协助及其他当地服务，免得小故障打乱您的行程。
 
 ### home.service-card.02.cta
 
 - 页面位置：卡片 02 按钮
 - 英文审定状态：已确认
-- 中文审定状态：待确认，尚未录入
+- 中文审定状态：已确认
+- 决策来源：[底部服务卡中文收口确认](../sources/2026-10-19-web-chat.md#底部服务卡中文收口确认)
 - 落地状态：未应用
 
 Find local services →
+
+中文：查找当地服务 →
 
 ## 底部服务卡 03
 
@@ -212,28 +230,37 @@ Find local services →
 
 - 页面位置：卡片 03 标题
 - 英文审定状态：已确认
-- 中文审定状态：待确认，尚未录入
+- 中文审定状态：已确认（用户直接修订）
+- 决策来源：[底部服务卡中文修订](../sources/2026-10-19-web-chat.md#底部服务卡中文修订)
 - 落地状态：未应用
 
 Certainty is a comfort.
+
+中文：诸事确定，舒适安心。
 
 ### home.service-card.03.body
 
 - 页面位置：卡片 03 正文
 - 英文审定状态：已确认
-- 中文审定状态：待确认，尚未录入
+- 中文审定状态：已确认（用户直接修订）
+- 决策来源：[底部服务卡中文修订](../sources/2026-10-19-web-chat.md#底部服务卡中文修订)
 - 落地状态：未应用
 
 We have documented arrival procedures, local regulations, and common visitor errors. Most inconveniences are entirely preventable.
+
+中文：抵达流程、当地规定与访客常见疏漏，我们已做了整理。多数不便，本可以避免。
 
 ### home.service-card.03.cta
 
 - 页面位置：卡片 03 按钮
 - 英文审定状态：已确认
-- 中文审定状态：待确认，尚未录入
+- 中文审定状态：已确认
+- 决策来源：[底部服务卡中文收口确认](../sources/2026-10-19-web-chat.md#底部服务卡中文收口确认)
 - 落地状态：未应用
 
 Read visitor information →
+
+中文：阅读访客须知 →
 
 ## 促销中文原稿（历史参考）
 

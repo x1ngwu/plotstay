@@ -85,7 +85,7 @@ Before you arrive
 
 ## 共用文案与应用边界
 
-返回目录、旅客手记、相关推荐及联系说明统一引用 [详情页共用文案](../shared/detail.md)，本文件不复制维护。
+返回目录、旅客笔记、相关推荐及联系说明统一引用 [详情页共用文案](../shared/detail.md)，本文件不复制维护。
 
 - 保留 House rules、Cancellation policy、Safety & property 等政策子标题及清晰的功能性表达。
 - 本轮只录用所列标题，不改变入住规则、设施数据、预订行为或创作者正文。

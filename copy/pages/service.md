@@ -74,7 +74,7 @@ Before your appointment
 
 ## 共用文案与应用边界
 
-返回目录、旅客手记、相关推荐及联系说明统一引用 [详情页共用文案](../shared/detail.md)，本文件不复制维护。
+返回目录、旅客笔记、相关推荐及联系说明统一引用 [详情页共用文案](../shared/detail.md)，本文件不复制维护。
 
 - 预约须知采用 `Before your appointment`，不替换成活动页的 `Before you proceed`。
 - `Credentials & experience` 仅命名资质展示栏目，不表示平台已经核验全部资质。
