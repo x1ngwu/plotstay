@@ -1,9 +1,9 @@
 ---
 import { parseBrowse, browsePath, type BrowseState, type Locale, type PublicPlace, type PublicCategory } from '@plotstay/contracts';
-import { bilingual } from '../lib/i18n';
+import { travelBilingual, copyText } from '../lib/travel-copy';
 interface Props { locale: Locale; state?: BrowseState; places?: PublicPlace[]; categories?: PublicCategory[] }
 const { locale, state = parseBrowse(new URLSearchParams()), places = [], categories = [] } = Astro.props;
-const t = bilingual(locale.code);
+const t = travelBilingual(locale.code, state.world);
 const active = Astro.url.searchParams.get('tab') ?? state.type;
 const tabLink = (type: string) => {
   const homes = ['all','stays'].includes(type);
@@ -17,7 +17,7 @@ const tabLink = (type: string) => {
 };
 const types = [['all', t('全部', 'All')], ['stays', t('住宿', 'Homes')], ['experiences', t('活动', 'Experiences')], ['services', t('服务', 'Services')]];
 ---
-<form class="search-form" action={`/${locale.pathPrefix}`} method="get" data-search>
+<form data-date-order={state.world === 'lathe-worlds' ? copyText('navigation.date-order',locale.code) : undefined} class="search-form" action={`/${locale.pathPrefix}`} method="get" data-search>
   <input type="hidden" name="view" value="results" />
   {state.world !== 'lathe-worlds' && <input type="hidden" name="world" value={state.world} />}
   <fieldset class="search-tabs"><legend class="sr-only">{t('旅行类型', 'Journey type')}</legend>
@@ -52,7 +52,7 @@ const types = [['all', t('全部', 'All')], ['stays', t('住宿', 'Homes')], ['e
     form.querySelectorAll('[name=type]').forEach(radio => radio.addEventListener('change', update));
     const start = form.elements.namedItem('start') as HTMLInputElement;
     const end = form.elements.namedItem('end') as HTMLInputElement;
-    const validate = () => { end.setCustomValidity(end.value && (!start.value || end.value <= start.value) ? (document.documentElement.lang === 'zh-Hans' ? '退房日期须晚于入住日期。' : 'Checkout must follow the start date.') : ''); };
+    const validate = () => { end.setCustomValidity(end.value && (!start.value || end.value <= start.value) ? (form.dataset.dateOrder || (document.documentElement.lang === 'zh-Hans' ? '退房日期须晚于入住日期。' : 'Checkout must follow the start date.')) : ''); };
     start.addEventListener('change', validate); end.addEventListener('change', validate); update();
   });
 </script>

@@ -55,3 +55,10 @@
 }
 
 [data-ticket-meta] { white-space:pre-line; }
+
+/* Long approved notices must remain readable on narrow screens. */
+.booking-platform-notice { margin-block: 1.5rem; }
+.booking-platform-notice h3 { font-size: .85rem; letter-spacing: .06em; }
+[data-isi-signature] { border-top: 1px solid currentColor; margin-top: 1.5rem; padding-top: 1rem; }
+[data-isi-signature][hidden] { display: none; }
+[data-retention-aside], .booking-notice { overflow-wrap: anywhere; }

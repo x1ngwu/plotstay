@@ -3,10 +3,10 @@ import Base from '../../../layouts/Base.astro';
 import Summary from '../../../components/booking/Summary.astro';
 import { api, getWorlds, ApiFailure } from '../../../lib/api';
 import { fallbackLocales, idSchema, contentPath, publishedSessions, type PublicContent, type World } from '@plotstay/contracts';
-import { bilingual } from '../../../lib/i18n';
+import { travelBilingual, copyText } from '../../../lib/travel-copy';
 import '../../../styles/booking.css';
 const {locales,locale:selected,localeFailure}=Astro.locals;
-const locale=selected??fallbackLocales[0]!,t=bilingual(locale.code);
+const locale=selected??fallbackLocales[0]!;
 let content:PublicContent|undefined,world:World|undefined;
 try{
  if(localeFailure)throw new ApiFailure(503);
@@ -15,6 +15,7 @@ try{
  if(content.kind==='review')throw new ApiFailure(404);
  world=(await getWorlds(locale.code)).worlds.find(w=>w.id===content!.worldId);
 }catch(e){Astro.response.status=e instanceof ApiFailure&&e.status===404?404:503;}
+const t=travelBilingual(locale.code,world?.slug);
 const sessions=content?publishedSessions(content):[];
 const date=new Intl.DateTimeFormat(locale.languageTag,{dateStyle:'medium',timeStyle:'short',timeZone:'UTC',hour12:false});
 const backQuery=new URLSearchParams();
@@ -24,10 +25,10 @@ if(content?.kind!=='stay'){backQuery.delete('rooms');backQuery.delete('end');}
 if(content?.kind!=='service'){backQuery.delete('quantity');backQuery.delete('time');}
 ---
 <Base title={t('模拟预订','Fictional booking')} locale={locale} locales={locales} world={world}>
- {content?<div class="booking-page" data-booking-page data-content-id={content.id} data-kind={content.kind} data-locale={locale.code} data-prefix={locale.pathPrefix} data-fixed={sessions.length>0?'true':'false'}>
+ {content?<div class="booking-page" data-booking-page data-world={world?.slug} data-content-id={content.id} data-kind={content.kind} data-locale={locale.code} data-prefix={locale.pathPrefix} data-fixed={sessions.length>0?'true':'false'}>
   <a class="booking-back" href={contentPath(locale,content)+'?'+backQuery}>← {t('返回详情','Back to listing')}</a>
-  <header class="booking-heading"><p class="eyebrow">PLOTSTAY / {t('旅行登记处','JOURNEY DESK')}</p><h1>{t('把下一站写进故事','Put your next stop in the story')}</h1><p>{t('选择行程，核对虚构价格，领取属于你的旅行凭条。','Choose your trip, review the fictional price and collect your travel document.')}</p></header>
-  <ol class="booking-steps"><li>{t('1 选择行程','1 Choose your trip')}</li><li>{t('2 确认签发','2 Review & confirm')}</li><li>{t('3 保存凭条','3 Save your document')}</li></ol>
+  <header class="booking-heading"><p class="eyebrow">{t('旅行登记处','JOURNEY DESK')}</p><h1>{t('把下一站写进故事','Put your next stop in the story')}</h1><p>{t('选择行程，核对虚构价格，领取属于你的旅行凭条。','Choose your trip, review the fictional price and collect your travel document.')}</p></header>
+  <ol class="booking-steps"><li>1 {copyText('booking.steps.choose',locale.code)}</li><li>2 {copyText('booking.steps.review',locale.code)}</li><li>3 {copyText('booking.steps.collect',locale.code)}</li></ol>
   <div class="booking-grid">
    <section class="panel booking-editor">
     <div class="window-bar"><span>{t('行程资料','Trip details')}</span><span>01</span></div>
@@ -44,14 +45,15 @@ if(content?.kind!=='service'){backQuery.delete('quantity');backQuery.delete('tim
        <p class="booking-fine">{t('无库存保证；这些是虚构行程。可选择未来 365 天内开始的行程。','No inventory guarantee; these trips are fictional. Start within the next 365 days.')}</p>
       </fieldset>
       <p class="booking-notice" data-preference-note hidden></p>
-      <button class="booking-primary" type="submit" data-quote disabled>{t('核对行程与价格','Review trip & price')} →</button>
+      <button class="booking-primary" type="submit" data-quote disabled>{t('核对行程与价格','Review trip & price')}</button>
      </form>
+     <section class="booking-platform-notice"><h3>{copyText('platform.notices.heading',locale.code)}</h3><p>{copyText('platform.notices.booking',locale.code)}</p></section>
      <p class="booking-fine">{t('不需要银行卡、真实姓名或联系方式。游客凭证只保存在此浏览器中，有效期 180 天。','No bank card, real name or contact details. Your visitor credential stays in this browser for 180 days.')}</p>
      <noscript><p>{t('请启用 JavaScript 以核对并保存模拟预订。','Enable JavaScript to review and save a fictional booking.')}</p></noscript>
     </div>
    </section>
    <section class="booking-review" data-review hidden aria-label={t('确认预订','Review booking')}>
-    <Summary locale={locale}/>
+    <header class="booking-heading"><p class="eyebrow">{world?.slug==='lathe-worlds' ? copyText('booking.review.eyebrow',locale.code) : t('核对','Review')}</p><h2>{world?.slug==='lathe-worlds' ? copyText('booking.review.title',locale.code) : t('核对行程','Review itinerary')}</h2><p>{copyText('booking.review.intro',locale.code)}</p></header><Summary locale={locale}/>
     <div class="booking-confirm panel">
      <label class="booking-consent"><input type="checkbox" data-consent/>{t('我知道这是虚构旅行，不会真实扣款。','I understand this is a fictional trip with no real charge.')}</label>
      <button class="booking-primary" data-confirm disabled>{t('确认并签发凭条','Confirm & issue document')}</button>

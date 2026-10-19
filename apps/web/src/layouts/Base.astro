@@ -3,6 +3,7 @@ import '@plotstay/themes/layout.css';
 import '@plotstay/themes/lime.css';
 import '@plotstay/themes/pixel.css';
 import { fallbackLocales, homePath, type Locale, type World } from '@plotstay/contracts';
+import { copyText } from '../lib/travel-copy';
 import { bilingual, hasDictionary, languagePath, messages, uiLocale } from '../lib/i18n';
 import { noIndex, type Seo } from '../lib/seo';
 import type { FontPreview } from '../lib/font-preview';
@@ -56,8 +57,9 @@ if (!seo.canonical) Astro.response.headers.set('X-Robots-Tag', 'noindex, follow'
         </div></details>
       </div>
     </header>
-    <main id="main">{!hasDictionary(locale.code) && <p class="notice">{ui.uiFallback}</p>}<slot /></main>
-    <footer><div><a class="brand" href={homePath(locale)}><span class="brand-wordmark">PlotStay</span></a><p>{ui.about}</p></div><nav><a href={homePath(locale, world?.slug) + (world && world.slug !== 'lathe-worlds' ? '&' : '?') + 'view=results'}>{t('浏览全部', 'Browse everything')}</a><a href={`/${locale.pathPrefix}/help`}>{t('帮助中心', 'Help centre')}</a><a href={`/${locale.pathPrefix}/host`}>{t('创作说明', 'For creators')}</a></nav></footer>
+    <main id="main">{!hasDictionary(locale.code) && <p class="notice">{world?.slug==='lathe-worlds' ? copyText('navigation.ui-fallback',locale.code) : ui.uiFallback}</p>}<slot /></main>
+    <footer><div><a class="brand" href={homePath(locale)}><span class="brand-wordmark">PlotStay</span></a><p>{ui.about}</p></div><nav><a href={homePath(locale, world?.slug) + (world && world.slug !== 'lathe-worlds' ? '&' : '?') + 'view=results'}>{t('浏览全部', 'Browse everything')}</a><a href={`/${locale.pathPrefix}/help`}>{t('帮助中心', 'Help centre')}</a><a href={`/${locale.pathPrefix}/host`}>{t('创作说明', 'For creators')}</a></nav>{world?.slug==='lathe-worlds' && <div class="isi-credit"><p>{copyText('character.isidorrus.footer-credit',locale.code)}</p><p>{copyText('character.isidorrus.footer-spelling-note',locale.code)}</p></div>}</footer>
+    <style>.isi-credit { flex-basis: 100%; font-size: .85rem; } .isi-credit p { margin-block: .4rem; }</style>
     <script>
       import {recordWorldVisit} from '../lib/workspace-preferences';
       document.addEventListener('keydown', event => {

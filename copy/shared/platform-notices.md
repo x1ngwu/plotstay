@@ -1,8 +1,10 @@
 # 平台现实说明
 
+实施状态：2026-10-19 本文件已审定界面文案已应用并发布；下文审定过程中的未实施描述为历史记录。见[发布记录](../releases/2026-10-19-travel-copy.md)。
+
 范围：虚构性质、支付、个人信息及浏览器保存期限；表述须核对实际功能。
 
-状态：2026-10-19 以下 5 条中英文均已确认。全部未应用；表达审定不代表已验证实际功能。
+状态：2026-10-19 以下 5 条中英文均已确认。已确认条目已上线；表达审定不代表已验证实际功能。
 
 依据：用户对声音分工及 5 条英文清单回复“是的”。见 [来源确认](../sources/2026-10-19-web-chat.md#故事内外声音与平台现实说明录用确认)；写作原则见 [文案原则](../voice/editorial-guide.md)。编号为文案库追踪编号，不代表程序现有键。
 
@@ -13,7 +15,7 @@
 - 中文：PLOTSTAY · 故事之外
 - 中文审定状态：已确认
 - 决策来源：[平台现实说明中文确认](../sources/2026-10-19-web-chat.md#平台现实说明中文确认)
-- 落地状态：未应用
+- 落地状态：已上线
 - 实现位置：代码键或数据库实体／字段待应用前核对
 
 PLOTSTAY · OUTSIDE THE STORY
@@ -25,7 +27,7 @@ PLOTSTAY · OUTSIDE THE STORY
 - 中文：这是一项虚构的预订体验。您将获得故事世界中的旅行凭证，不会产生真实预订。无需付款或提供个人信息。
 - 中文审定状态：已确认
 - 决策来源：[平台现实说明中文确认](../sources/2026-10-19-web-chat.md#平台现实说明中文确认)
-- 落地状态：未应用
+- 落地状态：已上线
 - 实现位置：代码键或数据库实体／字段待应用前核对
 
 This is a fictional booking experience. You'll receive an in-world travel document, not a real reservation. No payment or personal details required.
@@ -37,7 +39,7 @@ This is a fictional booking experience. You'll receive an in-world travel docume
 - 中文：我已知悉，此操作仅签发虚构的旅行凭证，不会产生真实预订或付款。
 - 中文审定状态：已确认
 - 决策来源：[平台现实说明中文确认](../sources/2026-10-19-web-chat.md#平台现实说明中文确认)
-- 落地状态：未应用
+- 落地状态：已上线
 - 实现位置：代码键或数据库实体／字段待应用前核对
 
 I understand this issues a fictional travel document only. No real reservation or payment will be made.
@@ -49,7 +51,7 @@ I understand this issues a fictional travel document only. No real reservation o
 - 中文：Plotstay · 本凭证为虚构文件，不可用于现实中的旅行、入境或住宿。
 - 中文审定状态：已确认
 - 决策来源：[平台现实说明中文确认](../sources/2026-10-19-web-chat.md#平台现实说明中文确认)
-- 落地状态：未应用
+- 落地状态：已上线
 - 实现位置：代码键或数据库实体／字段待应用前核对
 
 Plotstay · Fictional document only. Not valid for real-world travel, entry or accommodation.
@@ -61,7 +63,7 @@ Plotstay · Fictional document only. Not valid for real-world travel, entry or a
 - 中文：您可在当前浏览器中找回旅行凭证，最长 180 天。清除 Cookie 或更换设备后，可能无法找回。建议保存副本。
 - 中文审定状态：已确认
 - 决策来源：[平台现实说明中文确认](../sources/2026-10-19-web-chat.md#平台现实说明中文确认)
-- 落地状态：未应用
+- 落地状态：已上线
 - 实现位置：代码键或数据库实体／字段待应用前核对
 
 Your travel document can be retrieved in this browser for up to 180 days. Clearing cookies or switching devices may prevent recovery. We recommend saving a copy.

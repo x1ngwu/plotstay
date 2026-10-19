@@ -1,8 +1,10 @@
 # 首页
 
+实施状态：2026-10-19 本文件已审定界面文案已应用并发布；下文审定过程中的未实施描述为历史记录。见[发布记录](../releases/2026-10-19-travel-copy.md)。
+
 范围：拉斯世界首页首屏、义体旅行促销、内容栏目及底部三张服务卡。
 
-审定状态：2026-10-19 本文件 20 条英文及对应中文全部已确认，促销标题／正文拆分已确认；旧促销整段原稿仅作历史参考。落地状态：全部未应用。
+审定状态：2026-10-19 本文件 20 条英文及对应中文全部已确认，促销标题／正文拆分已确认；旧促销整段原稿仅作历史参考。落地状态：已确认条目已上线。
 
 依据：用户在本地会话对四组完整清单回复“可以。”，同意“先录用以上英文和促销中文原稿，其余中文留到下一轮逐句设计”。见 [来源与确认记录](../sources/2026-10-19-web-chat.md#首页录用确认)。维护规则见 [文案库入口](../README.md)。
 
@@ -16,7 +18,7 @@
 - 英文审定状态：已确认
 - 中文审定状态：已确认
 - 决策来源：[首页首屏中文补全确认](../sources/2026-10-19-web-chat.md#首页首屏中文补全确认)
-- 落地状态：未应用
+- 落地状态：已上线
 
 LATHE WORLDS TRAVEL
 
@@ -28,7 +30,7 @@ LATHE WORLDS TRAVEL
 - 英文审定状态：已确认
 - 中文审定状态：已确认
 - 决策来源：[首页主标题中文确认](../sources/2026-10-19-web-chat.md#首页主标题中文确认)
-- 落地状态：未应用
+- 落地状态：已上线
 
 英文：There's a place for you in the Machine.
 
@@ -42,7 +44,7 @@ LATHE WORLDS TRAVEL
 - 英文审定状态：已确认
 - 中文审定状态：已确认
 - 决策来源：[首页首屏中文补全确认](../sources/2026-10-19-web-chat.md#首页首屏中文补全确认)
-- 落地状态：未应用
+- 落地状态：已上线
 
 Find suitable accommodation, approved excursions, and local services in one convenient directory. Travel authorization remains your responsibility.
 
@@ -56,7 +58,7 @@ Find suitable accommodation, approved excursions, and local services in one conv
 - 英文审定状态：已确认
 - 中文审定状态：已确认
 - 决策来源：[义体旅行促销中文确认](../sources/2026-10-19-web-chat.md#义体旅行促销中文确认)
-- 落地状态：未应用
+- 落地状态：已上线
 
 PROMOTION · TRAVELLING WITH AUGMETICS
 
@@ -68,7 +70,7 @@ PROMOTION · TRAVELLING WITH AUGMETICS
 - 英文审定状态：已确认
 - 中文审定状态：已确认
 - 决策来源：[义体旅行促销中文确认](../sources/2026-10-19-web-chat.md#义体旅行促销中文确认)
-- 落地状态：未应用
+- 落地状态：已上线
 
 Room for every part of you.
 
@@ -80,7 +82,7 @@ Room for every part of you.
 - 英文审定状态：已确认
 - 中文审定状态：已确认
 - 决策来源：[义体旅行促销中文确认](../sources/2026-10-19-web-chat.md#义体旅行促销中文确认)
-- 落地状态：未应用
+- 落地状态：已上线
 
 A comfortable stay should account for all of your augmetics. Attached limbs incur no extra-bed fee. Please let us know if separate charging facilities are required.
 
@@ -94,7 +96,7 @@ A comfortable stay should account for all of your augmetics. Attached limbs incu
 - 英文审定状态：已确认
 - 中文审定状态：已确认
 - 决策来源：[首页栏目与目录入口中文确认](../sources/2026-10-19-web-chat.md#首页栏目与目录入口中文确认)
-- 落地状态：未应用
+- 落地状态：已上线
 
 There's more to the Lathes than work.
 
@@ -106,7 +108,7 @@ There's more to the Lathes than work.
 - 英文审定状态：已确认
 - 中文审定状态：已确认
 - 决策来源：[首页栏目与目录入口中文确认](../sources/2026-10-19-web-chat.md#首页栏目与目录入口中文确认)
-- 落地状态：未应用
+- 落地状态：已上线
 
 Excursions worth your leave.
 
@@ -118,7 +120,7 @@ Excursions worth your leave.
 - 英文审定状态：已确认
 - 中文审定状态：已确认
 - 决策来源：[首页栏目与目录入口中文确认](../sources/2026-10-19-web-chat.md#首页栏目与目录入口中文确认)
-- 落地状态：未应用
+- 落地状态：已上线
 
 The Machine never rests. You may.
 
@@ -130,7 +132,7 @@ The Machine never rests. You may.
 - 英文审定状态：已确认
 - 中文审定状态：已确认
 - 决策来源：[首页栏目与目录入口中文确认](../sources/2026-10-19-web-chat.md#首页栏目与目录入口中文确认)
-- 落地状态：未应用
+- 落地状态：已上线
 
 Stay in {place}
 
@@ -142,7 +144,7 @@ Stay in {place}
 - 英文审定状态：已确认
 - 中文审定状态：已确认
 - 决策来源：[首页栏目与目录入口中文确认](../sources/2026-10-19-web-chat.md#首页栏目与目录入口中文确认)
-- 落地状态：未应用
+- 落地状态：已上线
 
 Browse the full travel directory
 
@@ -156,7 +158,7 @@ Browse the full travel directory
 - 英文审定状态：已确认
 - 中文审定状态：已确认（用户直接修订）
 - 决策来源：[底部服务卡中文修订](../sources/2026-10-19-web-chat.md#底部服务卡中文修订)
-- 落地状态：未应用
+- 落地状态：已上线
 
 One itinerary. Fewer discrepancies.
 
@@ -168,7 +170,7 @@ One itinerary. Fewer discrepancies.
 - 英文审定状态：已确认
 - 中文审定状态：已确认（用户直接修订）
 - 决策来源：[服务卡第一张正文中文确认](../sources/2026-10-19-web-chat.md#服务卡第一张正文中文确认)
-- 落地状态：未应用
+- 落地状态：已上线
 
 Compare accommodation and approved activities without repeating your preferences. Entry permits and leave clearances must still be obtained separately.
 
@@ -180,7 +182,7 @@ Compare accommodation and approved activities without repeating your preferences
 - 英文审定状态：已确认
 - 中文审定状态：已确认
 - 决策来源：[底部服务卡中文收口确认](../sources/2026-10-19-web-chat.md#底部服务卡中文收口确认)
-- 落地状态：未应用
+- 落地状态：已上线
 
 Plan your visit →
 
@@ -194,7 +196,7 @@ Plan your visit →
 - 英文审定状态：已确认
 - 中文审定状态：已确认（用户直接修订）
 - 决策来源：[底部服务卡中文修订](../sources/2026-10-19-web-chat.md#底部服务卡中文修订)
-- 落地状态：未应用
+- 落地状态：已上线
 
 Maintenance before inconvenience.
 
@@ -206,7 +208,7 @@ Maintenance before inconvenience.
 - 英文审定状态：已确认
 - 中文审定状态：已确认
 - 决策来源：[底部服务卡中文收口确认](../sources/2026-10-19-web-chat.md#底部服务卡中文收口确认)
-- 落地状态：未应用
+- 落地状态：已上线
 
 Arrange augmetic servicing, luggage assistance, and other local requirements before minor faults interrupt your itinerary.
 
@@ -218,7 +220,7 @@ Arrange augmetic servicing, luggage assistance, and other local requirements bef
 - 英文审定状态：已确认
 - 中文审定状态：已确认
 - 决策来源：[底部服务卡中文收口确认](../sources/2026-10-19-web-chat.md#底部服务卡中文收口确认)
-- 落地状态：未应用
+- 落地状态：已上线
 
 Find local services →
 
@@ -232,7 +234,7 @@ Find local services →
 - 英文审定状态：已确认
 - 中文审定状态：已确认（用户直接修订）
 - 决策来源：[底部服务卡中文修订](../sources/2026-10-19-web-chat.md#底部服务卡中文修订)
-- 落地状态：未应用
+- 落地状态：已上线
 
 Certainty is a comfort.
 
@@ -244,7 +246,7 @@ Certainty is a comfort.
 - 英文审定状态：已确认
 - 中文审定状态：已确认（用户直接修订）
 - 决策来源：[底部服务卡中文修订](../sources/2026-10-19-web-chat.md#底部服务卡中文修订)
-- 落地状态：未应用
+- 落地状态：已上线
 
 We have documented arrival procedures, local regulations, and common visitor errors. Most inconveniences are entirely preventable.
 
@@ -256,7 +258,7 @@ We have documented arrival procedures, local regulations, and common visitor err
 - 英文审定状态：已确认
 - 中文审定状态：已确认
 - 决策来源：[底部服务卡中文收口确认](../sources/2026-10-19-web-chat.md#底部服务卡中文收口确认)
-- 落地状态：未应用
+- 落地状态：已上线
 
 Read visitor information →
 
@@ -271,7 +273,7 @@ Read visitor information →
 - 审定状态：此前整段原稿曾确认录用；现行文案以上方三个已确认字段为准。
 - 标题／正文拆分：已于后续确认。标题使用“容身之所”，正文补齐住宿照顾每件义体的首句。
 - 与英文关系：此处仅保留旧稿供追溯，不用于应用；新稿首句补译已获确认。
-- 落地状态：未应用；实际字段待核对。
+- 落地状态：已上线；实际字段待核对。
 
 ## 应用前核对事项
 

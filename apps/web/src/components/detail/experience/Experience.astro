@@ -67,7 +67,7 @@ const policies=[
  <div class="experience-host" data-experience-module="07"><DetailSection id="host" title={t('关于向导','About me')}>
   <div class="experience-host-grid"><div class="experience-host-card"><span class="stay-avatar experience-portrait">{c.provider?.avatarImage ? <img src={c.provider.avatarImage} alt="" style="width:100%;height:100%;object-fit:cover"/> : <Icon name="person"/>}</span><h3 lang={c.languageTag}>{host}</h3><p lang={c.languageTag}>{contentFallback(c,'experience.hostRole',e?.hostRole,missing)}</p><span class="experience-muted">{t('带你认识这个世界','Your local perspective')}</span></div>
   <div><p class="prose" lang={c.languageTag}>{c.provider?.bio ?? contentFallback(c,'experience.hostIntroduction',e?.hostIntroduction,c.text.hostBio||missing)}</p>
-  <Expand locale={locale} label={t('联系','Message')+' '+host}><p lang={c.languageTag}>{contentFallback(c,'experience.contactNote',e?.contactNote,t('联系功能尚未开放，本页不会发送消息。','Messaging is not open. This page does not send messages.'))}</p></Expand>
+  <Expand locale={locale} label={t('联系','Message')+(c.worldSlug==='lathe-worlds'?'':' '+host)}><p lang={c.languageTag}>{contentFallback(c,'experience.contactNote',e?.contactNote,t('联系功能尚未开放，本页不会发送消息。','Messaging is not open. This page does not send messages.'))}</p></Expand>
   <p class="experience-muted">{t('这是一次虚构旅行。无需站外付款，也无需提供真实证件。','A fictional journey: no off-site payment or real identity documents are needed.')}</p></div></div>
  </DetailSection></div>
 </div>

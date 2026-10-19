@@ -4,13 +4,14 @@ import Card from '../../components/Card.astro';
 import Search from '../../components/Search.astro';
 import Trip from '../../components/Trip.astro';
 import { ApiFailure, getBrowse } from '../../lib/api';
-import { bilingual, messages } from '../../lib/i18n';
+import { copyText, travelBilingual } from '../../lib/travel-copy';
+import { messages } from '../../lib/i18n';
 import { browsePath, detailPath, parseBrowse, fallbackLocales, type BrowseResponse, type HomeConfig } from '@plotstay/contracts';
 import { homeSeo, noIndex } from '../../lib/seo';
 import { getFontPreview } from '../../lib/font-preview';
 const { locales, locale: selectedLocale, localeFailure } = Astro.locals;
 const locale = selectedLocale ?? fallbackLocales[0]!;
-const ui = messages(locale.code), t = bilingual(locale.code);
+const ui = messages(locale.code);
 let data: BrowseResponse | undefined;
 let state = parseBrowse(new URLSearchParams());
 let failed = false;
@@ -25,6 +26,8 @@ try {
   Astro.response.status = error instanceof ApiFailure && [400,404].includes(error.status) ? 404 : 503;
 }
 const world = data?.world, home = data?.home, results = state.view === 'results';
+const isLathe=world?.slug==='lathe-worlds' || (!world && state.world==='lathe-worlds');
+const t=travelBilingual(locale.code,isLathe?'lathe-worlds':undefined);
 const fontPreview = !failed && !results ? getFontPreview(Astro.url.searchParams.get('font-preview')) : undefined;
 const browse = (patch = {}) => browsePath(locale,state,{view:'results', page:1, ...patch});
 const target = (value: HomeConfig['benefits'][number]['target']) => value.page === 'results'
@@ -35,14 +38,14 @@ const pageTitle = world ? (results ? `${t('全部旅程','Explore')} · ${world.
 const groups = data ? Array.from(new Map(data.listing.contents.map(c => [c.placeId, c.placeName])).entries()) : [];
 ---
 <Base title={pageTitle} description={world?.description} world={world} locale={locale} locales={locales} theme={world?.themeId} fontPreview={fontPreview} preloadDisplayFonts={!failed && !results} seo={failed || fontPreview ? noIndex() : homeSeo(Astro.url, locale, locales, world!)}>
-  {failed ? <section class="panel"><h1>{Astro.response.status === 404 ? ui.notFound : ui.unavailable}</h1><p>{t('检查地址与行程条件，或回到世界首页继续浏览。','Check the address and trip preferences, or return to discovery.')}</p><a href={browsePath(locale,parseBrowse(new URLSearchParams()))}>{t('返回首页','Back to discovery')}</a></section> : <>
+  {failed ? <section class="panel"><h1>{isLathe ? copyText(Astro.response.status===404?'navigation.not-found':'navigation.unavailable',locale.code) : Astro.response.status === 404 ? ui.notFound : ui.unavailable}</h1>{!isLathe && <p>{t('检查地址与行程条件，或回到世界首页继续浏览。','Check the address and trip preferences, or return to discovery.')}</p>}<a href={browsePath(locale,parseBrowse(new URLSearchParams()))}>{t('返回首页','Back to discovery')}</a></section> : <>
     {results ? <>
-      <p class="eyebrow">{world!.name} / {t('探索全部','EXPLORE EVERYTHING')}</p><h1 class="results-title">{t('找到下一段故事。','Find your next story.')}</h1>
+      <p class="eyebrow">{isLathe?copyText('directory.eyebrow',locale.code):world!.name+' / '+t('探索全部','EXPLORE EVERYTHING')}</p><h1 class="results-title">{t('找到下一段故事。','Find your next story.')}</h1>
       <Search locale={locale} state={state} places={data!.places} categories={data!.categories} />
       <Trip locale={locale} state={state} />
-      <div class="section-heading results-summary"><p>{data!.listing.total} {t('个旅程灵感','places to start')} · {t('第','Page ')}{state.page} / {data!.listing.pages}{t('页','')}</p><a href={browsePath(locale,parseBrowse(new URLSearchParams({world:state.world})))}>{t('返回发现首页','Back to discovery')}</a></div>
-      {data!.listing.total === 0 && <section class="panel"><h2>{t('这一站，还没有匹配的故事。','No stories match this search yet.')}</h2><p>{t('试试其他关键词，或浏览整个世界。','Try another phrase, or explore the whole world.')}</p><a href={browsePath(locale,{...state,type:'all',q:'',place:undefined,category:undefined,page:1})}>{t('清除筛选','Clear filters')}</a></section>}
-      {groups.map(([id,name]) => <section class="result-group" data-place-id={id ?? 'none'}><h2>{name ?? t('世界其他地方','Elsewhere in the world')}</h2><ul class="results-grid">{data!.listing.contents.filter(c=>c.placeId === id).map(content=><Card content={content} world={world!} locale={locale} href={detailPath(locale,content,state)} category={data!.categories.find(c=>c.slug === content.attributes.category)?.name} />)}</ul></section>)}
+      <div class="section-heading results-summary"><p>{isLathe?copyText(data!.listing.total===1?'directory.count-one':'directory.count',locale.code).replace('{total}',String(data!.listing.total)):data!.listing.total+' '+t('个旅程灵感','places to start')} · {t('第','Page ')}{state.page} / {data!.listing.pages}{t('页','')}</p><a href={browsePath(locale,parseBrowse(new URLSearchParams({world:state.world})))}>{t('返回发现首页','Back to discovery')}</a></div>
+      {data!.listing.total === 0 && <section class="panel"><h2>{t('这一站，还没有匹配的故事。','No stories match this search yet.')}</h2>{!isLathe && <p>{t('试试其他关键词，或浏览整个世界。','Try another phrase, or explore the whole world.')}</p>}<a href={browsePath(locale,{...state,type:'all',q:'',place:undefined,category:undefined,page:1})}>{t('清除筛选','Clear filters')}</a></section>}
+      {groups.map(([id,name]) => <section class="result-group" data-place-id={id ?? 'none'}><h2>{name ?? t('世界其他地方','Elsewhere in the world')}</h2>{isLathe && id && data!.places.find(p=>p.id===id) && (()=>{const slug=data!.places.find(p=>p.id===id)!.slug;const key=({'dummy-forge-district':'foundry','quiet-archive':'archive','orbital-docks':'docks'} as Record<string,string>)[slug];return key && <p>{copyText('directory.'+key+'.description',locale.code)}</p>;})()}<ul class="results-grid">{data!.listing.contents.filter(c=>c.placeId === id).map(content=><Card content={content} world={world!} locale={locale} href={detailPath(locale,content,state)} category={data!.categories.find(c=>c.slug === content.attributes.category)?.name} />)}</ul></section>)}
       <nav class="pagination" aria-label={t('分页','Pagination')}>
         {state.page > 1 && <a rel="prev" href={browsePath(locale,state,{page:state.page-1})}>← {t('上一页','Previous')}</a>}
         {Array.from({length:data!.listing.pages},(_,i)=>i+1).filter(p=>p === 1 || p === data!.listing.pages || Math.abs(p-state.page)<=2).map((p,i,arr)=><>{i>0 && p>arr[i-1]!+1 && <span>…</span>}<a href={browsePath(locale,state,{page:p})} aria-current={p === state.page ? 'page' : undefined}>{p}</a></>)}
@@ -56,11 +59,12 @@ const groups = data ? Array.from(new Map(data.listing.contents.map(c => [c.place
       </div></section>
       {home?.config.promotion && home.text.promotion && <section class="promo" lang={home.languageTag}><div><p class="eyebrow">{home.text.promotion.audience}</p><h2>{home.text.promotion.title}</h2><p>{home.text.promotion.body}</p>{home.config.promotion.endsAt && <p><time datetime={home.config.promotion.endsAt}>{home.config.promotion.endsAt.replace('T',' ').replace('Z',' UTC')}</time></p>}</div>{home.config.promotion.image && <img class="promo-image" src={home.config.promotion.image.url} alt="" loading="lazy" width="160" height="120" />}<a class="button" href={target(home.config.promotion.target)}>{home.text.promotion.button}</a></section>}
       {data!.categories.some(c=>c.kind === 'experience' && c.count>0) && <section class="content-section"><div class="section-heading"><h2>{t('探索附近的活动','Explore experiences nearby')}</h2></div><nav class="category-list" aria-label={t('活动类别','Experience categories')}>{data!.categories.filter(c=>c.kind === 'experience' && c.count>0).map(c=><a href={browse({type:'experiences',category:c.slug,rooms:undefined,end:undefined})}><span aria-hidden="true">{icons[c.icon]}</span><span lang={home?.languageTag}>{c.name}</span></a>)}</nav></section>}
+      {isLathe && data!.listing.total===0 && <section class="panel"><p class="travel-status">{copyText('navigation.empty',locale.code)}</p></section>}
       {data!.sections.filter(s=>s.contents.length>0).map(section=><section class="content-section" data-section={section.id}>
         <div class="section-heading">
           <h2 lang={home?.languageTag}>
             <a class="section-title-link" href={browse({type:section.type,place:section.place,category:section.category,rooms:section.type === 'stays' ? state.rooms : undefined,end:section.type === 'stays' ? state.end : undefined})}>
-              <span>{section.id.startsWith('place-') ? t(`住在${section.title}`,`Stay in ${section.title}`) : (section.title || (section.type === 'stays' ? t('{world}的热门住宿','Popular homes in {world}') : t('{world}的热门活动','Popular experiences in {world}'))).replace('{world}',world!.name)}</span>
+              <span>{section.id.startsWith('place-') ? (isLathe?copyText('home.stays-by-place.title',locale.code).replace('{place}',section.title):t(`住在${section.title}`,`Stay in ${section.title}`)) : (section.title || (section.type === 'stays' ? t('{world}的热门住宿','Popular homes in {world}') : t('{world}的热门活动','Popular experiences in {world}'))).replace('{world}',world!.name)}</span>
               <svg class="section-title-arrow" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="M4 12h15m-6-6 6 6-6 6" /></svg>
             </a>
           </h2>

@@ -30,12 +30,14 @@
 
 ## 已录用中英文署名文案
 
+2026-10-19 页脚署名、姓名附注和签发署名已应用并上线，见[发布记录](../releases/2026-10-19-travel-copy.md)。其余人物经历仍作为文案设定维护，不表示已增加人物介绍页。
+
 ### character.isidorrus.footer-credit
 
 Maintained by Factor Isidorrus, Visitor Services, Excipio Station Texo.
 
 - 英文审定状态：已确认（用户第 10 项及核实后最终确认）。
-- 中文：由 Texo 接迎空间站访客服务处代理人伊斯多鲁斯维护。
+- 中文：由 Texo 接迎空间站访客服务处代理人伊斯多鲁斯（Isidorrus）维护。
 - 中文审定状态：已确认。
 - 决策来源：[收尾文案确认](../sources/2026-10-19-web-chat.md#日期范围计数与页脚收尾确认)。
 - 落地状态：未应用；具体页面位置与实现字段待核对。

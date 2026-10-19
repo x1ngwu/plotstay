@@ -75,7 +75,7 @@ const policies=[{icon:'person',title:t('参与要求','Guest requirements'),body
    </div>
    {c.text.hostBio&&<p class="prose service-provider-bio" lang={c.languageTag}>{c.text.hostBio}</p>}
    {c.attributes.service?.demo&&<p class="service-muted">{t('人物经历与资质为虚构设定。','Experience and qualifications are fictional character details.')}</p>}
-   <Expand locale={locale} id="service-contact" label={t('联系','Message')+' '+host}><p lang={c.languageTag}>{contentFallback(c,'service.contactNote',s?.contactNote,t('联系功能尚未开放，本页不会发送消息。','Messaging is not open yet. This page does not send messages.'))}</p></Expand>
+   <Expand locale={locale} id="service-contact" label={t('联系','Message')+(c.worldSlug==='lathe-worlds'?'':' '+host)}><p lang={c.languageTag}>{contentFallback(c,'service.contactNote',s?.contactNote,t('联系功能尚未开放，本页不会发送消息。','Messaging is not open yet. This page does not send messages.'))}</p></Expand>
    <p class="service-muted">{t('这是一次虚构旅行，无需站外付款或提供真实证件。','A fictional journey: no off-site payment or real identity documents are needed.')}</p>
   </DetailSection></div>
   <div data-service-module="06"><DetailSection id="service-gallery" title={t('服务图库','My gallery')}><Gallery content={c} locale={locale}/></DetailSection></div>

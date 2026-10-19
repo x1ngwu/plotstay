@@ -1,5 +1,5 @@
 ---
-import { detailMessages, detailBilingual } from '../lib/detail-copy';
+import { worldDetailCopy, detailMessages, detailBilingual } from '../lib/detail-copy';
 import BookingEntry from './booking/Entry.astro';
 import Service from './detail/service/Service.astro';
 import '../styles/service.css';
@@ -20,6 +20,7 @@ import StaySleeping from './detail/stay/Sleeping.astro';
 import { browsePath, detailPath, type ContentDetail, type Locale, type World, type BrowseState } from '@plotstay/contracts';
 const {detail,locale,world,state}=Astro.props as {detail:ContentDetail;locale:Locale;world:World;state:BrowseState};
 if(!Astro.locals.detailCopy){try{const {api}=await import('../lib/api');Astro.locals.detailCopy=(await api<{body:Record<string,Record<string,string>>}>('/api/detail-copy')).body;}catch{/* Original wording is the offline fallback. */}}
+Astro.locals.detailCopy=worldDetailCopy(Astro.locals.detailCopy,world.slug);
 const content=detail.content,ui=detailMessages(locale.code,Astro.locals.detailCopy),t=detailBilingual(locale.code, Astro.locals.detailCopy, 'common');
 const notesHref=(page:number)=>{const url=new URL(detailPath(locale,content,state),Astro.url);if(page>1)url.searchParams.set('notesPage',String(page));return url.pathname+url.search+'#notes';};
 ---

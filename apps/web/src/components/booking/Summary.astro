@@ -1,18 +1,19 @@
 ---
 import type { Locale } from '@plotstay/contracts';
-import { bilingual } from '../../lib/i18n';
+import { travelBilingual, copyText } from '../../lib/travel-copy';
 import Icon from '../detail/stay/Icon.astro';
-const {locale}=Astro.props as {locale:Locale}; const t=bilingual(locale.code);
+const {locale}=Astro.props as {locale:Locale}; const t=travelBilingual(locale.code);
 ---
 <article class="booking-ticket panel" data-ticket>
- <div class="window-bar"><span data-ticket-kind>{t('旅行凭条','Travel document')}</span><span>PLOTSTAY</span></div>
+ <div class="window-bar"><span data-ticket-kind>{t('旅行凭证','Travel document')}</span><span>PLOTSTAY</span></div>
  <div class="booking-ticket-body">
   <p class="eyebrow" data-ticket-status>{t('虚构旅行 · 确认前核对','FICTIONAL JOURNEY · REVIEW BEFORE CONFIRMING')}</p>
   <h2 data-ticket-title></h2><p data-ticket-summary></p>
   <dl class="booking-facts" data-ticket-facts></dl>
   <section class="booking-price"><h3>{t('价格明细','Price breakdown')}</h3><p data-ticket-equation></p><p>{t('税费及手续费','Taxes & fees')} <strong>0</strong></p><p class="booking-total">{t('虚构合计','Fictional total')} <strong data-ticket-total></strong></p></section>
   <div class="booking-concierge"><Icon name="person"/><div><p class="eyebrow">{t('虚拟礼宾卡','VIRTUAL CONCIERGE CARD')}</p><strong data-ticket-persona></strong><p>{t('仅用于这段故事 · 无需实名','A story identity · no personal details needed')}</p></div><span aria-hidden="true">✦</span></div>
-  <p class="booking-fiction">{t('模拟预订已使用虚构货币。不会真实扣款，也不提供现实中的住宿、活动或服务。','A fictional-currency simulation. No real charge, accommodation, activity or service is provided.')}</p>
-  <p class="booking-fine" data-ticket-meta></p>
+  <p class="booking-fiction">{copyText('platform.notices.document',locale.code)}</p>
+  <div data-isi-signature hidden><p>{copyText('receipt.blessing',locale.code)}</p><p>{copyText('receipt.signature',locale.code)}</p><p>{copyText('receipt.signature-affiliation',locale.code)}</p></div>
+ <p class="booking-fine" data-ticket-meta></p>
  </div>
 </article>

@@ -1,0 +1,25 @@
+{
+  "home": {
+    "worldId": "09c09945-75bd-408e-b3c1-55508413b769",
+    "beforeRevision": "f7924c64-b717-4744-97f5-48156973ec97",
+    "beforePublication": "80288e21-a823-45c5-a33c-ad406a11648b",
+    "revisionId": "4273cd10-2967-4d66-883c-bc1b35ae4c65",
+    "publicationId": "c651b9bd-f77d-49ba-9c0b-7f1d2d04ee4f"
+  },
+  "places": [
+    {
+      "settingId": "1f503d2d-c815-4266-836d-387025b807f2",
+      "revisionId": "49441dc1-dfb2-4590-9414-6cde757162b6",
+      "publicationId": "5e7a6cca-0492-4f2e-90a0-d8e88a1d3563",
+      "beforeRevision": "fe0bb307-f194-4473-9c85-faf5a2ff63d7",
+      "beforePublication": "c3f012c1-69b5-40d8-bd88-6785dc796ac3"
+    },
+    {
+      "settingId": "a7a7cd01-ba61-4c79-aa84-96a0f7e61595",
+      "revisionId": "b512c122-b7e2-4f9c-b9b2-9cdddcd921c5",
+      "publicationId": "00f2426e-8b66-4b70-8839-0dabb4636cf7",
+      "beforeRevision": "46df9794-36c1-441f-a19b-dfe868e6f796",
+      "beforePublication": "2fc22d85-464b-476e-84f4-349c5c9d28b9"
+    }
+  ]
+}

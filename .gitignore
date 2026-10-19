@@ -6,6 +6,7 @@ dist/
 .astro/
 .runtime/
 releases/
+!copy/releases/
 current
 .release.lock
 coverage/

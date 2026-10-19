@@ -1,5 +1,5 @@
 import { contentPath, fallbackLocales, idSchema, type BookingInput, type BookingQuote, type BookingReceipt, type BookingSnapshot, type QuoteInput } from '@plotstay/contracts';
-import { bilingual } from './i18n';
+import { travelBilingual, copyText } from './travel-copy';
 class BookingFailure extends Error { constructor(public code: string, public status = 0) { super(code); } }
 async function request<T>(path: string, body?: unknown): Promise<T> {
   let response: Response;
@@ -11,8 +11,8 @@ async function request<T>(path: string, body?: unknown): Promise<T> {
   if (!response.ok) throw new BookingFailure(data.error?.code ?? 'NETWORK', response.status);
   return data as T;
 }
-function errorMessage(error: unknown, locale: string) {
-  const t = bilingual(locale), code = error instanceof BookingFailure ? error.code : 'NETWORK';
+function errorMessage(error: unknown, locale: string, worldSlug?:string) {
+  const t = travelBilingual(locale,worldSlug), code = error instanceof BookingFailure ? error.code : 'NETWORK';
   const messages: Record<string, string> = {
     INVALID_DATES: t('日期已经失效或超出范围。请选择未来 365 天内开始的行程；住宿为 1–30 晚。', 'These dates are no longer valid. Start within the next 365 days; stays must be 1–30 nights.'),
     CAPACITY_EXCEEDED: t('人数超过所选房间可接待的上限，请增加房间或减少人数。', 'There are too many travellers for these rooms. Add rooms or reduce the number of travellers.'),
@@ -31,10 +31,10 @@ function errorMessage(error: unknown, locale: string) {
     ? t('操作过于频繁，请稍候再重试。', 'Too many requests. Wait a moment and retry.') : messages.NETWORK!);
 }
 function ticketData(s: BookingSnapshot, locale: string, receipt?: BookingReceipt) {
-  const t = bilingual(locale), fmt = new Intl.NumberFormat(locale === 'zh-CN' ? 'zh-Hans' : 'en');
+  const t = travelBilingual(locale,s.worldSlug), fmt = new Intl.NumberFormat(locale === 'zh-CN' ? 'zh-Hans' : 'en');
   const date = (value: string, timed = false) => new Intl.DateTimeFormat(locale === 'zh-CN' ? 'zh-Hans' : 'en',
     { dateStyle: 'medium', ...(timed ? { timeStyle: 'short' as const, hour12: false } : {}), timeZone: 'UTC' }).format(new Date(timed ? value : value + 'T00:00:00Z'));
-  const kind = s.kind === 'stay' ? t('住宿确认单', 'Stay confirmation') : s.kind === 'experience' ? t('活动票', 'Experience ticket') : t('服务凭条', 'Service voucher');
+  const kind = s.kind === 'stay' ? t('住宿确认单', 'Stay confirmation') : s.kind === 'experience' ? t('活动票', 'Experience ticket') : t('服务凭证', 'Service voucher');
   const trip = s.trip;
   const facts: [string, string][] = [[t('世界', 'World'), s.worldName], [t('地点', 'Location'), s.location]];
   if (trip.kind === 'stay') {
@@ -54,12 +54,14 @@ function ticketData(s: BookingSnapshot, locale: string, receipt?: BookingReceipt
   return { kind, facts, equation: `${equation} ${s.currencyName}`, total, meta };
 }
 function renderTicket(root: HTMLElement, s: BookingSnapshot, locale: string, receipt?: BookingReceipt) {
-  const t = bilingual(locale), data = ticketData(s, locale, receipt);
+  const t = travelBilingual(locale,s.worldSlug), data = ticketData(s, locale, receipt);
   const set = (selector: string, value: string) => { root.querySelector(selector)!.textContent = value; };
   set('[data-ticket-kind]', data.kind); set('[data-ticket-title]', s.title); set('[data-ticket-summary]', s.summary);
   set('[data-ticket-equation]', data.equation); set('[data-ticket-total]', data.total); set('[data-ticket-persona]', s.personaName);
   set('[data-ticket-meta]', data.meta);
-  if (receipt) set('[data-ticket-status]', t('已签发 · 仅限虚构旅行', 'ISSUED · FICTIONAL TRAVEL ONLY'));
+  if (receipt) set('[data-ticket-status]', s.worldSlug==='lathe-worlds' ? copyText('receipt.eyebrow',locale) : t('已签发 · 仅限虚构旅行', 'ISSUED · FICTIONAL TRAVEL ONLY'));
+  const signature=root.querySelector<HTMLElement>('[data-isi-signature]'); if(signature) signature.hidden=!(receipt && s.worldSlug==='lathe-worlds');
+  if(s.worldSlug==='lathe-worlds') set('[data-ticket-kind]',copyText('receipt.document.heading',locale));
   const facts = root.querySelector('[data-ticket-facts]')!; facts.replaceChildren();
   for (const [label, value] of data.facts) {
     const row = document.createElement('div'), dt = document.createElement('dt'), dd = document.createElement('dd');
@@ -69,7 +71,7 @@ function renderTicket(root: HTMLElement, s: BookingSnapshot, locale: string, rec
 
 export async function initBooking() {
   const root = document.querySelector<HTMLElement>('[data-booking-page]'); if (!root) return;
-  const locale = root.dataset.locale!, prefix = root.dataset.prefix!, kind = root.dataset.kind!, t = bilingual(locale);
+  const locale = root.dataset.locale!, prefix = root.dataset.prefix!, kind = root.dataset.kind!, t = travelBilingual(locale,root.dataset.world);
   const get = <T extends HTMLElement>(s: string) => root.querySelector<T>(s)!;
   const form = get<HTMLFormElement>('[data-trip-form]'), fields = get<HTMLFieldSetElement>('[data-trip-fields]');
   const quoteButton = get<HTMLButtonElement>('[data-quote]'), confirm = get<HTMLButtonElement>('[data-confirm]');
@@ -113,7 +115,7 @@ export async function initBooking() {
     : kind === 'experience' ? { kind: 'experience', startsAt: field('startsAt')?.value || `${field('start')!.value}T${field('time')!.value}:00Z`, guests: Number(field('guests')!.value) }
     : { kind: 'service', startsAt: field('startsAt')?.value || `${field('start')!.value}T${field('time')!.value}:00Z`, guests: Number(field('guests')!.value), quantity: Number(field('quantity')!.value) } });
   function editable() { fields.disabled = false; quoteButton.disabled = false; review.hidden = true; retry.hidden = true; consent.checked = false; confirm.disabled = true; }
-  form.addEventListener('input', () => { if (!recovery.pending) { review.hidden = true; quote = undefined; try { remember(); } catch (e) { show(errorMessage(e, locale)); } } });
+  form.addEventListener('input', () => { if (!recovery.pending) { review.hidden = true; quote = undefined; try { remember(); } catch (e) { show(errorMessage(e, locale, root!.dataset.world)); } } });
   consent.addEventListener('change', () => { confirm.disabled = !consent.checked || busy; });
   get('[data-edit]').addEventListener('click', () => { if (!recovery.pending) { editable(); field(kind === 'stay' || root.dataset.fixed !== 'true' ? 'start' : 'startsAt')?.focus(); } });
   form.addEventListener('submit', async event => {
@@ -123,7 +125,7 @@ export async function initBooking() {
       renderTicket(root, quote.snapshot, locale); review.hidden = false; fields.disabled = true;
       consent.checked = false; confirm.disabled = true; show(t('请核对右侧（手机为下方）行程，确认后才会保存预订。', 'Review your trip beside or below this form. Your booking is saved only after confirmation.'));
       review.scrollIntoView({ behavior: 'smooth', block: 'start' }); consent.focus({ preventScroll: true });
-    } catch (e) { editable(); show(errorMessage(e, locale)); }
+    } catch (e) { editable(); show(errorMessage(e, locale, root!.dataset.world)); }
     finally { busy = false; quoteButton.disabled = fields.disabled; }
   });
   async function submit() {
@@ -140,10 +142,10 @@ export async function initBooking() {
     } catch (e) {
       // Only definitive validation failures permit editing. Ambiguous network/server failures keep the exact request.
       const definitive = e instanceof BookingFailure && ['INVALID_INPUT','INVALID_TRIP','INVALID_DATES','CAPACITY_EXCEEDED','SESSION_UNAVAILABLE','NOT_BOOKABLE','QUOTE_CHANGED','PRICE_UNAVAILABLE'].includes(e.code);
-      if (e instanceof BookingFailure && e.code === 'STORAGE') { confirm.disabled = false; retry.hidden = true; show(errorMessage(e, locale)); return; }
+      if (e instanceof BookingFailure && e.code === 'STORAGE') { confirm.disabled = false; retry.hidden = true; show(errorMessage(e, locale, root!.dataset.world)); return; }
       if (definitive) { delete recovery.pending; try { save(); } catch {} editable(); get<HTMLButtonElement>('[data-edit]').disabled = false; }
       else retry.hidden = false;
-      show(errorMessage(e, locale) + (definitive ? '' : t(' 结果尚未确认。重试会查询或返回同一张凭条，不会重复创建。', ' The result is not yet confirmed. Retrying recovers the same document without creating a duplicate.')));
+      show(errorMessage(e, locale, root!.dataset.world) + ' ' + (definitive ? '' : t(' 结果尚未确认。重试会查询或返回同一张凭条，不会重复创建。', ' The result is not yet confirmed. Retrying recovers the same document without creating a duplicate.')));
     } finally { busy = false; retry.disabled = false; }
   }
   confirm.addEventListener('click', () => void submit()); retry.addEventListener('click', () => void submit());
@@ -162,13 +164,13 @@ export async function initBooking() {
     if (previous.receipt) { go(previous.receipt); return; }
     if (recovery.pending) { fields.disabled = true; review.hidden = true; retry.hidden = false; show(t('发现尚未确认结果的请求。请重试同一次预订以恢复凭条。', 'An unresolved request was found. Retry this booking to recover its document.')); }
     else { fields.disabled = false; quoteButton.disabled = false; }
-  } catch (e) { show(errorMessage(e, locale)); if (recovery.pending) { fields.disabled = true; retry.hidden = false; }
-    else { show(errorMessage(e, locale) + t(' 请刷新页面后重试。', ' Reload this page to retry.')); } }
+  } catch (e) { show(errorMessage(e, locale, root!.dataset.world)); if (recovery.pending) { fields.disabled = true; retry.hidden = false; }
+    else { show(errorMessage(e, locale, root!.dataset.world) + ' ' + t(' 请刷新页面后重试。', ' Reload this page to retry.')); } }
 }
 
 export async function initReceipt() {
   const root = document.querySelector<HTMLElement>('[data-receipt-page]'); if (!root) return;
-  const locale = root.dataset.locale!, prefix = root.dataset.prefix!, t = bilingual(locale);
+  const locale = root.dataset.locale!, prefix = root.dataset.prefix!, t = travelBilingual(locale);
   const get = <T extends HTMLElement>(s: string) => root.querySelector<T>(s)!;
   const message = get('[data-booking-message]'); let receipt: BookingReceipt | undefined;
   let detailHref = '', receiptHref = '';
@@ -179,8 +181,13 @@ export async function initReceipt() {
       receipt = (await request<{ receipt: BookingReceipt }>(`/api/bookings/${root!.dataset.id}`)).receipt;
       if (receipt.snapshot.version !== 1) { message.textContent = t('这是一条早期测试凭条，未保存完整行程。', 'This is an early test document without a complete trip snapshot.'); return; }
       const s = receipt.snapshot;
+      root!.dataset.world=s.worldSlug;
+      if(s.worldSlug==='lathe-worlds') {
+        for(const [selector,key] of [['[data-receipt-heading]','receipt.title'],['[data-receipt-eyebrow]','receipt.eyebrow'],['[data-receipt-intro]','receipt.intro']]) { const node=root!.querySelector<HTMLElement>(selector!); if(node) node.textContent=copyText(key!,locale); }
+        root!.querySelector<HTMLElement>('[data-retention-aside]')!.hidden=false;
+      }
       renderTicket(root!, s, locale, receipt); get('[data-receipt-content]').hidden = false;
-      get('[data-load-retry]').hidden = true; message.textContent = t('预订已保存，凭条已签发。不会真实扣款。', 'Your booking is saved and your document is issued. No real charge.');
+      get('[data-load-retry]').hidden = true; message.textContent = t('预订已保存，旅行凭证已签发。不会真实扣款。', 'Your booking is saved and your document is issued. No real charge.');
       const loc = { ...(fallbackLocales.find(l => l.code === locale) ?? fallbackLocales[0]!), pathPrefix: prefix };
       detailHref = new URL(contentPath(loc, { worldSlug: s.worldSlug, kind: s.kind, slug: s.contentSlug }), location.origin).href;
       receiptHref = `${location.origin}/${prefix}/receipts/${receipt.id}`;
@@ -191,7 +198,7 @@ export async function initReceipt() {
       get<HTMLAnchorElement>('[data-explore]').href = `/${prefix}?world=${encodeURIComponent(s.worldSlug)}`;
     } catch (e) {
       message.textContent = e instanceof BookingFailure && (e.code === 'SESSION_REQUIRED' || e.status === 404)
-        ? t('无法访问这张凭条。请使用保有原游客 Cookie 的浏览器；编号或链接不能用来访问其他人的记录。', 'This document is unavailable. Use the browser holding your original visitor cookie; a number or link cannot grant access to someone else’s record.') : errorMessage(e, locale);
+        ? t('无法访问这张凭条。请使用保有原游客 Cookie 的浏览器；编号或链接不能用来访问其他人的记录。', 'This document is unavailable. Use the browser holding your original visitor cookie; a number or link cannot grant access to someone else’s record.') : errorMessage(e, locale, root!.dataset.world);
       get('[data-load-retry]').hidden = false;
     } finally { get<HTMLButtonElement>('[data-load-retry]').disabled = false; }
   }
@@ -213,14 +220,14 @@ export async function initReceipt() {
 }
 async function downloadReceipt(receipt: BookingReceipt, s: BookingSnapshot, locale: string, root: HTMLElement) {
   await document.fonts.ready;
-  const t = bilingual(locale), data = ticketData(s, locale, receipt), canvas = document.createElement('canvas');
+  const t = travelBilingual(locale,s.worldSlug), data = ticketData(s, locale, receipt), canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d'); if (!ctx) throw new Error('CANVAS');
   const font = getComputedStyle(root).fontFamily;
-  const lines = ['PLOTSTAY / ' + data.kind, t('已签发 · 虚构旅行', 'ISSUED · FICTIONAL TRAVEL'), '', s.title, s.summary, '',
-    ...data.facts.map(([k, v]) => `${k}: ${v}`), '', t('价格明细', 'PRICE BREAKDOWN'), data.equation,
-    t('税费及手续费：0', 'Taxes & fees: 0'), `${t('虚构合计', 'Fictional total')}: ${data.total}`, '',
+  const lines = [s.worldSlug==='lathe-worlds' ? copyText('receipt.document.heading',locale) : 'PLOTSTAY / ' + data.kind, s.worldSlug==='lathe-worlds' ? copyText('receipt.eyebrow',locale) : t('已签发 · 虚构旅行', 'ISSUED · FICTIONAL TRAVEL'), '', s.title, s.summary, '',
+    ...data.facts.map(([k, v]) => `${k}: ${v}`), '', copyText('booking.review.breakdown',locale), data.equation,
+    t('税费及手续费：0', 'Taxes & fees: 0'), `${copyText('booking.review.total',locale)}: ${data.total}`, '',
     t('虚拟礼宾卡', 'VIRTUAL CONCIERGE CARD'), s.personaName, '',
-    t('不会真实扣款；不提供现实中的住宿、活动或服务。', 'No real charge, accommodation, activity or service.'), '', ...data.meta.split('\n')];
+    copyText('platform.notices.document',locale), '', ...data.meta.split('\n'), ...(s.worldSlug==='lathe-worlds' ? ['',copyText('receipt.blessing',locale),copyText('receipt.signature',locale),copyText('receipt.signature-affiliation',locale)] : [])];
   // Draw text directly; no remote images, credentials or live content enter the exported snapshot.
   const wrapped: string[] = [];
   ctx.font = `22px ${font}`;

@@ -4,13 +4,14 @@ import Base from '../../../../../layouts/Base.astro';
 import '../../../../../styles/detail.css';
 import '../../../../../styles/stay.css';
 import { api, ApiFailure, getDetail, getWorlds } from '../../../../../lib/api';
-import { detailBilingual, detailMessages } from '../../../../../lib/detail-copy';
+import { worldDetailCopy, detailBilingual, detailMessages } from '../../../../../lib/detail-copy';
 import { browsePath, detailReturn, detailQuerySchema, parseBrowse, fallbackLocales, type ContentDetail, type World } from '@plotstay/contracts';
 import { contentDescription, detailSeo, noIndex } from '../../../../../lib/seo';
 const { world: worldSlug = '', type = '', slug = '' } = Astro.params;
 const { locales, locale: selectedLocale, localeFailure } = Astro.locals;
 const locale = selectedLocale ?? fallbackLocales[0]!;
 try{Astro.locals.detailCopy=(await api<{body:Record<string,Record<string,string>>}>('/api/detail-copy')).body;}catch{/* Original wording remains available if configuration cannot be read. */}
+Astro.locals.detailCopy=worldDetailCopy(Astro.locals.detailCopy,worldSlug);
 const ui = detailMessages(locale.code,Astro.locals.detailCopy), t = detailBilingual(locale.code,Astro.locals.detailCopy,'common');
 let state = parseBrowse(new URLSearchParams());
 let world: World | undefined, detail: ContentDetail | undefined;
@@ -36,7 +37,7 @@ const content = detail?.content;
 ---
 <Base title={content?.text.title ?? 'Plotstay'} description={content ? contentDescription(content.text) : undefined} locale={locale} locales={locales} theme={world?.themeId} world={world} seo={failed || detail!.reviews.page > 1 ? noIndex() : detailSeo(locale, locales, world!, content!)}>
   {failed ? <h1>{Astro.response.status === 404 ? ui.notFound : ui.unavailable}</h1> : <div class:list={['detail-page', {'stay-detail': content!.kind === 'stay', 'experience-detail': content!.kind === 'experience', 'service-detail': content!.kind === 'service'}]}>
-    <a class="detail-back" data-back href={browsePath(locale, state)}>← {state.view === 'results' ? t('返回列表', 'Back to results') : ui.home} · {world!.name}</a>
+    <a class="detail-back" data-back href={browsePath(locale, state)}>← {worldSlug==='lathe-worlds' || state.view === 'results' ? t('返回列表', 'Back to results') : ui.home} · {world!.name}</a>
     <DetailBody detail={detail!} locale={locale} world={world!} state={state}/>
   </div>}
 </Base>

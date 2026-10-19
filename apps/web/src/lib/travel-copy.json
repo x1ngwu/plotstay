@@ -1,0 +1,670 @@
+{
+  "stay.highlights.title": {
+    "zh-CN": "值得您留意的细节",
+    "en": "Worth noting"
+  },
+  "stay.overview.title": {
+    "zh-CN": "您的住处，详述于此",
+    "en": "Your quarters, in detail"
+  },
+  "stay.rest.title": {
+    "zh-CN": "您的休憩之所",
+    "en": "Where you'll rest"
+  },
+  "stay.amenities.title": {
+    "zh-CN": "设施与配套",
+    "en": "Amenities & provisions"
+  },
+  "stay.location.title": {
+    "zh-CN": "位置与周边",
+    "en": "Location & surroundings"
+  },
+  "stay.host.title": {
+    "zh-CN": "认识您的房东",
+    "en": "Meet your host"
+  },
+  "stay.requirements.title": {
+    "zh-CN": "抵达前须知",
+    "en": "Before you arrive"
+  },
+  "home.hero.eyebrow": {
+    "zh-CN": "拉斯世界旅行服务",
+    "en": "LATHE WORLDS TRAVEL"
+  },
+  "home.hero.title": {
+    "zh-CN": "万千齿轮流转，总有一处供您停留。",
+    "en": "There's a place for you in the Machine."
+  },
+  "home.hero.intro": {
+    "zh-CN": "合适的住处、获准开展的游览、当地所需的服务，尽在这份目录之中。旅行许可仍须由您自行办理。",
+    "en": "Find suitable accommodation, approved excursions, and local services in one convenient directory. Travel authorization remains your responsibility."
+  },
+  "home.promotion.eyebrow": {
+    "zh-CN": "旅行礼遇 · 携义体同行",
+    "en": "PROMOTION · TRAVELLING WITH AUGMETICS"
+  },
+  "home.promotion.title": {
+    "zh-CN": "您的每个部分，都有容身之所。",
+    "en": "Room for every part of you."
+  },
+  "home.promotion.body": {
+    "zh-CN": "舒适的住宿，应当照顾到您的每一件义体。随身义体不收取额外床位费；如需独立充电设施，请提前告知。",
+    "en": "A comfortable stay should account for all of your augmetics. Attached limbs incur no extra-bed fee. Please let us know if separate charging facilities are required."
+  },
+  "home.categories.title": {
+    "zh-CN": "在拉斯世界，生活不止于工作。",
+    "en": "There's more to the Lathes than work."
+  },
+  "home.experiences.title": {
+    "zh-CN": "值得您休一次假的旅程。",
+    "en": "Excursions worth your leave."
+  },
+  "home.stays.title": {
+    "zh-CN": "机器永不停歇，但您可以。",
+    "en": "The Machine never rests. You may."
+  },
+  "home.stays-by-place.title": {
+    "zh-CN": "下榻于{place}",
+    "en": "Stay in {place}"
+  },
+  "home.directory.cta": {
+    "zh-CN": "浏览完整旅行目录",
+    "en": "Browse the full travel directory"
+  },
+  "home.service-card.01.title": {
+    "zh-CN": "行程统一，减少差错。",
+    "en": "One itinerary. Fewer discrepancies."
+  },
+  "home.service-card.01.body": {
+    "zh-CN": "比对不同住宿和获准开展的活动，无需反复说明您的偏好。入境许可与休假批准仍须另行办理。",
+    "en": "Compare accommodation and approved activities without repeating your preferences. Entry permits and leave clearances must still be obtained separately."
+  },
+  "home.service-card.01.cta": {
+    "zh-CN": "规划您的旅程 →",
+    "en": "Plan your visit →"
+  },
+  "home.service-card.02.title": {
+    "zh-CN": "先行检修，烦忧少扰。",
+    "en": "Maintenance before inconvenience."
+  },
+  "home.service-card.02.body": {
+    "zh-CN": "提前安排义体检修、行李协助及其他当地服务，免得小故障打乱您的行程。",
+    "en": "Arrange augmetic servicing, luggage assistance, and other local requirements before minor faults interrupt your itinerary."
+  },
+  "home.service-card.02.cta": {
+    "zh-CN": "查找当地服务 →",
+    "en": "Find local services →"
+  },
+  "home.service-card.03.title": {
+    "zh-CN": "诸事确定，舒适安心。",
+    "en": "Certainty is a comfort."
+  },
+  "home.service-card.03.body": {
+    "zh-CN": "抵达流程、当地规定与访客常见疏漏，我们已做了整理。多数不便，本可以避免。",
+    "en": "We have documented arrival procedures, local regulations, and common visitor errors. Most inconveniences are entirely preventable."
+  },
+  "home.service-card.03.cta": {
+    "zh-CN": "阅读访客须知 →",
+    "en": "Read visitor information →"
+  },
+  "experience.overview.title": {
+    "zh-CN": "此行，您将体验",
+    "en": "What awaits you"
+  },
+  "experience.itinerary.title": {
+    "zh-CN": "您的行程，依序安排",
+    "en": "Your visit, in proper order"
+  },
+  "experience.included.title": {
+    "zh-CN": "行程包含项目",
+    "en": "Included in your visit"
+  },
+  "experience.meeting-point.title": {
+    "zh-CN": "指定集合地点",
+    "en": "Designated meeting point"
+  },
+  "experience.guide.title": {
+    "zh-CN": "认识您的向导",
+    "en": "Meet your guide"
+  },
+  "experience.requirements.title": {
+    "zh-CN": "出发前须知",
+    "en": "Before you proceed"
+  },
+  "experience.sessions.title": {
+    "zh-CN": "场次与价格",
+    "en": "Sessions & rates"
+  },
+  "directory.eyebrow": {
+    "zh-CN": "拉斯世界／旅行目录",
+    "en": "LATHE WORLDS / TRAVEL DIRECTORY"
+  },
+  "directory.title": {
+    "zh-CN": "万千奇观，妥善归档。",
+    "en": "Wonders, properly catalogued."
+  },
+  "directory.foundry.name": {
+    "zh-CN": "铸造区",
+    "en": "Foundry Ward"
+  },
+  "directory.foundry.description": {
+    "zh-CN": "工业即是风景线。",
+    "en": "Where industry is the view."
+  },
+  "directory.archive.name": {
+    "zh-CN": "静谧档案区",
+    "en": "Quiet Archive"
+  },
+  "directory.archive.description": {
+    "zh-CN": "请保持肃静。出入此地需要经过许可。",
+    "en": "Silence is observed. Access is regulated."
+  },
+  "directory.docks.name": {
+    "zh-CN": "轨道船坞",
+    "en": "Orbital Docks"
+  },
+  "directory.docks.description": {
+    "zh-CN": "星舰来往，皆是风景。",
+    "en": "Arrivals, departures, and a fine view of both."
+  },
+  "directory.back": {
+    "zh-CN": "返回旅行服务台",
+    "en": "Return to travel desk"
+  },
+  "service.offerings.title": {
+    "zh-CN": "可为您安排的服务",
+    "en": "What can be arranged"
+  },
+  "service.appointments.title": {
+    "zh-CN": "预约场次与价格",
+    "en": "Appointments & rates"
+  },
+  "service.credentials.title": {
+    "zh-CN": "资质与经验",
+    "en": "Credentials & experience"
+  },
+  "service.gallery.title": {
+    "zh-CN": "进一步了解",
+    "en": "A closer look"
+  },
+  "service.location.title": {
+    "zh-CN": "服务地点",
+    "en": "Where it's provided"
+  },
+  "service.requirements.title": {
+    "zh-CN": "预约前须知",
+    "en": "Before your appointment"
+  },
+  "receipt.blessing": {
+    "zh-CN": "愿您的航程准确无偏。",
+    "en": "May your course run true."
+  },
+  "receipt.eyebrow": {
+    "zh-CN": "世界内预订确认／已签发",
+    "en": "IN-WORLD CONFIRMATION / ISSUED"
+  },
+  "receipt.title": {
+    "zh-CN": "您的预订已确认。",
+    "en": "Your reservation is confirmed."
+  },
+  "receipt.intro": {
+    "zh-CN": "您的行程已登记。请妥善保管旅行凭证，以备抵达时查验。",
+    "en": "Your itinerary has been recorded. Please retain your confirmation for inspection upon arrival."
+  },
+  "receipt.document.heading": {
+    "zh-CN": "拉斯世界旅行服务 · 旅行凭证",
+    "en": "LATHE WORLDS TRAVEL · TRAVEL DOCUMENT"
+  },
+  "receipt.signature": {
+    "zh-CN": "——代理人伊斯多鲁斯",
+    "en": "— Factor Isidorrus"
+  },
+  "receipt.signature-affiliation": {
+    "zh-CN": "Texo 接迎空间站 · 访客服务处",
+    "en": "Visitor Services, Excipio Station Texo"
+  },
+  "receipt.retention-aside": {
+    "zh-CN": "请自行留存一份旅行凭证。档案库自有其神圣职责，随时响应您的查阅并不总在其中。",
+    "en": "Please retain a copy of your travel document. The archive has its sacred duties. Answering your enquiries promptly is not invariably among them."
+  },
+  "receipt.loading": {
+    "zh-CN": "正在核对访问权限，调阅您的旅行凭证……",
+    "en": "Checking access and retrieving your travel document…"
+  },
+  "receipt.access-unavailable": {
+    "zh-CN": "无法读取这份旅行凭证。请核对链接，并使用办理预订时的浏览器，确认原有 Cookie 仍被保留。仅凭编号或链接，无法在其他浏览器中找回凭证。",
+    "en": "This travel document could not be retrieved. Check the link and use the browser in which you made the booking, with its original cookie intact. A document number or link alone cannot restore access in another browser."
+  },
+  "receipt.link-access-note": {
+    "zh-CN": "旅行凭证链接仅在保留原有 Cookie 的浏览器中可用。清除 Cookie、Cookie 到期或更换设备后，无法仅凭编号或链接找回。建议另存凭证图片。",
+    "en": "Your travel document link works only in the browser retaining the original cookie. If that cookie is cleared or expires, or you change devices, the number or link alone cannot restore access. Please save a copy of the document image."
+  },
+  "receipt.javascript-required": {
+    "zh-CN": "请启用 JavaScript，以读取您的旅行凭证。",
+    "en": "Please enable JavaScript to retrieve your travel document."
+  },
+  "receipt.legacy-document": {
+    "zh-CN": "这是一份早期测试旅行凭证，未保存完整行程，暂无法按当前格式展示。",
+    "en": "This is an early test travel document without a complete itinerary. It cannot currently be displayed in the present format."
+  },
+  "booking.start.title": {
+    "zh-CN": "一段值得记录的旅程。",
+    "en": "A journey worth recording."
+  },
+  "booking.review.title": {
+    "zh-CN": "各项细节，悉数核对。",
+    "en": "Every detail accounted for."
+  },
+  "booking.start.eyebrow": {
+    "zh-CN": "拉斯世界旅行服务／旅行服务台",
+    "en": "LATHE WORLDS TRAVEL / JOURNEY DESK"
+  },
+  "booking.start.intro": {
+    "zh-CN": "选择您的行程，核对报价，领取旅行凭证。",
+    "en": "Choose your itinerary, review the quoted price, and collect your travel document."
+  },
+  "booking.steps.choose": {
+    "zh-CN": "选择行程",
+    "en": "Choose your itinerary"
+  },
+  "booking.steps.review": {
+    "zh-CN": "核对并确认",
+    "en": "Review & confirm"
+  },
+  "booking.steps.collect": {
+    "zh-CN": "领取旅行凭证",
+    "en": "Collect your document"
+  },
+  "booking.particulars.title": {
+    "zh-CN": "行程详情",
+    "en": "Journey particulars"
+  },
+  "booking.experience.date": {
+    "zh-CN": "出行日期 · UTC",
+    "en": "Travel date · UTC"
+  },
+  "booking.experience.session": {
+    "zh-CN": "场次时间 · UTC",
+    "en": "Session time · UTC"
+  },
+  "booking.experience.session-placeholder": {
+    "zh-CN": "请选择场次时间",
+    "en": "Select a session time"
+  },
+  "booking.experience.travellers": {
+    "zh-CN": "出行人数",
+    "en": "Travellers"
+  },
+  "booking.experience.pricing-note": {
+    "zh-CN": "按每人每场计费，所有时间均为 UTC。",
+    "en": "Per person, per session · all times UTC."
+  },
+  "booking.review.cta": {
+    "zh-CN": "核对行程与报价 →",
+    "en": "Review itinerary & price →"
+  },
+  "booking.review.eyebrow": {
+    "zh-CN": "旅行服务台／核对",
+    "en": "JOURNEY DESK / REVIEW"
+  },
+  "booking.review.intro": {
+    "zh-CN": "请核对您的行程与报价总额，再继续办理。",
+    "en": "Please review your itinerary and quoted total before proceeding."
+  },
+  "booking.review.breakdown": {
+    "zh-CN": "费用明细",
+    "en": "Price breakdown"
+  },
+  "booking.review.total": {
+    "zh-CN": "报价总额",
+    "en": "Quoted total"
+  },
+  "booking.confirm.cta": {
+    "zh-CN": "确认并签发旅行凭证",
+    "en": "Confirm & issue document"
+  },
+  "booking.date-range-note": {
+    "zh-CN": "请选择未来 365 天内的日期。",
+    "en": "Choose a date within the next 365 days."
+  },
+  "booking.error.invalid-dates": {
+    "zh-CN": "所选日期已失效或超出可预约范围。请选择未来 365 天内开始的行程；住宿须为 1–30 晚。",
+    "en": "The selected dates are no longer valid or fall outside the booking range. Please choose a trip starting within the next 365 days; stays must be 1–30 nights."
+  },
+  "booking.error.capacity-exceeded": {
+    "zh-CN": "所选房间无法接待这么多旅客。请增加房间或减少人数。随身义体不计入同行人数。",
+    "en": "The selected rooms cannot accommodate this many travellers. Please add rooms or reduce the number of travellers. Attached augmetics do not count as additional guests."
+  },
+  "booking.error.session-unavailable": {
+    "zh-CN": "所选场次暂不可预约，或尚未公布时长。请另选场次，或返回旅行目录。尚未确定的安排，不宜写入您的行程。",
+    "en": "The selected session is unavailable, or its duration has not yet been published. Please choose another session or return to the travel directory. Unsettled arrangements have no place in your itinerary."
+  },
+  "booking.error.not-bookable": {
+    "zh-CN": "此项目已从目录撤下，或暂不接受预订。本次未创建新的预订，请返回旅行目录，另作安排。",
+    "en": "This listing has been withdrawn or is not currently accepting bookings. No new booking was created. Please return to the travel directory to make alternative arrangements."
+  },
+  "booking.error.quote-changed": {
+    "zh-CN": "项目详情或报价已有更新，本次未创建预订。请重新核对行程与报价。文书上的每个数字，都值得再看一眼。",
+    "en": "The listing details or quoted price have changed. No booking was created. Please review your itinerary and the updated quote. Every figure on a document deserves a second look."
+  },
+  "booking.error.price-unavailable": {
+    "zh-CN": "此项目的计价资料尚未备齐，请先浏览其他条目。未经核定的数字，不便作为报价呈交给您。",
+    "en": "Pricing details for this listing are not yet complete. Please browse other entries for now. Unverified figures would not make a proper quotation."
+  },
+  "booking.recovery.issuing": {
+    "zh-CN": "正在签发您的旅行凭证，请稍候……",
+    "en": "Issuing your travel document. Please wait…"
+  },
+  "booking.recovery.network": {
+    "zh-CN": "连接暂时中断，请稍后重试。",
+    "en": "The connection was interrupted. Please try again shortly."
+  },
+  "booking.recovery.outcome-pending": {
+    "zh-CN": "本次预订的结果尚未确认。请选择“重试同一次预订”，继续处理原请求；此操作不会重复创建预订。",
+    "en": "The outcome of this booking is not yet confirmed. Select “Retry this booking” to continue the original request without creating a duplicate booking."
+  },
+  "booking.recovery.retry": {
+    "zh-CN": "重试同一次预订",
+    "en": "Retry this booking"
+  },
+  "booking.recovery.pending-found": {
+    "zh-CN": "您有一次预订尚未确认结果。请选择“重试同一次预订”，继续处理并获取旅行凭证。",
+    "en": "A previous booking request is still awaiting confirmation. Select “Retry this booking” to continue and retrieve your travel document."
+  },
+  "booking.recovery.storage": {
+    "zh-CN": "浏览器无法保存预订恢复信息，本次预订尚未提交。请允许本站使用本地存储，然后重试。",
+    "en": "Your browser could not save the information needed to recover this booking. No booking has been submitted. Please allow local storage for this site, then retry."
+  },
+  "booking.recovery.session-required": {
+    "zh-CN": "无法读取办理本次预订时使用的 Cookie。请使用原浏览器，并确认已允许本站使用 Cookie。结果确认前，请勿更换浏览器重新预订。",
+    "en": "The cookie used for this booking could not be read. Please use the original browser and ensure cookies are allowed for this site. Do not start another booking in a different browser until the outcome is confirmed."
+  },
+  "booking.recovery.rate-limited": {
+    "zh-CN": "操作过于频繁，请稍候再试。",
+    "en": "Too many requests. Please wait a moment before trying again."
+  },
+  "booking.flow.invalid-input": {
+    "zh-CN": "请检查日期、场次、人数及数量是否填写正确。",
+    "en": "Please check that the dates, session, number of travellers and quantities are correct."
+  },
+  "booking.flow.invalid-trip": {
+    "zh-CN": "所选行程与当前项目不匹配。请返回详情页，重新填写预订信息。",
+    "en": "The selected trip does not match this listing. Please return to the listing and enter your booking details again."
+  },
+  "booking.flow.request-conflict": {
+    "zh-CN": "此次请求已关联另一笔预订。请先恢复原请求；如需另行预订，请返回详情页重新开始。",
+    "en": "This request is already linked to another booking. Please recover the original request first. To make a separate booking, return to the listing and start again."
+  },
+  "booking.flow.edit-itinerary": {
+    "zh-CN": "修改行程",
+    "en": "Edit itinerary"
+  },
+  "booking.flow.review-reminder": {
+    "zh-CN": "请核对行程与报价。只有在您确认后，才会提交预订。",
+    "en": "Please review your itinerary and quote. Your booking will be submitted only after you confirm."
+  },
+  "booking.flow.javascript-required": {
+    "zh-CN": "请启用 JavaScript，以核对行程、确认报价并领取旅行凭证。",
+    "en": "Please enable JavaScript to review your itinerary, confirm the quote and receive your travel document."
+  },
+  "booking.flow.reload-to-retry": {
+    "zh-CN": "请刷新页面后重试。",
+    "en": "Please reload the page and try again."
+  },
+  "booking.specialized.check-in": {
+    "zh-CN": "入住日期",
+    "en": "Check-in date"
+  },
+  "booking.specialized.check-out": {
+    "zh-CN": "退房日期",
+    "en": "Check-out date"
+  },
+  "booking.specialized.rooms": {
+    "zh-CN": "房间数",
+    "en": "Number of rooms"
+  },
+  "booking.specialized.service-quantity": {
+    "zh-CN": "服务数量",
+    "en": "Service quantity"
+  },
+  "booking.specialized.stay-pricing": {
+    "zh-CN": "按每间每晚计费，可预订 1–30 晚。入住与退房日期均按 UTC 日期计算。",
+    "en": "Charged per room, per night, for stays of 1–30 nights. Check-in and check-out dates use UTC calendar dates."
+  },
+  "booking.specialized.service-pricing": {
+    "zh-CN": "按服务数量计费。增加数量不会延长场次时长，出行人数不另行计费。所有场次时间均为 UTC。",
+    "en": "Charged by service quantity. Increasing the quantity does not extend the session, and no additional charge applies for the number of travellers. All session times are in UTC."
+  },
+  "booking.specialized.session-started": {
+    "zh-CN": "（已开始，不可预约）",
+    "en": "(Started — unavailable)"
+  },
+  "platform.notices.heading": {
+    "zh-CN": "PLOTSTAY · 故事之外",
+    "en": "PLOTSTAY · OUTSIDE THE STORY"
+  },
+  "platform.notices.booking": {
+    "zh-CN": "这是一项虚构的预订体验。您将获得故事世界中的旅行凭证，不会产生真实预订。无需付款或提供个人信息。",
+    "en": "This is a fictional booking experience. You'll receive an in-world travel document, not a real reservation. No payment or personal details required."
+  },
+  "platform.notices.confirmation": {
+    "zh-CN": "我已知悉，此操作仅签发虚构的旅行凭证，不会产生真实预订或付款。",
+    "en": "I understand this issues a fictional travel document only. No real reservation or payment will be made."
+  },
+  "platform.notices.document": {
+    "zh-CN": "Plotstay · 本凭证为虚构文件，不可用于现实中的旅行、入境或住宿。",
+    "en": "Plotstay · Fictional document only. Not valid for real-world travel, entry or accommodation."
+  },
+  "platform.notices.recovery": {
+    "zh-CN": "您可在当前浏览器中找回旅行凭证，最长 180 天。清除 Cookie 或更换设备后，可能无法找回。建议保存副本。",
+    "en": "Your travel document can be retrieved in this browser for up to 180 days. Clearing cookies or switching devices may prevent recovery. We recommend saving a copy."
+  },
+  "detail.shared.back": {
+    "zh-CN": "返回旅行目录",
+    "en": "Back to the directory"
+  },
+  "detail.shared.visitor-notes.title": {
+    "zh-CN": "旅客笔记",
+    "en": "Visitor notes"
+  },
+  "detail.shared.related.title": {
+    "zh-CN": "目录中的更多选择",
+    "en": "More from the directory"
+  },
+  "detail.shared.contact": {
+    "zh-CN": "联系说明",
+    "en": "Contact information"
+  },
+  "character.isidorrus.footer-credit": {
+    "zh-CN": "由 Texo 接迎空间站访客服务处代理人伊斯多鲁斯（Isidorrus）维护。",
+    "en": "Maintained by Factor Isidorrus, Visitor Services, Excipio Station Texo."
+  },
+  "character.isidorrus.footer-spelling-note": {
+    "zh-CN": "为免疑义，特此声明：姓名中的第二个 R 为有意保留。",
+    "en": "For the avoidance of doubt, the second R is intentional."
+  },
+  "receipt.action.save-image": {
+    "zh-CN": "保存旅行凭证图片",
+    "en": "Save document image"
+  },
+  "receipt.action.copy-listing": {
+    "zh-CN": "复制详情页链接",
+    "en": "Copy listing link"
+  },
+  "receipt.action.copy-document": {
+    "zh-CN": "复制我的旅行凭证链接",
+    "en": "Copy my document link"
+  },
+  "receipt.action.reload": {
+    "zh-CN": "重新读取旅行凭证",
+    "en": "Reload travel document"
+  },
+  "receipt.action.book-again": {
+    "zh-CN": "再次预订此行程",
+    "en": "Book this trip again"
+  },
+  "receipt.action.return-listing": {
+    "zh-CN": "返回详情页",
+    "en": "Return to listing"
+  },
+  "receipt.action.return-desk": {
+    "zh-CN": "返回旅行服务台",
+    "en": "Return to travel desk"
+  },
+  "receipt.feedback.link-copied": {
+    "zh-CN": "链接已复制。",
+    "en": "Link copied."
+  },
+  "receipt.feedback.copy-failed": {
+    "zh-CN": "自动复制失败，请手动复制下方链接。",
+    "en": "Automatic copying failed. Please copy the link below manually."
+  },
+  "receipt.feedback.image-ready": {
+    "zh-CN": "旅行凭证图片已生成。请查看浏览器下载记录，或使用设备的图片保存功能。",
+    "en": "Your travel document image is ready. Check your browser’s downloads, or use your device’s save image option."
+  },
+  "receipt.feedback.download-failed": {
+    "zh-CN": "图片下载失败，您的预订记录仍已保存。请重试，或先截图保存旅行凭证。",
+    "en": "The image could not be downloaded. Your booking record is still saved. Please retry, or take a screenshot of your travel document."
+  },
+  "functional.All": {
+    "zh-CN": "全部",
+    "en": "All"
+  },
+  "functional.Homes": {
+    "zh-CN": "住宿",
+    "en": "Homes"
+  },
+  "functional.Experiences": {
+    "zh-CN": "活动",
+    "en": "Experiences"
+  },
+  "functional.Services": {
+    "zh-CN": "服务",
+    "en": "Services"
+  },
+  "functional.Search names, places or tags": {
+    "zh-CN": "搜索名称、地点或标签",
+    "en": "Search names, places or tags"
+  },
+  "functional.Destination": {
+    "zh-CN": "目的地",
+    "en": "Destination"
+  },
+  "functional.All destinations": {
+    "zh-CN": "全部地点",
+    "en": "All destinations"
+  },
+  "functional.Search": {
+    "zh-CN": "搜索",
+    "en": "Search"
+  },
+  "functional.Clear filters": {
+    "zh-CN": "清除筛选",
+    "en": "Clear filters"
+  },
+  "functional.Travel date": {
+    "zh-CN": "出行日期",
+    "en": "Travel date"
+  },
+  "functional.Return / check-out date": {
+    "zh-CN": "返回／退房日期",
+    "en": "Return / check-out date"
+  },
+  "functional.Travellers": {
+    "zh-CN": "出行人数",
+    "en": "Travellers"
+  },
+  "functional.Number of rooms": {
+    "zh-CN": "房间数",
+    "en": "Number of rooms"
+  },
+  "functional.Service quantity": {
+    "zh-CN": "服务数量",
+    "en": "Service quantity"
+  },
+  "functional.Not yet decided": {
+    "zh-CN": "尚未确定",
+    "en": "Not yet decided"
+  },
+  "functional.Preferred time": {
+    "zh-CN": "时段偏好",
+    "en": "Preferred time"
+  },
+  "functional.Any time": {
+    "zh-CN": "不限时段",
+    "en": "Any time"
+  },
+  "functional.Morning": {
+    "zh-CN": "上午",
+    "en": "Morning"
+  },
+  "functional.Afternoon": {
+    "zh-CN": "下午",
+    "en": "Afternoon"
+  },
+  "functional.Evening": {
+    "zh-CN": "晚间",
+    "en": "Evening"
+  },
+  "functional.Category": {
+    "zh-CN": "类别",
+    "en": "Category"
+  },
+  "functional.All categories": {
+    "zh-CN": "全部类别",
+    "en": "All categories"
+  },
+  "functional.Previous": {
+    "zh-CN": "上一页",
+    "en": "Previous"
+  },
+  "functional.Next": {
+    "zh-CN": "下一页",
+    "en": "Next"
+  },
+  "directory.count": {
+    "zh-CN": "共收录 {total} 条记录",
+    "en": "{total} entries on record"
+  },
+  "directory.count-one": {
+    "zh-CN": "共收录 1 条记录",
+    "en": "1 entry on record"
+  },
+  "navigation.search-label": {
+    "zh-CN": "您计划前往的目的地",
+    "en": "Your Planned Destination"
+  },
+  "navigation.empty": {
+    "zh-CN": "本目录尚无可供查阅的条目。\n谨向我亲爱的同僚们说明：目录空白，不代表此地没有值得访问之处。请向当地可信赖的单位咨询。",
+    "en": "No entries are currently available in this directory.\nFor the benefit of my esteemed colleagues: the absence of entries does not imply an absence of places worth visiting. Please consult trusted local units."
+  },
+  "navigation.no-results": {
+    "zh-CN": "本目录中，暂无符合您所选条件的条目。您不妨放宽一两项条件。毕竟，这是出行偏好，并非神圣誓约。",
+    "en": "No entries match your selected criteria. You may wish to relax a condition or two. These are travel preferences, after all, not sacred vows."
+  },
+  "navigation.not-found": {
+    "zh-CN": "未找到此页面。请核对地址，或返回旅行服务台。\n我们尊敬的帝国行政部同僚自有一套档案。但本处档案，并不由他们保管。",
+    "en": "Page not found. Please check the address or return to the travel desk.\nOur esteemed colleagues in the Administratum maintain their own records. They do not, however, maintain ours."
+  },
+  "navigation.unavailable": {
+    "zh-CN": "暂时无法调阅这份资料，请稍后重试。\n与机魂沟通须遵循正确的仪式。目前正在核对仪式次序。\n档案库偶有迟滞，您的休假不应如此。",
+    "en": "This record cannot be retrieved at present. Please try again shortly.\nThe machine-spirit must be approached with the proper rites. The order of those rites is currently being checked.\nArchives may be delayed. Your leave should not be."
+  },
+  "navigation.ui-fallback": {
+    "zh-CN": "界面暂以英语显示，相应译文尚未归档。译文所需的手续，比预想中略多一些。",
+    "en": "The interface is currently displayed in English. The corresponding translation is not yet in the archive. The translation has encountered more paperwork than anticipated."
+  },
+  "navigation.date-order": {
+    "zh-CN": "退房日期须晚于入住日期。即便考虑到亚空间航行中的时间偏差，本表仍须依此次序填写。",
+    "en": "Checkout must be later than check-in. Even allowing for temporal discrepancies in warp travel, this form must be completed in that order."
+  },
+  "navigation.search-note": {
+    "zh-CN": "日期与数量仅用于记录您的行程偏好，搜索暂不核查可用余量。",
+    "en": "Dates and quantities record your trip preferences only. Search does not currently check availability."
+  },
+  "navigation.content-fallback": {
+    "zh-CN": "此内容暂以原文展示。",
+    "en": "This content is currently shown in its original language."
+  }
+}

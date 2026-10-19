@@ -1,8 +1,10 @@
 # 全部目录
 
+实施状态：2026-10-19 本文件已审定界面文案已应用并发布；下文审定过程中的未实施描述为历史记录。见[发布记录](../releases/2026-10-19-travel-copy.md)。
+
 范围：拉斯世界全部目录页的标题、统计、样板地区名称与介绍、返回按钮。
 
-审定状态：2026-10-19 用户确认录用以下 10 条英文；对应 10 条中文已全部确认，包含公共区域及样板地区名称与介绍。落地状态：全部未应用。维护规则见 [文案库入口](../README.md)。
+审定状态：2026-10-19 用户确认录用以下 10 条英文；对应 10 条中文已全部确认，包含公共区域及样板地区名称与介绍。落地状态：已确认条目已上线。维护规则见 [文案库入口](../README.md)。
 
 依据：用户对本地会话中目录页清单及“先录用英文”的提议回复“是的”，并明确确认把 Back to discovery 改为 Return to travel desk。见 [来源确认](../sources/2026-10-19-web-chat.md#全部目录页录用确认)。
 
@@ -14,7 +16,7 @@
 - 英文审定状态：已确认
 - 中文审定状态：已确认
 - 决策来源：[目录页公共区域中文确认](../sources/2026-10-19-web-chat.md#目录页公共区域中文确认)
-- 落地状态：未应用
+- 落地状态：已上线
 
 LATHE WORLDS / TRAVEL DIRECTORY
 
@@ -26,7 +28,7 @@ LATHE WORLDS / TRAVEL DIRECTORY
 - 英文审定状态：已确认
 - 中文审定状态：已确认
 - 决策来源：[目录页公共区域中文确认](../sources/2026-10-19-web-chat.md#目录页公共区域中文确认)
-- 落地状态：未应用
+- 落地状态：已上线
 
 Wonders, properly catalogued.
 
@@ -38,7 +40,7 @@ Wonders, properly catalogued.
 - 英文审定状态：已确认
 - 中文审定状态：已确认
 - 决策来源：[目录页公共区域中文确认](../sources/2026-10-19-web-chat.md#目录页公共区域中文确认)
-- 落地状态：未应用
+- 落地状态：已上线
 
 {total} entries on record
 
@@ -58,7 +60,7 @@ Wonders, properly catalogued.
 - 英文审定状态：已确认
 - 中文审定状态：已确认
 - 决策来源：[样板地区中文确认](../sources/2026-10-19-web-chat.md#样板地区中文确认)
-- 落地状态：未应用
+- 落地状态：已上线
 
 Foundry Ward
 
@@ -70,7 +72,7 @@ Foundry Ward
 - 英文审定状态：已确认
 - 中文审定状态：已确认
 - 决策来源：[样板地区中文确认](../sources/2026-10-19-web-chat.md#样板地区中文确认)
-- 落地状态：未应用
+- 落地状态：已上线
 
 Where industry is the view.
 
@@ -82,7 +84,7 @@ Where industry is the view.
 - 英文审定状态：已确认
 - 中文审定状态：已确认
 - 决策来源：[样板地区中文确认](../sources/2026-10-19-web-chat.md#样板地区中文确认)
-- 落地状态：未应用
+- 落地状态：已上线
 
 Quiet Archive
 
@@ -94,7 +96,7 @@ Quiet Archive
 - 英文审定状态：已确认
 - 中文审定状态：已确认
 - 决策来源：[样板地区中文确认](../sources/2026-10-19-web-chat.md#样板地区中文确认)
-- 落地状态：未应用
+- 落地状态：已上线
 
 Silence is observed. Access is regulated.
 
@@ -106,7 +108,7 @@ Silence is observed. Access is regulated.
 - 英文审定状态：已确认
 - 中文审定状态：已确认
 - 决策来源：[样板地区中文确认](../sources/2026-10-19-web-chat.md#样板地区中文确认)
-- 落地状态：未应用
+- 落地状态：已上线
 
 Orbital Docks
 
@@ -118,7 +120,7 @@ Orbital Docks
 - 英文审定状态：已确认
 - 中文审定状态：已确认
 - 决策来源：[样板地区中文确认](../sources/2026-10-19-web-chat.md#样板地区中文确认)
-- 落地状态：未应用
+- 落地状态：已上线
 
 Arrivals, departures, and a fine view of both.
 
@@ -130,7 +132,7 @@ Arrivals, departures, and a fine view of both.
 - 英文审定状态：已确认
 - 中文审定状态：已确认
 - 决策来源：[目录页公共区域中文确认](../sources/2026-10-19-web-chat.md#目录页公共区域中文确认)
-- 落地状态：未应用
+- 落地状态：已上线
 
 Return to travel desk
 

@@ -1,5 +1,7 @@
 # Plotstay 项目操作手册
 
+> 2026-10-19 文案发布后状态：按本次项目操作约定，开发域名已恢复 Nginx Basic Auth。此前临时匿名预览已结束；页面、API 与静态资源需要认证，仅 `/robots.txt` 公开。`SITE_INDEXABLE=false`、`X-Robots-Tag: noindex, nofollow, noarchive` 和 `Cache-Control: private, no-store` 保持。应用后台账户与 Basic Auth 凭据独立。
+
 ## 开发域名与默认发布规则
 
 `https://plotstay.xingwu.dev` 是开发调试环境，中文入口 `/zh`，英文入口 `/en`，后台 `/zh/admin`。域名根路径自动跳转语言首页。
