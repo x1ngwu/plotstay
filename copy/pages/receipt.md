@@ -2,7 +2,7 @@
 
 范围：签发结果、网页凭条和下载图片中的文字。
 
-状态：2026-10-19 签发祝福、配套文案与任职署名共 7 条中英文均已确认，呈现关系已确认；Texo 中文名另行核对，当前保留英文。全部未应用。
+状态：2026-10-19 签发祝福、配套文案与任职署名共 7 条中英文均已确认，呈现关系已确认；Texo 按用户确认保留英文，不再列为待译项。全部未应用。
 
 依据：用户对三阶段及预约配套英文清单回复“可以的”。见 [来源确认](../sources/2026-10-19-web-chat.md#预约三阶段与配套英文录用确认)；维护规则见 [文案库入口](../README.md)。
 
@@ -89,14 +89,14 @@ LATHE WORLDS TRAVEL · TRAVEL DOCUMENT
 
 英文：Visitor Services, Excipio Station Texo
 
-中文：Texo 接待空间站 · 访客服务处
+中文：Texo 接迎空间站 · 访客服务处
 
 ## 已确认的呈现关系
 
 2026-10-19 用户对 10 条确认／签发配套英文及呈现关系回复“是的，继续”。见 [录用记录](../sources/2026-10-19-web-chat.md#确认页与签发页配套文案录用确认)。
 
 - `Your reservation is confirmed.` 作成功主标题。
-- `May your course run true.` 放在凭证中作为签发祝福，下接 `— Factor Isidorrus`，再下一行标注 `Visitor Services, Excipio Station Texo`。中文依次为“愿您的航程准确无偏。”“——代理人伊斯多鲁斯”“Texo 接待空间站 · 访客服务处”。
+- `May your course run true.` 放在凭证中作为签发祝福，下接 `— Factor Isidorrus`，再下一行标注 `Visitor Services, Excipio Station Texo`。中文依次为“愿您的航程准确无偏。”“——代理人伊斯多鲁斯”“Texo 接迎空间站 · 访客服务处”。
 - TX-017 保留为内部档案编号，不加入这段面向旅客的祝福署名。
 - 网页及下载图片都保留已确认的 [平台虚构说明](../shared/platform-notices.md)。
 

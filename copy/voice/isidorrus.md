@@ -19,7 +19,7 @@
 | character.isidorrus.name | 正式拼写 Isidorrus | 已确认 |
 | character.isidorrus.typo-origin | 原名 Isidorus，登记时多写一个 r。他曾要求修改，相关人员拒绝，理由是修改会让三个档案库崩掉 | 已确认，用户第 3 项修订 |
 | character.isidorrus.typo-attitude | 他对错别字耿耿于怀，内心别扭，又拉不下脸 | 已确认，用户第 4 项修订 |
-| character.isidorrus.nickname | 熟人昵称 Isi | 已确认，用户第 6 项 |
+| character.isidorrus.nickname | 熟人昵称 Isi（伊斯） | 已确认，用户第 6 项 |
 | character.isidorrus.common-misspelling | 旅客常误写为 Isidorus | 已确认，用户第 7 项 |
 | character.isidorrus.workplace | Visitor Services, Excipio Station Texo | 已确认，用户第 8 项；空间位置另见核实记录 |
 | character.isidorrus.signature-style | 常规署名 Isidorrus；正式场合使用头衔加姓名 | 已确认，用户第 9 项及核实后最终确认 |
@@ -28,14 +28,16 @@
 
 不再使用“他从未认为值得更正”或“他内心接受错误已经成为正确事实”的旧解释。
 
-## 已录用英文署名文案
+## 已录用中英文署名文案
 
 ### character.isidorrus.footer-credit
 
 Maintained by Factor Isidorrus, Visitor Services, Excipio Station Texo.
 
 - 英文审定状态：已确认（用户第 10 项及核实后最终确认）。
-- 中文审定状态：待确认，尚未录用译文。
+- 中文：由 Texo 接迎空间站访客服务处代理人伊斯多鲁斯维护。
+- 中文审定状态：已确认。
+- 决策来源：[收尾文案确认](../sources/2026-10-19-web-chat.md#日期范围计数与页脚收尾确认)。
 - 落地状态：未应用；具体页面位置与实现字段待核对。
 
 ### character.isidorrus.footer-spelling-note
@@ -43,7 +45,9 @@ Maintained by Factor Isidorrus, Visitor Services, Excipio Station Texo.
 For the avoidance of doubt, the second R is intentional.
 
 - 英文审定状态：已确认（用户第 11 项）。
-- 中文审定状态：待确认，之前的中文解释不自动当作正式译文。
+- 中文：为免疑义，特此声明：姓名中的第二个 R 为有意保留。
+- 中文审定状态：已确认（用户直接修订，仅规范 R 两侧空格）。
+- 决策来源：[收尾文案确认](../sources/2026-10-19-web-chat.md#日期范围计数与页脚收尾确认)。
 - 落地状态：未应用；具体页面位置与实现字段待核对。
 - 写作理解：这句话与登记错误、内心别扭并存；不能据此改写为他真的满意这个拼写。
 
@@ -60,12 +64,14 @@ For the avoidance of doubt, the second R is intentional.
 | character.isidorrus.training | 在 Hesh 接受 Factor 训练 | Hesh 的 Factor 训练背景有官方依据；此人的受训经历为原创 |
 | character.isidorrus.posting | 在 Excipio Station Texo 的 Visitor Services 任职 | Texo 有官方文本依据；Visitor Services 是原创部门名，不把空间站指定到某颗主星的地表或轨道 |
 
-经历顺序：**Lathe-Hadd 成长 → Hesh 接受 Factor 训练 → Texo 访客接待岗位。**
+经历顺序：**拉斯哈德（Lathe-Hadd）成长 → 赫什（Hesh）接受代理人（Factor）训练 → Texo 访客接待岗位。**
+
+地名沿用知识库已有译法，见[术语表](glossary.md)。
 
 ## 后续文案工作
 
-人物设定本轮已确认；签发署名已进一步确认 Factor 为“代理人”、Visitor Services 为“访客服务处”、当前空间站称呼为“Texo 接待空间站”。Texo 中文名及两段页脚文案的正式中文翻译仍未审定。具体页面位置与实现字段待进入应用环节核对。本文录用不代表网站已更新。
+人物设定本轮已确认；签发署名已进一步确认 Factor 为“代理人”、Visitor Services 为“访客服务处”、当前空间站称呼为“Texo 接迎空间站”。两段页脚中英文均已审定；用户已确认 Texo 保留英文，不再列为待译项。具体页面位置与实现字段待进入应用环节核对。本文录用不代表网站已更新。
 
 ## 签发署名补充
 
-2026-10-19 用户确认在祝福与姓名下补充任职信息。正式呈现见 [旅行凭证](../pages/receipt.md)：英文为 Visitor Services, Excipio Station Texo，中文为“Texo 接待空间站 · 访客服务处”。内部档案号 TX-017 不加入该祝福署名。
+2026-10-19 用户确认在祝福与姓名下补充任职信息。正式呈现见 [旅行凭证](../pages/receipt.md)：英文为 Visitor Services, Excipio Station Texo，中文为“Texo 接迎空间站 · 访客服务处”。内部档案号 TX-017 不加入该祝福署名。
