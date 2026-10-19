@@ -2,7 +2,7 @@
 
 范围：签发结果、网页凭条和下载图片中的文字。
 
-状态：2026-10-19 签发祝福、配套文案与任职署名共 7 条，以及保存／复制／后续操作 12 条，合计 19 条中英文均已确认；呈现关系已确认；Texo 按用户确认保留英文，不再列为待译项。全部未应用。
+状态：2026-10-19 签发祝福、配套文案与任职署名共 7 条，以及保存／复制／后续操作 12 条、读取与找回提示 5 条，合计 24 条中英文均已确认；呈现关系已确认；Texo 按用户确认保留英文，不再列为待译项。全部未应用。
 
 依据：用户对三阶段及预约配套英文清单回复“可以的”。见 [来源确认](../sources/2026-10-19-web-chat.md#预约三阶段与配套英文录用确认)；维护规则见 [文案库入口](../README.md)。
 
@@ -145,4 +145,48 @@ LATHE WORLDS TRAVEL · TRAVEL DOCUMENT
 - “再次预订此行程”重新打开同一项目的预约表单，不表示点击后已新建预订。
 - 图片成功提示仅说明图片已生成，不承诺已保存到用户设备。
 - 平台反馈保持实际操作含义；Isi 附注不替代 Cookie、保存期限及找回条件说明。
-- 本批不包含读取中、无法访问、旧版测试凭证、JavaScript 提示及完整找回说明，仍须后续核对。
+- 读取中、无法访问、旧版测试凭证、JavaScript 提示及找回说明已于后续批次确认，见下文。
+
+## 旅行凭证读取与找回（2026-10-19）
+
+以下 5 条中英文均已确认，全部未应用。用户回复“是的，可以，就这样”，见[确认记录](../sources/2026-10-19-web-chat.md#旅行凭证读取与找回确认)。均采用平台口吻，保留实际访问条件；Isi 保存附注另行呈现。
+
+### receipt.loading
+
+中文：正在核对访问权限，调阅您的旅行凭证……
+
+英文：Checking access and retrieving your travel document…
+
+“访问权限”指平台访问权限，不指故事内的旅行许可。
+
+### receipt.access-unavailable
+
+中文：无法读取这份旅行凭证。请核对链接，并使用办理预订时的浏览器，确认原有 Cookie 仍被保留。仅凭编号或链接，无法在其他浏览器中找回凭证。
+
+英文：This travel document could not be retrieved. Check the link and use the browser in which you made the booking, with its original cookie intact. A document number or link alone cannot restore access in another browser.
+
+### receipt.link-access-note
+
+中文：旅行凭证链接仅在保留原有 Cookie 的浏览器中可用。清除 Cookie、Cookie 到期或更换设备后，无法仅凭编号或链接找回。建议另存凭证图片。
+
+英文：Your travel document link works only in the browser retaining the original cookie. If that cookie is cleared or expires, or you change devices, the number or link alone cannot restore access. Please save a copy of the document image.
+
+与已确认的“最长 180 天”平台说明协调排版，避免重复；应用前核对实际访问与保存期限行为。
+
+### receipt.javascript-required
+
+中文：请启用 JavaScript，以读取您的旅行凭证。
+
+英文：Please enable JavaScript to retrieve your travel document.
+
+### receipt.legacy-document
+
+中文：这是一份早期测试旅行凭证，未保存完整行程，暂无法按当前格式展示。
+
+英文：This is an early test travel document without a complete itinerary. It cannot currently be displayed in the present format.
+
+仅用于旧测试记录的兼容提示，不展示给正常版本的凭证。
+
+### 本批应用核对
+
+对照位置：`apps/web/src/pages/[locale]/receipts/[id].astro` 的读取状态、链接说明和 noscript；`apps/web/src/lib/booking-client.ts` 中 `initReceipt()` 的访问失败及快照版本分支。具体字段绑定和功能验证在应用阶段完成；本次只录用文案，不改变身份恢复、访问权限或历史记录。
